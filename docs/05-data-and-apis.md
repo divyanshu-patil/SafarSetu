@@ -6,7 +6,7 @@ Principle: **free and keyless first; synthetic only where no feed exists; label 
 
 | Need | Choice | Why | Limits / production path |
 |---|---|---|---|
-| Map | **Leaflet + CARTO Positron tiles (OSM data)** | No key, tiny, monochrome basemap that fits the design system; RN equivalent exists | Free tiles are for light/demo use → MapTiler/Stadia or self-hosted tiles in production; Mappls for India-grade POI |
+| Map | **Leaflet + OSM standard tiles** (CSS-desaturated to fit the design) | No key, tiny; RN equivalent exists. CARTO's free basemap started demanding an API key during testing | OSM tile policy forbids heavy use → MapTiler/Stadia free tier or self-hosted tiles in production; Mappls for India-grade POI |
 | Autocomplete | **Photon** (komoot) | Typeahead-friendly, OSM-based, keyless | Demo server best-effort; self-host or Pelias later |
 | Geocode / reverse | **Nominatim** | Canonical OSM geocoder | **1 req/s, User-Agent required, no autocomplete** → we proxy + cache + rate-limit server-side |
 | Walking geometry | **FOSSGIS OSRM foot** (`routing.openstreetmap.de/routed-foot`) | Real pedestrian paths, keyless (the main OSRM demo server is car-only) | Fair-use; self-host OSRM/Valhalla or OpenRouteService (free key) in prod |

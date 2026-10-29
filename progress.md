@@ -26,7 +26,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 - ✅ Insights
 
 ## Phase 4 — Polish / verification
-- 🔄 End-to-end: API+SSE flow and production build verified by script; **visual browser check not done** (Chrome extension not connected)
+- ✅ End-to-end verified in Chrome: planner (Pune+Mumbai), live trip, SSE alerts, simulator, insights. Phone-width layout NOT verified (window resize had no effect)
 - ✅ Mobile proof (apps/app home screen runs @repo/core)
 - ✅ README, docs sync
 
@@ -35,3 +35,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 - 2026-10-30 — user scoped demo cities to **Mumbai + Pune**; core package done with both packs, tests green.
 - 2026-10-30 — API, web, mobile proof built; fixed replan attribution + 'wait at previous place' behaviour found in e2e run.
 - Next ideas: visual QA in browser, import real GTFS (PMPML/BEST), Web Push (VAPID), learned delay profiles, Marathi/Hindi alert copy, run SupabaseStore against local Supabase.
+- 2026-10-30 — browser QA found+fixed: CARTO tiles need API key (→ OSM, greyscaled), marker class clash `.pin.visit`, zero-length first move, vague 'open the app' alert (now suggests cab/walk), walking thresholds by pace.

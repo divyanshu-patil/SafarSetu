@@ -278,7 +278,7 @@ const score = (it: Itinerary) => it.arriveMin + it.transfers * 3 + it.walkM / 40
 export function bestItinerary(ix: Indexed, live: LiveState, from: LatLon & { name?: string }, to: LatLon & { name?: string }, departMin: number, o: RouteOpts): Itinerary {
   const cands = search(ix, live, from, to, departMin, o);
   const direct = haversine(from, to);
-  if (direct <= o.maxWalkM * 1.3) cands.push(walkItinerary(from, to, departMin, o));
+  if (direct <= o.maxWalkM * 0.9) cands.push(walkItinerary(from, to, departMin, o));
   cands.sort((a, b) => score(a) - score(b));
   const top = cands[0];
   const cab = cabItinerary(from, to, departMin);

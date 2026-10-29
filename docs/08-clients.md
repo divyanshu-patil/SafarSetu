@@ -22,7 +22,7 @@ Design system: [DESIGN.md](DESIGN.md) — Apple-style white gallery: #fff canvas
 ### State & data
 - `lib/api.ts` = `createClient()` from `@repo/core`; pages are thin.
 - Plan form state in React state + `localStorage` draft; plan id in URL.
-- Basemap: CARTO Positron (monochrome, OSM data). Leaflet created client-side only (`dynamic(..., {ssr:false})`).
+- Basemap: OSM tiles, greyscaled via CSS. Leaflet created client-side only (`dynamic(..., {ssr:false})`).
 
 ## Mobile reuse (`apps/app`, Expo)
 

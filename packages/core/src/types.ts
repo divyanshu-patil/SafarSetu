@@ -249,6 +249,8 @@ export interface ChangeSummary {
   oldLeaveMin?: number;
   newLeaveMin?: number;
   nextBoard?: { routeName: string; stopName: string; departMin: number };
+  /** replacement when no vehicle is available, e.g. "Take a cab (about ₹120, 18 min)" */
+  altText?: string;
   nextPlace?: string;
   newArriveMin?: number;
   slackMin: number;

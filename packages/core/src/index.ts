@@ -9,5 +9,5 @@ export { confidence } from "./confidence";
 export { planDay, planRoute, makeCtx } from "./planner";
 export { assessPlan, type Assessment } from "./assess";
 export { buildReminders, composeAlert, pickKind } from "./notify";
-export { planToMapLayers, positionAt, nextAction, type MapLine, type MapMarker, type NextAction } from "./viewmodel";
+export { planToMapLayers, positionAt, nextAction, isTrivialMove, type MapLine, type MapMarker, type NextAction } from "./viewmodel";
 export * from "./client";

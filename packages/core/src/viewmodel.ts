@@ -88,3 +88,8 @@ export function nextAction(plan: Plan, now: number): NextAction | null {
   }
   return null;
 }
+
+/** A move that is just a few metres on foot (e.g. start point = first place): nothing to show or remind. */
+export function isTrivialMove(e: Entry): boolean {
+  return e.kind === "move" && e.itinerary.legs.length === 1 && e.itinerary.legs[0]!.kind === "walk" && (e.itinerary.legs[0] as { distM: number }).distM < 60;
+}

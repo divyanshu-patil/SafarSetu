@@ -28,7 +28,7 @@ export default function MapView({ bbox, lines = [], markers = [], me, onPick, pi
     if (!el.current || map.current) return;
     const m = L.map(el.current, { zoomControl: false, attributionControl: true, scrollWheelZoom: true });
     L.control.zoom({ position: "bottomright" }).addTo(m);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", { maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO" }).addTo(m);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(m);
     m.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
     m.on("click", (e) => picking_.current && pick.current?.(e.latlng.lat, e.latlng.lng));
     group.current = L.layerGroup().addTo(m);
@@ -46,7 +46,7 @@ export default function MapView({ bbox, lines = [], markers = [], me, onPick, pi
       pts.push(...l.coords);
     }
     for (const k of markers) {
-      const icon = L.divIcon({ className: "", html: `<div class="pin ${k.kind}">${k.kind === "visit" ? k.n : ""}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+      const icon = L.divIcon({ className: "", html: `<div class="pin ${k.kind === "visit" ? "" : k.kind}">${k.kind === "visit" ? k.n : ""}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
       L.marker([k.lat, k.lon], { icon, title: k.label }).bindTooltip(k.label).addTo(g);
       pts.push([k.lat, k.lon]);
     }

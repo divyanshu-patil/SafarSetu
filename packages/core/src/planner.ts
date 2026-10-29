@@ -20,7 +20,7 @@ const indexCache = new WeakMap<Network, Indexed>();
 export function makeCtx(net: Network, live: LiveState = noLive, prefs: Prefs = {}): Ctx {
   let ix = indexCache.get(net);
   if (!ix) indexCache.set(net, (ix = indexNetwork(net)));
-  const p: Required<Prefs> = { pace: prefs.pace ?? "normal", maxWalkM: prefs.maxWalkM ?? 1200, avoid: prefs.avoid ?? [], style: prefs.style ?? "calm" };
+  const p: Required<Prefs> = { pace: prefs.pace ?? "normal", maxWalkM: prefs.maxWalkM ?? (prefs.pace === "relaxed" ? 800 : prefs.pace === "fast" ? 1500 : 1200), avoid: prefs.avoid ?? [], style: prefs.style ?? "calm" };
   const o: RouteOpts = { ...defaultOpts(), ...PACE_OPTS[p.pace], maxWalkM: p.maxWalkM, avoid: p.avoid };
   return { ix, live, o, prefs: p, cache: new Map() };
 }

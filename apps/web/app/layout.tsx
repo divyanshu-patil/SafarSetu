@@ -14,7 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Nav />
         {children}
         <footer className="footer">
-          <div className="wrap">Demo runs on synthetic Mumbai and Pune transport data modelled on real networks — not for real travel decisions. Map © OpenStreetMap contributors, © CARTO.</div>
+          <div className="wrap">Demo runs on synthetic Mumbai and Pune transport data modelled on real networks — not for real travel decisions. Map © OpenStreetMap contributors.</div>
         </footer>
       </body>
     </html>

@@ -1,4 +1,5 @@
 import { fmtTime } from "./time";
+import { isTrivialMove } from "./viewmodel";
 import type { Alert, AlertKind, ChangeSummary, Move, Pace, Plan, Reminder, TransitLeg, Visit } from "./types";
 
 const LEAD: Record<Pace, number> = { relaxed: 30, normal: 20, fast: 10 };
@@ -9,6 +10,7 @@ const rideName = (l: TransitLeg) => `${l.routeName} toward ${l.headsign}`;
 export function buildReminders(plan: Plan, pace: Pace = "normal"): Reminder[] {
   const out: Reminder[] = [];
   plan.timeline.forEach((e, i) => {
+    if (isTrivialMove(e)) return;
     if (e.kind === "visit") {
       if (e.dwellMin >= 25 && i < plan.timeline.length - 1)
         out.push({ atMin: e.leaveMin - 10, kind: "wrapup", entryIndex: i, title: `Wrapping up at ${e.place.name}`, body: `Time to finish up — you leave in 10 minutes (${fmtTime(e.leaveMin)}).` });
@@ -49,7 +51,7 @@ export function composeAlert(s: ChangeSummary, traveller?: { name?: string }, st
   const leave = s.newLeaveMin !== undefined ? fmtTime(s.newLeaveMin) : undefined;
   const reach = s.nextPlace && s.newArriveMin !== undefined ? ` You'll still reach ${s.nextPlace} at ${fmtTime(s.newArriveMin)}${s.dwellLost.length ? ` — just ${s.dwellLost.reduce((a, d) => a + d.mins, 0)} min less time there` : s.slackMin >= 15 ? ` with ${s.slackMin} min to spare` : ""}.` : "";
   const lost = s.dwellLost.map((d) => `${d.name} by ${d.mins} min`).join(", ");
-  const next = s.nextBoard ? `Take ${s.nextBoard.routeName} at ${fmtTime(s.nextBoard.departMin)} from ${s.nextBoard.stopName}${leave ? ` — leave by ${leave}` : ""}.` : "We found a new route — open the app for details.";
+  const next = s.nextBoard ? `Take ${s.nextBoard.routeName} at ${fmtTime(s.nextBoard.departMin)} from ${s.nextBoard.stopName}${leave ? ` — leave by ${leave}` : ""}.` : s.altText ? `${s.altText}${leave ? ` — leave by ${leave}` : ""}.` : "We found a new route — open the app for details.";
   const keep = s.dropped.length ? ` We had to drop ${s.dropped.join(", ")}.` : " Your day still works.";
   switch (kind) {
     case "relax":

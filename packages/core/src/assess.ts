@@ -239,6 +239,7 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
     nowMin: now,
     oldLeaveMin: om?.departMin,
     newLeaveMin: nm?.departMin,
+    altText: !newTransit ? altText(nm) : undefined,
     nextBoard: newTransit ? { routeName: newTransit.routeName, stopName: newTransit.from.name, departMin: newTransit.departMin } : undefined,
     nextPlace: nextVisit?.place.name,
     newArriveMin: nm?.arriveMin,
@@ -249,3 +250,11 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
 }
 
 export { travel };
+
+function altText(m?: Move): string | undefined {
+  const l = m?.itinerary.legs[0];
+  if (!l) return undefined;
+  if (l.kind === "cab") return `Take a cab (about ₹${l.fare}, ${Math.round(l.arriveMin - l.departMin)} min)`;
+  if (l.kind === "walk") return `Walk ${Math.round(l.arriveMin - l.departMin)} min to ${l.to.name ?? "your next stop"}`;
+  return undefined;
+}

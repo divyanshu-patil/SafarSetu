@@ -1,5 +1,5 @@
 "use client";
-import { fmtDuration, fmtTime, type Entry, type Leg, type Move, type Plan, type Visit } from "@repo/core";
+import { fmtDuration, fmtTime, isTrivialMove, type Entry, type Leg, type Move, type Plan, type Visit } from "@repo/core";
 
 const modeLabel = { metro: "Metro", train: "Train", bus: "Bus" } as const;
 
@@ -59,7 +59,7 @@ function VisitRow({ v, now }: { v: Visit; now?: number }) {
 export function Timeline({ plan, now }: { plan: Plan; now?: number }) {
   return (
     <div className="tl">
-      {plan.timeline.map((e: Entry, i) => (e.kind === "visit" ? <VisitRow key={i} v={e} now={now} /> : <MoveRow key={i} m={e} now={now} />))}
+      {plan.timeline.map((e: Entry, i) => (isTrivialMove(e) ? null : e.kind === "visit" ? <VisitRow key={i} v={e} now={now} /> : <MoveRow key={i} m={e} now={now} />))}
     </div>
   );
 }
