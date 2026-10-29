@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" width="1200" height="440" role="img" aria-labelledby="t d">
+<title id="t">SafarSetu — plan your work around the buses, metro and trains you can actually catch</title>
+<desc id="d">Project banner for SafarSetu. A sample plan shows stops A, B and C with a be-there-by time, and a calm alert: no need to rush, your train is 30 minutes late, leave at 10:40.</desc>
+<rect width="1200" height="440" rx="28" fill="#163300"/>
+<g transform="translate(56 40) scale(0.0625)" fill="none" stroke="#9fe870" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M130 640H894" stroke-width="72"/><path d="M352 640V330M672 640V330" stroke-width="72"/>
+    <path d="M130 640Q250 640 352 330Q512 640 672 330Q774 640 894 640" stroke-width="44"/>
+    <circle cx="130" cy="640" r="64" fill="#ffffff" stroke="none"/><circle cx="894" cy="640" r="64" fill="#ffffff" stroke="none"/></g>
+<text x="136" y="84" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.4" fill="#9fe870">SEVA FIRST INNOVATION CHALLENGE 2026</text>
+<text x="136" y="108" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="500" letter-spacing="1.4" fill="#e2f6d5" opacity=".85">MAHARASHTRA ZONE · URBAN DEVELOPMENT</text>
+<text x="56" y="214" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="104" font-weight="900" letter-spacing="-4" fill="#ffffff">SafarSetu</text>
+<text x="58" y="268" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" font-weight="600" fill="#ffffff">Plan your work around the buses, metro</text>
+<text x="58" y="306" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" font-weight="600" fill="#ffffff">and trains you can actually catch.</text>
+<text x="58" y="354" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="500" fill="#e2f6d5">Calm alerts when things change — English · हिन्दी · मराठी</text>
+<text x="58" y="402" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#9fe870">Real rail + PMPML + BEST timetables · 9,430 stops · 2,480 routes</text>
+<!-- the plan -->
+<rect x="688" y="40" width="456" height="360" rx="24" fill="#ffffff"/>
+<text x="716" y="82" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="800" fill="#163300">Your route</text>
+<text x="1116" y="82" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#5f615f" text-anchor="end">Pune · 3 stops</text>
+<path d="M742 128V232" stroke="#c9cfc4" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/>
+<circle cx="742" cy="120" r="19" fill="#9fe870" stroke="#163300" stroke-width="3"/><text x="742" y="127" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" fill="#163300" text-anchor="middle">A</text>
+<text x="776" y="118" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#163300">Pune Junction</text>
+<text x="776" y="142" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" fill="#5f615f">Leave 10:08</text>
+<rect x="944" y="104" width="170" height="30" rx="15" fill="#fdeadb"/><text x="1029" y="125" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#c2410c" text-anchor="middle">Bus 203 → 208</text>
+<circle cx="742" cy="196" r="19" fill="#163300"/><text x="742" y="203" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle">B</text>
+<text x="776" y="194" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#163300">Hinjewadi · client meeting</text>
+<text x="776" y="218" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#15803d">✔ Be there by 11:30 · arrive 11:25</text>
+<circle cx="742" cy="262" r="19" fill="#163300"/><text x="742" y="269" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle">C</text>
+<text x="776" y="260" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#163300">Shivajinagar · bank</text>
+<text x="776" y="284" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" fill="#5f615f">13:19 · 30 min</text>
+<!-- the calm alert -->
+<rect x="708" y="308" width="416" height="76" rx="18" fill="#163300"/>
+<circle cx="738" cy="346" r="14" fill="#9fe870"/><path d="M731 346l5 5 9-10" stroke="#163300" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="766" y="340" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" fill="#9fe870">No need to rush</text>
+<text x="766" y="364" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" fill="#ffffff">Train 30 min late. Leave at 10:40.</text>
+</svg>

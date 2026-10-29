@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-labelledby="at ad">
+<title id="at">SafarSetu architecture</title>
+<desc id="ad">The web dashboard and mobile app call an Express API over REST and server-sent events. The API and the mobile app both use the shared pure-TypeScript core package, which holds the router, planner, alerts and impact model. The API reads timetable data and stores plans, reports and notifications.</desc>
+<rect width="1200" height="560" rx="24" fill="#f4f6f1"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#163300"/></marker></defs>
+<rect x="40" y="70" width="290" height="140" rx="20" fill="#163300"/>
+<text x="64" y="118" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">Web dashboard</text>
+<text x="64" y="152" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#e2f6d5">Next.js 16 · Leaflet</text>
+<text x="64" y="182" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#e2f6d5">planner · live trip · portal</text>
+<rect x="40" y="300" width="290" height="140" rx="20" fill="#163300"/>
+<text x="64" y="348" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">Mobile app</text>
+<text x="64" y="382" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#e2f6d5">Expo · React Native</text>
+<text x="64" y="412" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#e2f6d5">plans on-device</text>
+<rect x="450" y="120" width="300" height="270" rx="20" fill="#9fe870"/>
+<text x="474" y="170" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" font-weight="900" fill="#163300">API</text>
+<text x="474" y="206" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="600" fill="#163300">Express 5 · zod</text>
+<text x="474" y="240" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">plans · reminders · alerts</text>
+<text x="474" y="272" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">live stream (SSE)</text>
+<text x="474" y="304" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">gap reports · authority</text>
+<text x="474" y="336" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">disruption simulator</text>
+<rect x="860" y="40" width="300" height="230" rx="20" fill="#ffffff" stroke="#163300" stroke-width="3"/>
+<text x="884" y="88" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="900" fill="#163300">@repo/core</text>
+<text x="884" y="120" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="600" fill="#5f615f">pure TypeScript</text>
+<text x="884" y="160" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">router · day planner</text>
+<text x="884" y="192" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">re-plan on delays</text>
+<text x="884" y="224" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">alerts en · hi · mr</text>
+<text x="884" y="256" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">impact model</text>
+<rect x="860" y="310" width="300" height="190" rx="20" fill="#ffffff" stroke="#c9cfc4" stroke-width="3"/>
+<text x="884" y="358" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="900" fill="#163300">Data</text>
+<text x="884" y="392" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">Railways · PMPML · BEST</text>
+<text x="884" y="424" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">OpenStreetMap places</text>
+<text x="884" y="456" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" fill="#163300">Supabase or memory</text>
+<path d="M330 140H440" stroke="#163300" stroke-width="4" marker-end="url(#ar)"/>
+<path d="M330 370H380V300H440" stroke="#163300" stroke-width="4" fill="none" marker-end="url(#ar)"/>
+<text x="345" y="112" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#5f615f">REST + SSE</text>
+<path d="M750 190H850" stroke="#163300" stroke-width="4" marker-end="url(#ar)"/>
+<text x="758" y="174" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#5f615f">imports</text>
+<path d="M750 350H850" stroke="#163300" stroke-width="4" marker-end="url(#ar)"/>
+<path d="M185 440V532H1186V150H1166" stroke="#163300" stroke-width="3.5" stroke-dasharray="10 9" fill="none" marker-end="url(#ar)"/>
+<text x="260" y="520" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#5f615f">mobile imports the same core</text>
+<text x="600" y="48" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#163300" text-anchor="middle">What you should do next is decided in one place</text>
+</svg>
