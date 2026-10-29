@@ -38,6 +38,8 @@ export interface Place extends LatLon {
   maxDwell: number;
   category: string;
   blurb?: string;
+  /** city/town the place belongs to, used to group places in the UI */
+  area?: string;
 }
 
 export interface Preset {

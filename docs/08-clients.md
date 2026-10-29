@@ -2,13 +2,18 @@
 
 ## Web dashboard (`apps/web`, Next.js 16)
 
-Design system: [DESIGN.md](DESIGN.md) — Apple-style white gallery: #fff canvas, #f5f5f7 bands, 28px shadowless cards, pill controls, blue only for links and compact CTAs, no gradients, SF Pro (system fallback). Tokens live in `apps/web/app/globals.css`; the mobile app uses the same palette/radii. Accessible (labels, focus rings, `aria-live` for alerts, keyboard-operable timeline).
+Design system: [DESIGN.md](DESIGN.md) — currently the **Wise-style** spec: Forest Ink `#163300` text/dark sections, Lime Voltage `#9fe870` only for the primary action and active states, Fog/Linen surfaces, Inter with Black 900 uppercase display headlines (-0.04em), pill buttons/tags/nav segments, 10px cards, 28px large cards, flat hairline borders (no gradients). Section rhythm white → linen band → Forest Ink dark section. Tokens live in `apps/web/app/globals.css` (Inter loaded from Google Fonts in `layout.tsx`; Black 900 stands in for Wise Sans). Accessible (labels, focus rings, `aria-live` for alerts, keyboard-operable timeline).
 
 | Route | Screen | Contents |
 |---|---|---|
 | `/` | **Planner** | Left: origin (search/click map), date, window, places (curated chips + search), pace, style. Right: map. After *Plan my day*: timeline + map layers, totals (walk, fare, confidence), leave-by chips, dropped-places notice |
 | `/trip/[id]` | **Live trip** | Sim clock controls, "now" marker moving along the plan, *Next up* card (what to board, when to leave), alert feed (SSE + browser Notification), **Disruption simulator** panel, revision diff ("what changed and why") |
-| `/insights` | **Authority insights** | Delay by route, re-plans, notifications sent, risky connections; all labelled *simulated* in demo |
+| `/report`, `/report/[ref]` | **Report a gap / track** | Category cards, from/to areas on map, receipt + status stepper |
+| `/authority/login`, `/authority`, `/authority/reports` | **Authority portal** | See [12](12-reports-and-authority.md) |
+| `/insights` | **Aggregate insights** | Delay by route, re-plans, notifications sent, risky connections; all labelled *simulated* in demo |
+
+### Colour and icons
+Neutral Apple surfaces stay; **semantic colour carries meaning only through icons and text**: tinted icon chips (accent at 12 % alpha) for modes (metro cyan, train crimson, bus orange, walk slate, cab amber), report categories and case statuses (`CATEGORIES`/`STATUSES` in `@repo/core`, icons from lucide). Status is shown as icon + coloured bare text (no coloured pills). Confidence uses ShieldCheck (green ≥ 90 %), amber, and AlertTriangle (orange) below 80 %.
 
 ### UX rules
 1. The first thing on a plan is **the next action and its time** ("Leave 09:04 → Aqua line 09:10").

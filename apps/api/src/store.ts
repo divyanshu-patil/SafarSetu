@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import type { Disruption, Plan } from "@repo/core";
+import type { Disruption, Plan, Report } from "@repo/core";
 
 export interface PlanRec {
   id: string;
@@ -46,6 +46,10 @@ export interface Store {
   markSent(ids: string[]): Promise<void>;
   cancelPending(planId: string): Promise<void>;
   saveDevice(userId: string, platform: string, token: string): Promise<void>;
+  addReport(r: Report): Promise<void>;
+  getReport(idOrRef: string): Promise<Report | undefined>;
+  listReports(): Promise<Report[]>;
+  updateReport(r: Report): Promise<void>;
 }
 
 export class MemoryStore implements Store {
@@ -69,6 +73,11 @@ export class MemoryStore implements Store {
   async markSent(ids: string[]) { for (const n of this.notifs) if (ids.includes(n.id)) n.sent = true; }
   async cancelPending(planId: string) { this.notifs = this.notifs.filter((n) => n.planId !== planId || n.sent); }
   async saveDevice(userId: string, platform: string, token: string) { this.devices.push({ userId, platform, token }); }
+  reports = new Map<string, Report>();
+  async addReport(r: Report) { this.reports.set(r.id, structuredClone(r)); }
+  async getReport(k: string) { const r = this.reports.get(k) ?? [...this.reports.values()].find((x) => x.ref === k); return r && structuredClone(r); }
+  async listReports() { return [...this.reports.values()].map((r) => structuredClone(r)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  async updateReport(r: Report) { this.reports.set(r.id, structuredClone(r)); }
 }
 
 /** Supabase (Postgres) store. Column names follow supabase/migrations/0001_init.sql. */
@@ -120,6 +129,16 @@ export class SupabaseStore implements Store {
   async markSent(ids: string[]) { if (ids.length) this.ok(await this.db.from("notifications").update({ sent: true, sent_at: new Date().toISOString() }).in("id", ids)); }
   async cancelPending(planId: string) { this.ok(await this.db.from("notifications").delete().eq("plan_id", planId).eq("sent", false)); }
   async saveDevice(userId: string, platform: string, token: string) { this.ok(await this.db.from("devices").upsert({ user_id: userId, platform, token }, { onConflict: "user_id,token" })); }
+  private toRep = (r: any): Report => ({ id: r.id, ref: r.ref, city: r.city, category: r.category, severity: r.severity, from: r.from_area ?? undefined, to: r.to_area ?? undefined, location: r.location, mode: r.mode, timeOfDay: r.time_of_day ?? undefined, description: r.description, status: r.status, publicNote: r.public_note ?? undefined, internalNotes: r.internal_notes ?? [], assignee: r.assignee ?? undefined, reporter: r.reporter, createdAt: r.created_at, updatedAt: r.updated_at, synthetic: r.synthetic });
+  private fromRep = (r: Report) => ({ id: r.id, ref: r.ref, city: r.city, category: r.category, severity: r.severity, from_area: r.from ?? null, to_area: r.to ?? null, location: r.location, mode: r.mode, time_of_day: r.timeOfDay ?? null, description: r.description, status: r.status, public_note: r.publicNote ?? null, internal_notes: r.internalNotes, assignee: r.assignee ?? null, reporter: r.reporter, synthetic: r.synthetic ?? false, created_at: r.createdAt, updated_at: r.updatedAt });
+  async addReport(r: Report) { this.ok(await this.db.from("reports").insert(this.fromRep(r))); }
+  async getReport(k: string) {
+    const col = /^[0-9a-f-]{36}$/i.test(k) ? "id" : "ref";
+    const d = this.ok(await this.db.from("reports").select("*").eq(col, k).maybeSingle());
+    return d ? this.toRep(d) : undefined;
+  }
+  async listReports() { return (this.ok(await this.db.from("reports").select("*").order("created_at", { ascending: false }).limit(5000)) ?? []).map(this.toRep); }
+  async updateReport(r: Report) { this.ok(await this.db.from("reports").update(this.fromRep(r)).eq("id", r.id)); }
 }
 
 export function createStore(): Store {

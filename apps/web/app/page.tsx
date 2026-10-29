@@ -3,8 +3,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtTime, planToMapLayers, type MapMarker, type Network, type Pace, type Plan, type PlanRequest, type Preset } from "@repo/core";
+import { LocalBar, OutlinePill } from "./components/LocalBar";
 import { PlaceSearch } from "./components/PlaceSearch";
 import { Timeline } from "./components/Timeline";
+import { Chip, Icon } from "./lib/icons";
 import { api, fromHHMM, LAST_PLAN_KEY, toHHMM, todayISO } from "./lib/api";
 
 const MapView = dynamic(() => import("./components/MapView"), { ssr: false });
@@ -27,6 +29,7 @@ export default function Planner() {
   const [pace, setPace] = useState<Pace>("normal");
   const [style, setStyle] = useState<"calm" | "brief">("calm");
   const [name, setName] = useState("");
+  const [area, setArea] = useState<string>("");
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -49,6 +52,7 @@ export default function Planner() {
   };
 
   useEffect(() => {
+    setArea("");
     api.network(cityId).then((n) => { setNet(n); if (n.presets[0]) applyPreset(n.presets[0], n); }).catch(() => {});
   }, [cityId]);
 
@@ -114,6 +118,8 @@ export default function Planner() {
     return ms;
   }, [net, origin, selected, custom]);
 
+  const areas = useMemo(() => [...new Set((net?.places ?? []).map((p) => p.area).filter(Boolean) as string[])], [net]);
+  const shown = useMemo(() => (net?.places ?? []).filter((p) => !area || p.area === area || selected[p.id]), [net, area, selected]);
   const cyc = (id: string) => setSelected((s) => { const c = s[id]; const next = { ...s }; if (!c) next[id] = 2; else if (c === 2) next[id] = 3; else if (c === 3) next[id] = 1; else delete next[id]; return next; });
   const pickOnMap = async (lat: number, lon: number) => {
     setPicking(false);
@@ -124,19 +130,26 @@ export default function Planner() {
   const t = result?.plan.totals;
   return (
     <main>
-      <section className="hero wrap">
+      <LocalBar title="Plan your day" crumb="Mumbai · Pune · all of Maharashtra">
+        <OutlinePill href="/report">Report a gap</OutlinePill>
+        <a href="#plan" className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 12 }}>Plan my day</a>
+      </LocalBar>
+      <section className="hero wrap" style={{ paddingBottom: 24 }}>
         <div className="kicker">SafarSetu</div>
-        <h1>Your whole city day. On time.</h1>
-        <p>Tell us where you start and what you want to see. We time every bus, metro and local train — and keep it right when things change.</p>
+        <h1 style={{ maxWidth: "15ch" }}>A whole day, anywhere in Maharashtra.</h1>
+        <p>Buses, metro and trains, timed to the minute. We tell you when to leave and how long to stay — and stay calm when things change.</p>
+        <nav className="anchors" aria-label="On this page">
+          <a href="#plan">Plan</a><a href="#how">How it works</a><a href="#report">Report a gap</a><a href="#authorities">For authorities</a>
+        </nav>
       </section>
 
-      <section className="band section tight">
+      <section className="band section tight" id="plan">
         <div className="wrap stage">
           <div className="card stack" aria-label="Plan your day">
             <div className="row between">
               <h2 className="h3">Plan your day</h2>
               <div className="seg" role="group" aria-label="City">
-                {(cities.length ? cities : [{ id: "pune", city: "Pune", presets: [] }, { id: "mumbai", city: "Mumbai", presets: [] }]).map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
+                {(cities.length ? [...cities].sort((a, b) => (a.id === "maharashtra" ? -1 : b.id === "maharashtra" ? 1 : 0)) : [{ id: "pune", city: "Pune", presets: [] }, { id: "mumbai", city: "Mumbai", presets: [] }]).map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
               </div>
             </div>
 
@@ -164,8 +177,9 @@ export default function Planner() {
 
             <div className="field">
               <span>Places — tap to add, tap again to change importance</span>
+              {areas.length > 1 && <div className="seg" style={{ flexWrap: "wrap", borderRadius: 20 }} role="group" aria-label="Area">{["", ...areas].map((a) => <button key={a} aria-pressed={area === a} onClick={() => setArea(a)}>{a || "All"}</button>)}</div>}
               <div className="chips">
-                {net?.places.map((p) => <button key={p.id} className="chip" aria-pressed={!!selected[p.id]} onClick={() => cyc(p.id)} title={p.blurb}>{p.name}{selected[p.id] ? ` · ${selected[p.id] === 3 ? "★★★" : selected[p.id] === 2 ? "★★" : "★"}` : ""}</button>)}
+                {shown.map((p) => <button key={p.id} className="chip" aria-pressed={!!selected[p.id]} onClick={() => cyc(p.id)} title={p.blurb}>{p.name}{selected[p.id] ? ` · ${selected[p.id] === 3 ? "★★★" : selected[p.id] === 2 ? "★★" : "★"}` : ""}</button>)}
               </div>
             </div>
             <PlaceSearch city={cityId} label="Add any other place" placeholder="Search the city…" onPick={(h) => setCustom((c) => [...c, { ...h, priority: 2 }])} />
@@ -183,10 +197,18 @@ export default function Planner() {
             </div>
 
             {err && <p className="err" role="alert">{err}</p>}
-            <div><button className="pill-blue" onClick={submit} disabled={busy}>{busy ? "Planning…" : "Plan my day"}</button></div>
+            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? "Planning…" : "Plan my day"}</button></div>
           </div>
 
-          <div className="frame map"><MapView bbox={net?.bbox ?? [72.7, 18.4, 74, 19.3]} lines={lines ?? []} markers={layers?.markers ?? preview} picking={picking} onPick={pickOnMap} /></div>
+          <div className="frame map">
+            <MapView bbox={net?.bbox ?? [72.7, 18.4, 74, 19.3]} lines={lines ?? []} markers={layers?.markers ?? preview} picking={picking} onPick={pickOnMap} />
+            {result && t && (
+              <div className="capsule">
+                <Icon name="ShieldCheck" size={18} /><div><b>{result.plan.timeline.filter((e) => e.kind === "visit").length} places · {t.confidencePct}% on time</b><span className="s">₹{t.fare} fares · {(t.walkM / 1000).toFixed(1)} km walking</span></div>
+                <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 12 }}>Start live trip</Link>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -195,7 +217,7 @@ export default function Planner() {
           <div className="wrap">
             <div className="row between">
               <div><div className="label">Your plan · revision {result.plan.revision}</div><h2 className="h2" style={{ marginTop: 8 }}>{fmtTime(result.plan.request.startMin)} to {fmtTime(result.plan.timeline.at(-1) ? ("arriveMin" in result.plan.timeline.at(-1)! ? (result.plan.timeline.at(-1) as { arriveMin: number }).arriveMin : result.plan.request.endMin) : result.plan.request.endMin)}</h2></div>
-              <Link href={`/trip/${result.id}`}><span className="pill-blue" style={{ display: "inline-block" }}>Start live trip</span></Link>
+              <Link href={`/trip/${result.id}`}><span className="pill-primary" >Start live trip</span></Link>
             </div>
 
             <div className="stats mt2">
@@ -214,6 +236,54 @@ export default function Planner() {
           </div>
         </section>
       )}
+
+      <section className="section" id="how">
+        <div className="wrap">
+          <div className="hl-head"><h2 className="h2">Highlights</h2><Link href="/report" className="tlink">Help fix a gap ›</Link></div>
+          <div className="slides">
+            {[
+              ["Clock", "#0e7490", "Every timetable, in sync", "Bus, metro and train times are chained so each leg is boarded on time — with the wait where it is pleasant."],
+              ["BellRing", "#7c3aed", "Calm alerts, not alarms", "“No need to rush — your train is 30 minutes late. Leave at 10:40.” Tone follows the slack you really have."],
+              ["Map", "#15803d", "All of Maharashtra", "Real railway timetables between cities, with Mumbai and Pune first- and last-mile detail."],
+              ["Flag", "#cb272f", "Report a gap", "Name two areas that should be connected. Reports reach authorities as evidence, not noise."],
+              ["ShieldCheck", "#0369a1", "Built for authorities", "Ranked gaps with transparent weights, case status, and a feedback loop back to citizens."],
+            ].map(([icon, color, h, p]) => <article className="fcard" key={h}><Chip name={icon!} color={color!} box={48} size={22} /><div><h3>{h}</h3><p>{p}</p></div></article>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="band section" id="report">
+        <div className="wrap editorial">
+          <div>
+            <div className="kicker">Citizen reports</div>
+            <h2 className="h2" style={{ fontSize: "clamp(32px,5vw,56px)", marginTop: 16 }}>If the bus doesn’t reach, say so.</h2>
+            <p className="body">Pick the two areas that should be connected, choose what goes wrong, and send it. You get a reference number and can track the status.</p>
+            <Link href="/report" className="tlink">Report a connectivity gap ›</Link>
+          </div>
+          <div className="card" style={{ background: "var(--color-studio-mist)" }}>
+            {[["BusFront", "#d9480f", "Hinjewadi → Shivajinagar", "No feeder service"], ["Hourglass", "#b45309", "Mira Road → Borivali", "Too infrequent"], ["Accessibility", "#1d4ed8", "Nagpur Airport → Metro", "Accessibility difficulty"]].map(([i, c, a, b]) => (
+              <div className="legline" key={a} style={{ padding: "12px 0" }}><Chip name={i!} color={c!} /><div><b style={{ fontSize: 17 }}>{a}</b><p className="sub">{b} · sample</p></div></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="dark section" id="authorities">
+        <div className="wrap editorial">
+          <div className="card" style={{ order: 0 }}>
+            {[["#1", "Hinjewadi → Shivajinagar", 92], ["#2", "Powai → Andheri", 84], ["#3", "Kharadi → Yerawada", 61]].map(([n, a, v]) => (
+              <div key={a as string} style={{ padding: "12px 0" }}><div className="row between"><b>{n} · {a}</b><span className="sub">{v}</span></div><div className="bar" style={{ marginTop: 8 }}><i style={{ width: `${v}%` }} /></div></div>
+            ))}
+            <p className="label" style={{ marginTop: 8 }}>Illustrative ranking — real view is inside the portal</p>
+          </div>
+          <div>
+            <div className="kicker">For authorities</div>
+            <h2 className="h2" style={{ fontSize: "clamp(32px,5vw,56px)", marginTop: 16 }}>See where journeys break.</h2>
+            <p className="body">Grouped reports, case status and data coverage in one place. Change the ranking weights and watch the order move — nothing is a black box.</p>
+            <Link href="/authority/login" className="tlink">Open the authority portal ›</Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

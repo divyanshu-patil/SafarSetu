@@ -28,3 +28,12 @@
 - Pune Metro official timetable/fare PDF (transcribe → replaces synthetic metro).
 - PMPML GTFS (community: `croyla/pmpml-gtfs`) — I can import when network is allowed.
 - Any operator contact (PMPML / Maha-Metro / Railways) for GTFS-RT or alert access.
+
+## Authority portal / production auth
+
+| Item | Why |
+|---|---|
+| `AUTH_SECRET` (long random string) | Signs authority tokens — required in production (`apps/api/.env`) |
+| Real authority accounts or an SSO / Supabase Auth project | The prototype uses demo accounts in `apps/api/src/demo-users.ts` (not for production); set `AUTHORITY_USERS_JSON` or move to Supabase Auth |
+| Which agency owns each region's reports (Mumbai MMRDA/BEST/MahaMetro, Pune PMPML/PMRDA, …) | To define real jurisdictions and the "referred to" list |
+| Decision on photo attachments (Supabase Storage bucket) | Not built yet |

@@ -1,4 +1,4 @@
-import type { Mode, Network, RouteDef, Stop } from "./types";
+import type { Mode, Network, RouteDef, Stop, Place, Preset } from "./types";
 import { haversine } from "./time";
 
 export interface RouteSpec {
@@ -48,6 +48,35 @@ export function buildRoutes(specs: RouteSpec[]): RouteDef[] {
   return out;
 }
 
+/** Union of networks: first occurrence of an id wins; stops within 400 m auto-link at index time. */
+export function mergeNetworks(
+  id: string,
+  city: string,
+  bbox: Network["bbox"],
+  parts: Network[],
+  extra: { stops?: Stop[]; routes?: RouteDef[]; places?: Place[]; presets?: Preset[]; note: string; timezone?: string },
+): Network {
+  const dedupe = <T extends { id: string }>(xs: T[]) => {
+    const seen = new Set<string>();
+    return xs.filter((x) => !seen.has(x.id) && !!seen.add(x.id));
+  };
+  const stops = dedupe([...parts.flatMap((p) => p.stops), ...(extra.stops ?? [])]);
+  const ids = new Set(stops.map((s) => s.id));
+  const routes = dedupe([...parts.flatMap((p) => p.routes), ...(extra.routes ?? [])]).filter((r) => r.stopIds.every((x) => ids.has(x)));
+  const synthetic = parts.some((p) => p.meta.dataQuality === "synthetic");
+  return {
+    id,
+    city,
+    presets: extra.presets ?? [],
+    timezone: extra.timezone ?? parts[0]?.timezone ?? "Asia/Kolkata",
+    bbox,
+    stops,
+    routes,
+    places: dedupe([...parts.flatMap((p) => p.places), ...(extra.places ?? [])]),
+    meta: { dataQuality: synthetic ? "synthetic" : "scheduled", note: extra.note },
+  };
+}
+
 // ---- Indexed network used by the router -----------------------------------
 
 export interface Footpath {
@@ -79,15 +108,27 @@ export function indexNetwork(net: Network): Indexed {
     }),
   );
   const foot: Footpath[][] = net.stops.map(() => []);
-  for (let i = 0; i < net.stops.length; i++)
-    for (let j = i + 1; j < net.stops.length; j++) {
-      const m = haversine(net.stops[i]!, net.stops[j]!);
-      if (m <= TRANSFER_WALK_M) {
-        const min = (m * WALK_DETOUR) / 80;
-        foot[i]!.push({ to: j, min, m });
-        foot[j]!.push({ to: i, min, m });
-      }
-    }
+  // grid buckets (~0.005 deg ~ 550 m) so footpath build is ~O(n)
+  const G = 0.005;
+  const cell = (v: number) => Math.floor(v / G);
+  const grid = new Map<string, number[]>();
+  net.stops.forEach((s, i) => {
+    const k = cell(s.lat) + "," + cell(s.lon);
+    (grid.get(k) ?? grid.set(k, []).get(k)!).push(i);
+  });
+  net.stops.forEach((a, i) => {
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++)
+        for (const j of grid.get(cell(a.lat) + dy + "," + (cell(a.lon) + dx)) ?? []) {
+          if (j <= i) continue;
+          const m = haversine(a, net.stops[j]!);
+          if (m <= TRANSFER_WALK_M) {
+            const min = (m * WALK_DETOUR) / 80;
+            foot[i]!.push({ to: j, min, m });
+            foot[j]!.push({ to: i, min, m });
+          }
+        }
+  });
   return { net, stops: net.stops, stopIdx, routes: net.routes, serving, foot };
 }
 

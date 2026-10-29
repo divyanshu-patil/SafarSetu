@@ -53,3 +53,38 @@ test("route arrive-by", async () => {
   assert.equal(r.status, 200);
   assert.ok(r.body.leaveByMin && r.body.leaveByMin < 600);
 });
+
+test("citizen report -> authority login -> role-scoped update", async () => {
+  const { seedReports } = await import("../src/seed-reports");
+  await seedReports(engine.store);
+  const body = { category: "no_feeder", severity: 3, from: { name: "Wagholi", lat: 18.58, lon: 73.98 }, to: { name: "Ramwadi", lat: 18.547, lon: 73.915 }, mode: "bus", description: "No feeder at night" };
+  assert.equal((await post("/v1/reports", { category: "x" })).status, 400);
+  const r = await post("/v1/reports", body);
+  assert.equal(r.status, 201);
+  assert.match(r.body.report.ref, /^SS-\d{4}-\d{5}$/);
+  assert.equal(r.body.report.internalNotes, undefined);
+  const t = await j(`/v1/reports/track/${r.body.report.ref}`);
+  assert.equal(t.body.report.status, "received");
+
+  assert.equal((await j("/v1/authority/reports")).status, 401);
+  assert.equal((await post("/v1/auth/login", { email: "supervisor@transport.demo", password: "wrong" })).status, 401);
+  const demo = (await j("/v1/auth/demo")).body.accounts as { email: string; password: string }[];
+  const login = async (email: string) => (await post("/v1/auth/login", { email, password: demo.find((d) => d.email === email)!.password })).body.token as string;
+  const auth = (tok: string) => ({ headers: { "content-type": "application/json", authorization: `Bearer ${tok}` } });
+  const sup = await login("supervisor@transport.demo");
+  const list = await (await fetch(`${base}/v1/authority/reports?q=Wagholi`, auth(sup))).json() as any;
+  assert.ok(list.items.some((x: any) => x.ref === r.body.report.ref));
+  assert.equal(list.items[0].reporter, undefined);
+  const up = await fetch(`${base}/v1/authority/reports/${r.body.report.id}`, { method: "PATCH", body: JSON.stringify({ status: "referred", publicNote: "Sent to PMPML", internalNote: "check route 285" }), ...auth(sup) });
+  assert.equal(up.status, 200);
+  assert.equal((await j(`/v1/reports/track/${r.body.report.ref}`)).body.report.status, "referred");
+  assert.equal((await j(`/v1/reports/track/${r.body.report.ref}`)).body.report.internalNotes, undefined);
+  // Mumbai analyst: scoped to Mumbai, cannot change status
+  const an = await login("mumbai.analyst@transport.demo");
+  const mine = await (await fetch(`${base}/v1/authority/reports`, auth(an))).json() as any;
+  assert.ok(mine.items.length > 0 && mine.items.every((x: any) => x.city === "mumbai"));
+  const denied = await fetch(`${base}/v1/authority/reports/${mine.items[0].id}`, { method: "PATCH", body: JSON.stringify({ status: "closed" }), ...auth(an) });
+  assert.equal(denied.status, 403);
+  const ov = await (await fetch(`${base}/v1/authority/overview`, auth(sup))).json() as any;
+  assert.ok(ov.totals.reports > 30 && ov.topIssues.length === 5);
+});

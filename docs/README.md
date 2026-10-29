@@ -18,6 +18,8 @@ SafarSetu is a **time-synchronised trip planner for a new city**. A visitor ente
 | 08 | [Web dashboard & mobile reuse](08-clients.md) | Screens, UX rules, how the Expo app plugs in |
 | 09 | [Production readiness](09-production-readiness.md) | Timing changes, cancellations, scale, privacy, rollout |
 | 10 | [Demo script & judge Q&A](10-demo-and-qa.md) | 5-minute demo, likely questions |
+| 11 | [Data sources](../DATA_SOURCES.md) | Every dataset/API used, licence, what is real vs synthetic |
+| 12 | [Reports & authority portal](12-reports-and-authority.md) | Citizen gap reports, authority login, ranking, roles |
 
 Also see root: [`progress.md`](../progress.md), [`NEEDED_FROM_YOU.md`](../NEEDED_FROM_YOU.md), earlier research in `Research.md`, `Prototype-Ideas.md`, `safarsetu_product_workflow_spec.md`.
 

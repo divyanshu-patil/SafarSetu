@@ -1,6 +1,6 @@
 export * from "./types";
 export * from "./time";
-export { buildRoutes, indexNetwork, fare } from "./network";
+export { buildRoutes, mergeNetworks, indexNetwork, fare } from "./network";
 export { PUNE_JN } from "./data/pune";
 export { networks, getNetwork, puneNetwork, mumbaiNetwork } from "./data";
 export { buildLive, noLive } from "./live";
@@ -11,3 +11,5 @@ export { assessPlan, type Assessment } from "./assess";
 export { buildReminders, composeAlert, pickKind } from "./notify";
 export { planToMapLayers, positionAt, nextAction, isTrivialMove, type MapLine, type MapMarker, type NextAction } from "./viewmodel";
 export * from "./client";
+export * from "./reports";
+export * from "./regions";

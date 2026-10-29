@@ -1,10 +1,12 @@
 import cors from "cors";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
-import { buildLive, networks, planRoute, type PlanRequest } from "@repo/core";
+import { buildLive, getNetwork, networks, planRoute, type PlanRequest } from "@repo/core";
 import { Engine, HttpError, SCENARIOS, type Scenario } from "./engine";
+import { mountReports } from "./reports-routes";
 import { geocode, reverse, walkRoute, weather } from "./proxies";
 
+const MAHARASHTRA_BBOX: [number, number, number, number] = [72.6, 15.6, 80.9, 22.1];
 const lat = z.number().min(-90).max(90);
 const lon = z.number().min(-180).max(180);
 const pt = z.object({ name: z.string().min(1).max(120), lat, lon });
@@ -65,7 +67,7 @@ const parse = <T extends z.ZodType>(s: T, body: unknown): z.infer<T> => {
 export function createApp(engine: Engine): Express {
   const app = express();
   const simOn = process.env.SIM_ENABLED !== "false";
-  app.use(cors());
+  app.use(cors({ methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }));
   app.use(express.json({ limit: "200kb" }));
   const user = (req: Request) => String(req.header("x-user-id") ?? "demo").slice(0, 64);
   const city = (req: Request) => String(req.query.city ?? "pune");
@@ -145,14 +147,17 @@ export function createApp(engine: Engine): Express {
   });
 
   app.get("/v1/geocode", async (req, res) => {
-    const net = engine.network(city(req));
-    const local = [...net.places, ...net.stops.filter((s) => s.mode !== "bus")].map((p) => ({ name: p.name, lat: p.lat, lon: p.lon, source: "local" as const }));
-    res.json({ items: await geocode(String(req.query.q ?? "").slice(0, 80), net.bbox, local) });
+    const net = getNetwork(city(req));
+    const pool = net ? [net] : Object.values(networks);
+    const local = pool.flatMap((n) => [...n.places, ...n.stops.filter((s) => s.mode !== "bus")]).map((p) => ({ name: p.name, lat: p.lat, lon: p.lon, source: "local" as const }));
+    res.json({ items: await geocode(String(req.query.q ?? "").slice(0, 80), net?.bbox ?? MAHARASHTRA_BBOX, local) });
   });
   app.get("/v1/reverse", async (req, res) => res.json(await reverse(num(req.query.lat), num(req.query.lon))));
   app.get("/v1/walk", async (req, res) => res.json(await walkRoute(pair(req.query.from), pair(req.query.to))));
   app.get("/v1/weather", async (req, res) => res.json(await weather(num(req.query.lat), num(req.query.lon))));
   app.get("/v1/insights", async (_req, res) => res.json(await engine.insights()));
+
+  mountReports(app, engine);
 
   app.use((_req, _res, next) => next(new HttpError(404, "not_found", "No such route")));
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

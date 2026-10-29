@@ -50,5 +50,8 @@ Envelope: success → payload; error → `{ error: { code, message } }` with 4xx
 | GET | `/v1/walk?from=lat,lon&to=lat,lon` | OSRM foot → straight-line fallback |
 | GET | `/v1/weather?lat&lon` | Open-Meteo |
 
-## Insights (authority view)
+## Reports & authority
+See [12](12-reports-and-authority.md): `/v1/reports`, `/v1/auth/*`, `/v1/authority/*`.
+
+## Insights (rider-side aggregate)
 | GET | `/v1/insights` | aggregate: delays by route, replans, minutes saved, notifications |
