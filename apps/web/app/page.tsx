@@ -2,73 +2,86 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fmtTime, planToMapLayers, type MapMarker, type Network, type Pace, type Plan, type PlanRequest, type Preset } from "@repo/core";
+import { fmtTime, planToMapLayers, type MapLine, type MapMarker, type Network, type Pace, type Plan, type PlanRequest } from "@repo/core";
 import { LocalBar, OutlinePill } from "./components/LocalBar";
 import { PlaceSearch } from "./components/PlaceSearch";
 import { Timeline } from "./components/Timeline";
+import { EXAMPLES } from "./lib/examples";
 import { Chip, Icon } from "./lib/icons";
 import { api, fromHHMM, LAST_PLAN_KEY, toHHMM, todayISO } from "./lib/api";
 
 const MapView = dynamic(() => import("./components/MapView"), { ssr: false });
 
-type Prio = 1 | 2 | 3;
-interface CityInfo { id: string; city: string; presets: Preset[] }
-interface Custom { name: string; lat: number; lon: number; priority: Prio }
-const PRIO_LABEL: Record<Prio, string> = { 1: "Nice to have", 2: "Want", 3: "Must see" };
+interface CityInfo { id: string; city: string }
+interface Stop { id: string; name: string; lat: number; lon: number; task: string; dwell: number; arriveBy: string; required: boolean; opens?: number; closes?: number }
+const DWELLS = [10, 15, 20, 30, 45, 60, 90, 120, 180];
+const letter = (i: number) => String.fromCharCode(66 + i); // A is the start
+let uid = 0;
+const newStop = (p: Partial<Stop> & { name: string; lat: number; lon: number }): Stop => ({ id: `s${++uid}`, task: "", dwell: 30, arriveBy: "", required: true, ...p });
 
 export default function Planner() {
   const [cities, setCities] = useState<CityInfo[]>([]);
   const [cityId, setCityId] = useState("pune");
   const [net, setNet] = useState<Network | null>(null);
-  const [origin, setOrigin] = useState<{ name: string; lat: number; lon: number } | null>(null);
+  const [origin, setOrigin] = useState<{ name: string; lat: number; lon: number } | null>({ name: "Pune Junction", lat: 18.5285, lon: 73.8742 });
+  const [stops, setStops] = useState<Stop[]>([]);
+  const [open, setOpen] = useState<string | null>(null);
   const [date, setDate] = useState(todayISO());
-  const [start, setStart] = useState("09:00");
-  const [end, setEnd] = useState("18:00");
-  const [selected, setSelected] = useState<Record<string, Prio>>({});
-  const [custom, setCustom] = useState<Custom[]>([]);
+  const [leave, setLeave] = useState("09:00");
+  const [finish, setFinish] = useState("");
+  const [returnHome, setReturnHome] = useState(false);
+  const [order, setOrder] = useState<"mine" | "best">("mine");
   const [pace, setPace] = useState<Pace>("normal");
   const [style, setStyle] = useState<"calm" | "brief">("calm");
   const [name, setName] = useState("");
-  const [area, setArea] = useState<string>("");
-  const [picking, setPicking] = useState(false);
+  const [pick, setPick] = useState<"start" | "stop" | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<{ id: string; plan: Plan } | null>(null);
   const [geoms, setGeoms] = useState<Record<string, [number, number][]>>({});
   const [rain, setRain] = useState<string | null>(null);
+  const [area, setArea] = useState("");
+  const [showPop, setShowPop] = useState(false);
   const resultRef = useRef<HTMLElement>(null);
 
   useEffect(() => { api.cities().then((r) => setCities(r.items)).catch(() => setErr("Cannot reach the API. Start it with: pnpm --filter api dev")); }, []);
+  useEffect(() => { setArea(""); api.network(cityId).then(setNet).catch(() => {}); }, [cityId]);
 
-  const applyPreset = (p: Preset, n: Network) => {
-    setOrigin(p.origin);
-    setStart(toHHMM(p.startMin));
-    setEnd(toHHMM(p.endMin));
-    setPace(p.pace);
-    setSelected(Object.fromEntries(p.placeIds.map((id, i) => [id, (i % 3 === 0 ? 3 : 2) as Prio])));
-    setCustom([]);
+  const loadExample = (ex: (typeof EXAMPLES)[number]) => {
+    setCityId(ex.city);
+    setOrigin(ex.origin);
+    setLeave(ex.leave);
+    setReturnHome(ex.returnHome);
+    setOrder("mine");
+    setStops(ex.stops.map((s) => newStop({ ...s })));
     setResult(null);
-    void n;
+    setErr(null);
   };
+  useEffect(() => { if (!stops.length) loadExample(EXAMPLES[0]!); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    setArea("");
-    api.network(cityId).then((n) => { setNet(n); if (n.presets[0]) applyPreset(n.presets[0], n); }).catch(() => {});
-  }, [cityId]);
+  const patch = (id: string, p: Partial<Stop>) => setStops((s) => s.map((x) => (x.id === id ? { ...x, ...p } : x)));
+  const move = (i: number, d: -1 | 1) => setStops((s) => { const n = [...s]; const j = i + d; if (j < 0 || j >= n.length) return s; [n[i], n[j]] = [n[j]!, n[i]!]; return n; });
+  const addAt = async (lat: number, lon: number) => {
+    const st = newStop({ name: "Dropped pin", lat, lon });
+    setStops((s) => [...s, st]);
+    setOpen(st.id);
+    api.reverse(lat, lon).then((r) => patch(st.id, { name: r.name })).catch(() => {});
+  };
 
   const request = (): PlanRequest | null => {
     if (!origin) return null;
+    const startMin = fromHHMM(leave);
     return {
-      city: cityId, date, origin, startMin: fromHHMM(start), endMin: fromHHMM(end), returnToOrigin: true, prefs: { pace, style },
-      traveller: name ? { name } : undefined,
-      places: [...Object.entries(selected).map(([placeId, priority]) => ({ placeId, priority })), ...custom.map((c) => ({ name: c.name, lat: c.lat, lon: c.lon, priority: c.priority, minDwell: 45, maxDwell: 90 }))],
+      city: cityId, date, origin, startMin, endMin: finish ? fromHHMM(finish) : Math.min(1439, startMin + 14 * 60),
+      returnToOrigin: returnHome, keepOrder: order === "mine", prefs: { pace, style }, traveller: name ? { name } : undefined,
+      places: stops.map((s) => ({ name: s.name, lat: s.lat, lon: s.lon, task: s.task || undefined, minDwell: s.dwell, maxDwell: s.dwell, arriveBy: s.arriveBy ? fromHHMM(s.arriveBy) : undefined, required: s.required, priority: s.required ? 3 : 2, opens: s.opens, closes: s.closes })),
     };
   };
 
   const submit = async () => {
     const req = request();
-    if (!req) return setErr("Pick a starting point first.");
-    if (!req.places.length) return setErr("Choose at least one place.");
+    if (!req) return setErr("Set a starting point first.");
+    if (!req.places.length) return setErr("Add at least one stop.");
     setBusy(true); setErr(null);
     try {
       const r = await api.createPlan(req);
@@ -79,22 +92,18 @@ export default function Planner() {
   };
 
   const layers = useMemo(() => (result ? planToMapLayers(result.plan) : null), [result]);
-
-  // Real footpaths only for the plan on screen, once each (server caches 24 h).
   useEffect(() => {
     setGeoms({});
     if (!layers) return;
     const todo = layers.lines.filter((l) => l.walk && l.walk.distM > 150);
     let live = true;
     Promise.all(todo.map(async (l) => {
-      const w = l.walk!;
-      const k = `${w.from}>${w.to}`;
+      const w = l.walk!; const k = `${w.from}>${w.to}`;
       const r = await api.walk(w.from.join(","), w.to.join(",")).catch(() => null);
       return r && r.source !== "straight-line" ? ([k, r.coords] as const) : null;
     })).then((rs) => { if (live) setGeoms(Object.fromEntries(rs.filter(Boolean) as [string, [number, number][]][])); });
     return () => { live = false; };
   }, [layers]);
-
   const lines = useMemo(() => layers?.lines.map((l) => (l.walk && geoms[`${l.walk.from}>${l.walk.to}`] ? { ...l, coords: geoms[`${l.walk.from}>${l.walk.to}`]! } : l)), [layers, geoms]);
 
   useEffect(() => {
@@ -109,35 +118,33 @@ export default function Planner() {
     }).catch(() => {});
   }, [result]);
 
+  // Google-Maps-style preview: A, B, C… joined in order until a real plan exists
   const preview: MapMarker[] = useMemo(() => {
-    if (!net || !origin) return [];
-    const ms: MapMarker[] = [{ lat: origin.lat, lon: origin.lon, label: origin.name, kind: "origin" }];
-    let n = 0;
-    for (const id of Object.keys(selected)) { const p = net.places.find((x) => x.id === id); if (p) ms.push({ lat: p.lat, lon: p.lon, label: p.name, kind: "visit", n: ++n }); }
-    for (const c of custom) ms.push({ lat: c.lat, lon: c.lon, label: c.name, kind: "visit", n: ++n });
-    return ms;
-  }, [net, origin, selected, custom]);
+    if (!origin) return [];
+    return [{ lat: origin.lat, lon: origin.lon, label: origin.name, kind: "origin", text: "A" }, ...stops.map((s, i): MapMarker => ({ lat: s.lat, lon: s.lon, label: s.name, kind: "visit", text: letter(i) }))];
+  }, [origin, stops]);
+  const previewLine: MapLine[] = useMemo(() => (origin && stops.length ? [{ coords: [[origin.lat, origin.lon], ...stops.map((s) => [s.lat, s.lon] as [number, number]), ...(returnHome ? [[origin.lat, origin.lon] as [number, number]] : [])], color: "#163300", dashed: true, label: "Your route (straight line preview)" }] : []), [origin, stops, returnHome]);
 
-  const areas = useMemo(() => [...new Set((net?.places ?? []).map((p) => p.area).filter(Boolean) as string[])], [net]);
-  const shown = useMemo(() => (net?.places ?? []).filter((p) => !area || p.area === area || selected[p.id]), [net, area, selected]);
-  const cyc = (id: string) => setSelected((s) => { const c = s[id]; const next = { ...s }; if (!c) next[id] = 2; else if (c === 2) next[id] = 3; else if (c === 3) next[id] = 1; else delete next[id]; return next; });
-  const pickOnMap = async (lat: number, lon: number) => {
-    setPicking(false);
-    setOrigin({ name: "Dropped pin", lat, lon });
-    api.reverse(lat, lon).then((r) => setOrigin({ name: r.name, lat, lon })).catch(() => {});
+  const onMapPick = (lat: number, lon: number) => {
+    if (pick === "start") { setPick(null); setOrigin({ name: "Dropped pin", lat, lon }); api.reverse(lat, lon).then((r) => setOrigin({ name: r.name, lat, lon })).catch(() => {}); }
+    else if (pick === "stop") addAt(lat, lon);
   };
 
+  const areas = useMemo(() => [...new Set((net?.places ?? []).map((p) => p.area).filter(Boolean) as string[])], [net]);
+  const popular = useMemo(() => (net?.places ?? []).filter((p) => !area || p.area === area).slice(0, 24), [net, area]);
   const t = result?.plan.totals;
+  const cityList = (cities.length ? [...cities].sort((a, b) => (a.id === "maharashtra" ? -1 : b.id === "maharashtra" ? 1 : 0)) : [{ id: "pune", city: "Pune" }, { id: "mumbai", city: "Mumbai" }]);
+
   return (
     <main>
-      <LocalBar title="Plan your day" crumb="Mumbai · Pune · all of Maharashtra">
+      <LocalBar title="Plan your route" crumb="Work, errands and appointments — across Maharashtra">
         <OutlinePill href="/report">Report a gap</OutlinePill>
-        <a href="#plan" className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 12 }}>Plan my day</a>
+        <a href="#plan" className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 14 }}>Plan my route</a>
       </LocalBar>
       <section className="hero wrap" style={{ paddingBottom: 24 }}>
         <div className="kicker">SafarSetu</div>
-        <h1 style={{ maxWidth: "15ch" }}>A whole day, anywhere in Maharashtra.</h1>
-        <p>Buses, metro and trains, timed to the minute. We tell you when to leave and how long to stay — and stay calm when things change.</p>
+        <h1 style={{ maxWidth: "14ch" }}>Get your work done on the move.</h1>
+        <p>Add the places you need to be and when. We line up buses, metro and trains so you reach each one on time — and keep it right when things change.</p>
         <nav className="anchors" aria-label="On this page">
           <a href="#plan">Plan</a><a href="#how">How it works</a><a href="#report">Report a gap</a><a href="#authorities">For authorities</a>
         </nav>
@@ -145,67 +152,98 @@ export default function Planner() {
 
       <section className="band section tight" id="plan">
         <div className="wrap stage">
-          <div className="card stack" aria-label="Plan your day">
+          <div className="card stack" aria-label="Your route">
             <div className="row between">
-              <h2 className="h3">Plan your day</h2>
-              <div className="seg" role="group" aria-label="City">
-                {(cities.length ? [...cities].sort((a, b) => (a.id === "maharashtra" ? -1 : b.id === "maharashtra" ? 1 : 0)) : [{ id: "pune", city: "Pune", presets: [] }, { id: "mumbai", city: "Mumbai", presets: [] }]).map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
+              <h2 className="h3">Your route</h2>
+              <div className="seg" role="group" aria-label="Region">
+                {cityList.map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
               </div>
             </div>
 
-            {(cities.find((c) => c.id === cityId)?.presets.length ?? 0) > 0 && (
-              <div className="field"><span>Quick start</span>
-                <div className="chips">{cities.find((c) => c.id === cityId)!.presets.map((p) => <button key={p.name} className="chip" onClick={() => net && applyPreset(p, net)}>{p.name}</button>)}</div>
-              </div>
-            )}
-
-            <div className="field">
-              <span>Starting point</span>
-              <div className="row" style={{ gap: 8 }}>
-                <div className="chip" style={{ flex: 1, borderRadius: 980, padding: "12px 20px", minHeight: 44, display: "flex", alignItems: "center" }}>{origin?.name ?? "Not set"}</div>
-                <button className="pill-outline" aria-pressed={picking} onClick={() => setPicking((p) => !p)}>{picking ? "Click the map…" : "Pick on map"}</button>
-              </div>
+            <div className="field"><span>Try an example</span>
+              <div className="chips">{EXAMPLES.map((ex) => <button key={ex.name} className="chip" onClick={() => loadExample(ex)}>{ex.name}</button>)}</div>
             </div>
-            <PlaceSearch city={cityId} label="Search a different start" placeholder="Station, hotel, landmark…" onPick={(h) => setOrigin(h)} />
+
+            {/* Google-Maps-style stop list: A start, then B, C, … in order */}
+            <div className="route">
+              <div className="stoprow">
+                <span className="badge a">A</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="stopname">{origin?.name ?? "Set a starting point"}</div>
+                  <div className="sub">Start · leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /></div>
+                </div>
+                <button className="icobtn" aria-pressed={pick === "start"} title="Pick start on map" onClick={() => setPick(pick === "start" ? null : "start")}><Icon name="MapPin" size={16} /></button>
+              </div>
+              {stops.map((s, i) => (
+                <div key={s.id} className="stopblock">
+                  <div className="stoprow">
+                    <span className="badge">{letter(i)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="stopname">{s.name}</div>
+                      <div className="sub">{s.task || "Add what you’re doing here"} · {s.dwell} min{s.arriveBy ? ` · be there by ${s.arriveBy}` : ""}{s.required ? "" : " · optional"}</div>
+                    </div>
+                    <button className="icobtn" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}><Icon name="ArrowUp" size={16} /></button>
+                    <button className="icobtn" title="Move down" disabled={i === stops.length - 1} onClick={() => move(i, 1)}><Icon name="ArrowDown" size={16} /></button>
+                    <button className="icobtn" aria-pressed={open === s.id} title="Details" onClick={() => setOpen(open === s.id ? null : s.id)}><Icon name="SlidersHorizontal" size={16} /></button>
+                    <button className="icobtn" title="Remove stop" onClick={() => setStops((x) => x.filter((y) => y.id !== s.id))}><Icon name="X" size={16} /></button>
+                  </div>
+                  {open === s.id && (
+                    <div className="stopdetails">
+                      <label className="field"><span>What are you doing here?</span><input className="input" value={s.task} maxLength={100} placeholder="Client meeting, bank, pick-up…" onChange={(e) => patch(s.id, { task: e.target.value })} /></label>
+                      <div className="grid2">
+                        <label className="field"><span>Time needed</span><select className="input" value={s.dwell} onChange={(e) => patch(s.id, { dwell: Number(e.target.value) })}>{DWELLS.map((d) => <option key={d} value={d}>{d >= 60 ? `${d / 60} h` : `${d} min`}</option>)}</select></label>
+                        <label className="field"><span>Be there by (optional)</span><input className="input" type="time" value={s.arriveBy} onChange={(e) => patch(s.id, { arriveBy: e.target.value })} /></label>
+                      </div>
+                      <label className="check"><input type="checkbox" checked={s.required} onChange={(e) => patch(s.id, { required: e.target.checked })} /> Must happen — never skip this stop</label>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="stoprow add">
+                <span className="badge ghost"><Icon name="Plus" size={14} /></span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <PlaceSearch city={cityId} label="" placeholder="Add a stop — search a place or address" onPick={(h) => { const st = newStop({ ...h }); setStops((s) => [...s, st]); setOpen(st.id); }} />
+                </div>
+                <button className="icobtn" aria-pressed={pick === "stop"} title="Add stops by clicking the map" onClick={() => setPick(pick === "stop" ? null : "stop")}><Icon name="MapPin" size={16} /></button>
+              </div>
+              {pick && <p className="sub" role="status" style={{ marginLeft: 44 }}>{pick === "stop" ? "Click the map to add stops. Click the pin again to stop." : "Click the map to set your start."}</p>}
+              {origin && <PlaceSearch city={cityId} label="" placeholder="Change starting point…" onPick={(h) => setOrigin(h)} />}
+            </div>
 
             <div className="grid2">
               <label className="field"><span>Date</span><input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-              <label className="field"><span>Your name (optional)</span><input className="input" value={name} maxLength={40} placeholder="For friendlier alerts" onChange={(e) => setName(e.target.value)} /></label>
-              <label className="field"><span>Start</span><input className="input" type="time" value={start} onChange={(e) => setStart(e.target.value)} /></label>
-              <label className="field"><span>Be back by</span><input className="input" type="time" value={end} onChange={(e) => setEnd(e.target.value)} /></label>
+              <label className="field"><span>Finish by (optional)</span><input className="input" type="time" value={finish} onChange={(e) => setFinish(e.target.value)} /></label>
             </div>
-
-            <div className="field">
-              <span>Places — tap to add, tap again to change importance</span>
-              {areas.length > 1 && <div className="seg" style={{ flexWrap: "wrap", borderRadius: 20 }} role="group" aria-label="Area">{["", ...areas].map((a) => <button key={a} aria-pressed={area === a} onClick={() => setArea(a)}>{a || "All"}</button>)}</div>}
-              <div className="chips">
-                {shown.map((p) => <button key={p.id} className="chip" aria-pressed={!!selected[p.id]} onClick={() => cyc(p.id)} title={p.blurb}>{p.name}{selected[p.id] ? ` · ${selected[p.id] === 3 ? "★★★" : selected[p.id] === 2 ? "★★" : "★"}` : ""}</button>)}
-              </div>
+            <div className="row between">
+              <div className="field"><span>Order of stops</span><div className="seg" role="group" aria-label="Order"><button aria-pressed={order === "mine"} onClick={() => setOrder("mine")}>My order</button><button aria-pressed={order === "best"} onClick={() => setOrder("best")}>Best order</button></div></div>
+              <label className="check"><input type="checkbox" checked={returnHome} onChange={(e) => setReturnHome(e.target.checked)} /> Return to start</label>
             </div>
-            <PlaceSearch city={cityId} label="Add any other place" placeholder="Search the city…" onPick={(h) => setCustom((c) => [...c, { ...h, priority: 2 }])} />
-
-            {(Object.keys(selected).length > 0 || custom.length > 0) && (
-              <div>
-                {Object.entries(selected).map(([id, pr]) => <div className="sel-item" key={id}><b>{net?.places.find((p) => p.id === id)?.name}</b><div className="seg">{([1, 2, 3] as Prio[]).map((v) => <button key={v} aria-pressed={pr === v} onClick={() => setSelected((s) => ({ ...s, [id]: v }))}>{PRIO_LABEL[v]}</button>)}</div></div>)}
-                {custom.map((c, i) => <div className="sel-item" key={i}><b>{c.name}</b><button className="pill-outline" onClick={() => setCustom((x) => x.filter((_, j) => j !== i))}>Remove</button></div>)}
-              </div>
-            )}
-
             <div className="row between">
               <div className="field"><span>Pace</span><div className="seg" role="group" aria-label="Pace">{(["relaxed", "normal", "fast"] as Pace[]).map((p) => <button key={p} aria-pressed={pace === p} onClick={() => setPace(p)}>{p[0]!.toUpperCase() + p.slice(1)}</button>)}</div></div>
               <div className="field"><span>Alerts</span><div className="seg" role="group" aria-label="Alert style">{(["calm", "brief"] as const).map((s) => <button key={s} aria-pressed={style === s} onClick={() => setStyle(s)}>{s === "calm" ? "Calm" : "Brief"}</button>)}</div></div>
             </div>
+            <label className="field"><span>Your name (optional, for friendlier alerts)</span><input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} /></label>
+
+            <div>
+              <button className="tlink" onClick={() => setShowPop((x) => !x)}>{showPop ? "Hide" : "Show"} popular places{areas.length ? "" : ""}</button>
+              {showPop && (
+                <div className="stack mt">
+                  {areas.length > 1 && <div className="seg" style={{ flexWrap: "wrap", borderRadius: 20 }} role="group" aria-label="Area">{["", ...areas].map((a) => <button key={a} aria-pressed={area === a} onClick={() => setArea(a)}>{a || "All"}</button>)}</div>}
+                  <div className="chips">{popular.map((p) => <button key={p.id} className="chip" title={p.blurb} onClick={() => setStops((s) => [...s, newStop({ name: p.name, lat: p.lat, lon: p.lon, dwell: p.minDwell, opens: p.opens, closes: p.closes, required: false })])}>+ {p.name}</button>)}</div>
+                </div>
+              )}
+            </div>
 
             {err && <p className="err" role="alert">{err}</p>}
-            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? "Planning…" : "Plan my day"}</button></div>
+            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? "Planning…" : "Plan my route"}</button></div>
           </div>
 
           <div className="frame map">
-            <MapView bbox={net?.bbox ?? [72.7, 18.4, 74, 19.3]} lines={lines ?? []} markers={layers?.markers ?? preview} picking={picking} onPick={pickOnMap} />
+            <MapView bbox={net?.bbox ?? [72.7, 18.4, 74, 19.3]} lines={lines ?? previewLine} markers={layers?.markers ?? preview} picking={!!pick} onPick={onMapPick} />
             {result && t && (
               <div className="capsule">
-                <Icon name="ShieldCheck" size={18} /><div><b>{result.plan.timeline.filter((e) => e.kind === "visit").length} places · {t.confidencePct}% on time</b><span className="s">₹{t.fare} fares · {(t.walkM / 1000).toFixed(1)} km walking</span></div>
-                <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 12 }}>Start live trip</Link>
+                <Icon name="ShieldCheck" size={18} /><div><b>{result.plan.timeline.filter((e) => e.kind === "visit").length} stops · {t.confidencePct}% on time</b><span className="s">₹{t.fare} fares · {(t.walkM / 1000).toFixed(1)} km walking</span></div>
+                <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 14 }}>Start live trip</Link>
               </div>
             )}
           </div>
@@ -216,18 +254,22 @@ export default function Planner() {
         <section className="section" ref={resultRef}>
           <div className="wrap">
             <div className="row between">
-              <div><div className="label">Your plan · revision {result.plan.revision}</div><h2 className="h2" style={{ marginTop: 8 }}>{fmtTime(result.plan.request.startMin)} to {fmtTime(result.plan.timeline.at(-1) ? ("arriveMin" in result.plan.timeline.at(-1)! ? (result.plan.timeline.at(-1) as { arriveMin: number }).arriveMin : result.plan.request.endMin) : result.plan.request.endMin)}</h2></div>
-              <Link href={`/trip/${result.id}`}><span className="pill-primary" >Start live trip</span></Link>
+              <div><div className="label">Your plan · revision {result.plan.revision}</div><h2 className="h2" style={{ marginTop: 8 }}>{fmtTime(result.plan.timeline[0] && result.plan.timeline[0].kind === "move" ? result.plan.timeline[0].departMin : result.plan.request.startMin)} to {fmtTime((() => { const l = result.plan.timeline.at(-1); return l ? (l.kind === "move" ? l.arriveMin : l.leaveMin) : result.plan.request.endMin; })())}</h2></div>
+              <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none" }}>Start live trip</Link>
             </div>
-
             <div className="stats mt2">
-              <div className="stat"><b>{result.plan.timeline.filter((e) => e.kind === "visit").length}</b><span>places</span></div>
+              <div className="stat"><b>{result.plan.timeline.filter((e) => e.kind === "visit").length}</b><span>stops</span></div>
               <div className="stat"><b>{(t.walkM / 1000).toFixed(1)} km</b><span>walking</span></div>
               <div className="stat"><b>₹{t.fare}</b><span>fares</span></div>
               <div className="stat"><b>{t.confidencePct}%</b><span>on-time confidence{t.riskiest ? ` · tightest: ${t.riskiest}` : ""}</span></div>
             </div>
-
-            {result.plan.dropped.length > 0 && <p className="mt2 label hot">Didn’t fit: {result.plan.dropped.map((d) => `${d.name} (${d.reason})`).join(" · ")}</p>}
+            {(result.plan.conflicts?.length ?? 0) > 0 && (
+              <div className="note mt2" role="alert" style={{ borderLeft: "4px solid var(--color-alarm-red)" }}>
+                <b style={{ display: "flex", gap: 8, alignItems: "center" }}><Icon name="AlertTriangle" size={16} />This can’t work as asked</b>
+                {result.plan.conflicts!.map((c, i) => <p key={i}><b>{c.name}</b>: {c.reason}. Try starting earlier, moving the time, or making the stop optional.</p>)}
+              </div>
+            )}
+            {result.plan.dropped.length > 0 && <p className="mt2 label hot">Left out (optional stops that didn’t fit): {result.plan.dropped.map((d) => `${d.name} (${d.reason})`).join(" · ")}</p>}
             {rain && <p className="mt label">{rain}</p>}
             {result.plan.reminders[0] && <p className="mt sub">First reminder: “{result.plan.reminders[0].title}” at {fmtTime(result.plan.reminders[0].atMin)}.</p>}
           </div>
@@ -242,7 +284,7 @@ export default function Planner() {
           <div className="hl-head"><h2 className="h2">Highlights</h2><Link href="/report" className="tlink">Help fix a gap ›</Link></div>
           <div className="slides">
             {[
-              ["Clock", "#0e7490", "Every timetable, in sync", "Bus, metro and train times are chained so each leg is boarded on time — with the wait where it is pleasant."],
+              ["Clock", "#0e7490", "Your errands, in order", "Add the places you need to be. We chain bus, metro and train times so you reach each one when you need to."],
               ["BellRing", "#7c3aed", "Calm alerts, not alarms", "“No need to rush — your train is 30 minutes late. Leave at 10:40.” Tone follows the slack you really have."],
               ["Map", "#15803d", "All of Maharashtra", "Real railway timetables between cities, with Mumbai and Pune first- and last-mile detail."],
               ["Flag", "#cb272f", "Report a gap", "Name two areas that should be connected. Reports reach authorities as evidence, not noise."],

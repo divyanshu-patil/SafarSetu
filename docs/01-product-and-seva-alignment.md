@@ -2,7 +2,7 @@
 
 ## The problem
 
-A visitor in an unfamiliar city juggles 3–5 apps (bus, metro, rail, maps, weather), guesses how long each place deserves, and has no idea a train is late until they are on the platform. Existing planners answer *"how do I get from A to B?"*. Nobody answers **"I have 9 hours and 5 places — what should I do, in what order, when do I leave, and what changes when something breaks?"**
+People with a day of work to do — meetings, site visits, bank and government offices, pick-ups, college and shift timings — juggle 3–5 apps (bus, metro, rail, maps), guess how long each trip really takes, and learn a train is late only on the platform. Existing planners answer *"how do I get from A to B?"*. Nobody answers **"I must be at the client at 11:30, the bank before it closes, and a parcel pick-up on the way — when do I leave, what do I board, and what changes when something breaks?"** SafarSetu is built for that: *organising work along the connecting transport, according to your time*; it is equally useful to visitors in a new city.
 
 Public transport in Indian cities also has a trust problem: schedules shift, trains run late, metro/bus services are curtailed. Users who cannot judge that risk fall back to cabs — costlier and more congesting.
 
@@ -17,7 +17,7 @@ Public transport in Indian cities also has a trust problem: schedules shift, tra
 
 ## Core capabilities
 
-1. **Day planner** — origin, window (start/end), places (priority, min/max dwell, opening hours) → ordered itinerary, exact leave/board/arrive times, *how long to spend* at each place.
+1. **Route planner with stops** (Google-Maps style) — start, then any number of stops added by search or map click, each with *task*, *time needed*, optional *be there by* and *must-happen* flag; keep your order or let us find the best one. Output: exact leave/board/arrive times, spare time at each stop, and an honest **conflict list** if something cannot work as asked.
 2. **Timetable-synchronised routing** — bus, metro, local train and walking, with real transfer waits.
 3. **On-time confidence** — Monte-Carlo over delay distributions incl. missed-connection fallbacks → "92 % you make the 10:12 train".
 4. **Live re-planning** — delays/cancellations/closures/weather re-time or re-route the *rest of the day*, shrinking low-priority visits first.

@@ -25,6 +25,13 @@ Origin/destination are arbitrary coordinates.
 
 **Depart-at** = one search. **Arrive-by** = scan candidate departures backward in 5-min then 1-min steps until the *latest* departure that still arrives ≤ deadline → this is the "leave by" time. Cost: tens of searches over ~100 stops — milliseconds.
 
+## Work stops: order, deadlines, required, conflicts
+
+- `keepOrder` — visit stops exactly in the order given (default in the UI); otherwise the best order is searched.
+- `arriveBy` (appointment) — plan to arrive **5 min early (pace-based buffer: relaxed 10 / normal 5 / fast 2)** and *leave later* rather than wait there: the engine searches the latest departure that still makes it (`latestDeparture`) so spare time is spent at the previous stop.
+- `required` — never dropped. If required stops cannot all be met (deadline missed, closed, day too short) the plan is still returned with `conflicts[]` naming each stop and the reason; optional stops are dropped first (lowest priority) and listed in `dropped[]`.
+- Per-stop `task` is carried into the timeline, reminders and alerts.
+
 ## Day planner — `planDay(network, request, live)`
 
 Input: origin, `date`, `startMin`, `endMin`, `returnToOrigin`, places `[ {placeId | custom coords, priority 1–3, minDwell, maxDwell, opens, closes} ]`, preferences (`pace`, `maxWalkM`, `avoid` modes, `budget`).

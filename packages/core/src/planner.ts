@@ -12,17 +12,19 @@ export interface Ctx {
   o: RouteOpts;
   prefs: Required<Prefs>;
   cache: Map<string, Itinerary>;
+  later: Map<string, Itinerary | null>;
+  keepOrder: boolean;
 }
 
 const END_BUFFER: Record<Pace, number> = { relaxed: 15, normal: 5, fast: 0 };
 const indexCache = new WeakMap<Network, Indexed>();
 
-export function makeCtx(net: Network, live: LiveState = noLive, prefs: Prefs = {}): Ctx {
+export function makeCtx(net: Network, live: LiveState = noLive, prefs: Prefs = {}, keepOrder = false): Ctx {
   let ix = indexCache.get(net);
   if (!ix) indexCache.set(net, (ix = indexNetwork(net)));
   const p: Required<Prefs> = { pace: prefs.pace ?? "normal", maxWalkM: prefs.maxWalkM ?? (prefs.pace === "relaxed" ? 800 : prefs.pace === "fast" ? 1500 : 1200), avoid: prefs.avoid ?? [], style: prefs.style ?? "calm" };
   const o: RouteOpts = { ...defaultOpts(), ...PACE_OPTS[p.pace], maxWalkM: p.maxWalkM, avoid: p.avoid };
-  return { ix, live, o, prefs: p, cache: new Map() };
+  return { ix, live, o, prefs: p, cache: new Map(), later: new Map(), keepOrder };
 }
 
 const k5 = (p: Pt) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
@@ -43,6 +45,9 @@ export interface Item {
   maxDwell: number;
   opens: number;
   closes: number;
+  arriveBy?: number;
+  task?: string;
+  required: boolean;
 }
 
 export function resolveItems(net: Network, inputs: PlaceInput[]): Item[] {
@@ -63,6 +68,9 @@ export function resolveItems(net: Network, inputs: PlaceInput[]): Item[] {
       maxDwell: Math.max(minDwell, p.maxDwell ?? base?.maxDwell ?? minDwell * 2),
       opens: p.opens ?? base?.opens ?? 0,
       closes: p.closes ?? base?.closes ?? 1440,
+      arriveBy: p.arriveBy,
+      task: p.task,
+      required: !!p.required,
     };
   });
 }
@@ -75,9 +83,18 @@ interface Sim {
   finish: number;
   failItem?: Item;
   reason?: string;
+  conflicts: { name: string; reason: string }[];
 }
 
-function simulate(c: Ctx, start: Pt, startMin: number, items: Item[], dwell: Map<string, number>, home: Pt | null, endMin: number): Sim {
+/** latest departure that still arrives by `deadline`, cached per planning run */
+function leaveLater(c: Ctx, a: Pt, b: Pt, deadline: number): Itinerary | null {
+  const key = `${k5(a)}|${k5(b)}|${Math.round(deadline)}`;
+  if (!c.later.has(key)) c.later.set(key, latestDeparture(c.ix, c.live, a, b, deadline, c.o));
+  return c.later.get(key)!;
+}
+
+function simulate(c: Ctx, start: Pt, startMin: number, items: Item[], dwell: Map<string, number>, home: Pt | null, endMin: number, soft = false): Sim {
+  const conflicts: Sim["conflicts"] = [];
   const entries: Entry[] = [];
   let cur: Pt = start;
   let t = startMin;
@@ -88,12 +105,29 @@ function simulate(c: Ctx, start: Pt, startMin: number, items: Item[], dwell: Map
     entries.push({ kind: "move", from: cur, to, itinerary: it, departMin: it.departMin, arriveMin: it.arriveMin } satisfies Move);
   };
   for (const item of items) {
-    const it = travel(c, cur, item, t);
+    let it = travel(c, cur, item, t);
+    // arriving well before an appointment/opening time: leave later (stay longer where you are) instead of waiting there
+    // appointments get a safety buffer (relaxed 10 / normal 5 / fast 2 min): aim to be early, never exactly on the minute
+    const target = item.arriveBy !== undefined ? item.arriveBy - { relaxed: 10, normal: 5, fast: 2 }[c.prefs.pace] : item.opens > it.arriveMin + 2 ? item.opens : undefined;
+    if (target !== undefined && it.arriveMin < target - 10) {
+      const later = leaveLater(c, cur, item, target);
+      if (later && later.departMin >= t && later.arriveMin <= target + 0.5) it = later;
+    }
     addMove(item, it);
+    if (item.arriveBy !== undefined && it.arriveMin > item.arriveBy + 0.5) {
+      const reason = `can't arrive by ${fmtTime(item.arriveBy)} — earliest ${fmtTime(it.arriveMin)}`;
+      if (!soft) return { ok: false, entries, finish: it.arriveMin, failItem: item, reason, conflicts };
+      conflicts.push({ name: item.name, reason });
+    }
     const startV = Math.max(it.arriveMin, item.opens);
-    if (startV + item.minDwell > item.closes) return { ok: false, entries, finish: it.arriveMin, failItem: item, reason: it.arriveMin >= item.closes ? `closes at ${fmtTime(item.closes)}` : `would not fit before it closes at ${fmtTime(item.closes)}` };
-    const leave = Math.min(startV + (dwell.get(item.key) ?? item.minDwell), item.closes);
-    prev = { kind: "visit", place: { key: item.key, name: item.name, lat: item.lat, lon: item.lon }, arriveMin: it.arriveMin, startMin: startV, leaveMin: leave, dwellMin: leave - startV, waitMin: startV - it.arriveMin, priority: item.priority, minDwell: item.minDwell, maxDwell: item.maxDwell, opens: item.opens, closes: item.closes };
+    if (startV + item.minDwell > item.closes) {
+      const reason = it.arriveMin >= item.closes ? `closes at ${fmtTime(item.closes)}` : `would not fit before it closes at ${fmtTime(item.closes)}`;
+      if (!soft) return { ok: false, entries, finish: it.arriveMin, failItem: item, reason, conflicts };
+      conflicts.push({ name: item.name, reason });
+    }
+    const leave = soft ? Math.max(Math.min(startV + (dwell.get(item.key) ?? item.minDwell), item.closes), startV + item.minDwell) : Math.min(startV + (dwell.get(item.key) ?? item.minDwell), item.closes);
+    prev = { kind: "visit", place: { key: item.key, name: item.name, lat: item.lat, lon: item.lon }, arriveMin: it.arriveMin, startMin: startV, leaveMin: leave, dwellMin: leave - startV, waitMin: startV - it.arriveMin, priority: item.priority, minDwell: item.minDwell, maxDwell: item.maxDwell, opens: item.opens, closes: item.closes, arriveBy: item.arriveBy, required: item.required };
+    prev.place.task = item.task;
     entries.push(prev);
     cur = item;
     t = leave;
@@ -104,13 +138,14 @@ function simulate(c: Ctx, start: Pt, startMin: number, items: Item[], dwell: Map
     addMove(home, it);
     finish = it.arriveMin;
   }
-  return { ok: finish <= endMin, entries, finish, failItem: undefined, reason: finish > endMin ? `day ends at ${fmtTime(endMin)}` : undefined };
+  if (soft && finish > endMin) conflicts.push({ name: "Finish time", reason: `you would finish at ${fmtTime(finish)}, after ${fmtTime(endMin)}` });
+  return { ok: finish <= endMin, entries, finish, failItem: undefined, reason: finish > endMin ? `day ends at ${fmtTime(endMin)}` : undefined, conflicts };
 }
 
 // ---- ordering --------------------------------------------------------------
 
 function candidateOrders(c: Ctx, start: Pt, items: Item[], home: Pt | null, t0: number): Item[][] {
-  if (items.length <= 1) return [items];
+  if (items.length <= 1 || c.keepOrder) return [items];
   const pts: Pt[] = [start, ...items];
   const d = pts.map((a) => pts.map((b) => (a === b ? 0 : travel(c, a, b, t0).arriveMin - t0)));
   const cost = (seq: number[]) => {
@@ -155,6 +190,7 @@ export interface Anchor {
 export interface Built {
   entries: Entry[];
   dropped: { name: string; reason: string }[];
+  conflicts?: { name: string; reason: string }[];
 }
 
 export function build(c: Ctx, anchor: Anchor, endMin: number, items: Item[], home: Pt | null): Built {
@@ -167,9 +203,15 @@ export function build(c: Ctx, anchor: Anchor, endMin: number, items: Item[], hom
     const sims = candidateOrders(c, anchor.start, pool, home, anchor.startMin + 90).map((order) => ({ order, r: simulate(c, anchor.start, anchor.startMin, order, mins(pool), home, endMin - endBuf) }));
     const ok = sims.filter((s) => s.r.ok).sort((a, b) => a.r.finish - b.r.finish)[0];
     if (!ok) {
-      // drop the least important item (ties: the one that does not fit, else the longest)
+      // drop the least important optional item (ties: the one that does not fit, else the longest). Required stops are never dropped.
       const failing = sims.map((s) => s.r.failItem).find(Boolean);
-      const victim = [...pool].sort((a, b) => a.priority - b.priority || Number(b === failing) - Number(a === failing) || b.minDwell - a.minDwell)[0]!;
+      const droppable = pool.filter((i) => !i.required);
+      if (!droppable.length) {
+        // everything left is required: show the best attempt and say exactly what does not work
+        const soft = candidateOrders(c, anchor.start, pool, home, anchor.startMin + 90).map((order) => simulate(c, anchor.start, anchor.startMin, order, mins(pool), home, endMin, true)).sort((a, b) => a.conflicts.length - b.conflicts.length || a.finish - b.finish)[0]!;
+        return { entries: soft.entries, dropped, conflicts: soft.conflicts };
+      }
+      const victim = [...droppable].sort((a, b) => a.priority - b.priority || Number(b === failing) - Number(a === failing) || b.minDwell - a.minDwell)[0]!;
       const r = sims[0]!.r;
       dropped.push({ name: victim.name, reason: failing === victim && r.reason ? `${victim.name} ${r.reason}` : "not enough time in your day" });
       pool = pool.filter((i) => i !== victim);
@@ -189,7 +231,7 @@ export function build(c: Ctx, anchor: Anchor, endMin: number, items: Item[], hom
       if (r.ok) (best = r), dwell.set(cand.place.key, trial.get(cand.place.key)!);
       else frozen.add(cand.place.key);
     }
-    return { entries: best.entries, dropped };
+    return { entries: best.entries, dropped, conflicts: [] };
   }
 }
 
@@ -213,6 +255,7 @@ export function finalize(c: Ctx, req: PlanRequest, built: Built, revision: numbe
     request: req,
     timeline: entries,
     dropped: built.dropped,
+    conflicts: built.conflicts ?? [],
     totals: { walkM, fare: fareSum, transfers, confidencePct: Math.round(minP * 100), riskiest },
     reminders: [],
     changes,
@@ -225,7 +268,7 @@ export function finalize(c: Ctx, req: PlanRequest, built: Built, revision: numbe
 
 export function planDay(net: Network, req: PlanRequest, live: LiveState = noLive): Plan {
   if (req.endMin <= req.startMin) throw new Error("endMin must be after startMin");
-  const c = makeCtx(net, live, req.prefs);
+  const c = makeCtx(net, live, req.prefs, req.keepOrder);
   const items = resolveItems(net, req.places);
   const home = req.returnToOrigin === false ? null : req.origin;
   const built = build(c, { start: req.origin, startMin: req.startMin }, req.endMin, items, home);

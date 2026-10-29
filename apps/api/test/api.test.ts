@@ -24,7 +24,7 @@ const post = (p: string, b: unknown) => j(p, { method: "POST", body: JSON.string
 
 test("health + network + validation", async () => {
   assert.equal((await j("/health")).body.store, "memory");
-  assert.ok((await j("/v1/network?city=mumbai")).body.stops.length > 40);
+  assert.ok((await j("/v1/network?city=mumbai&full=1")).body.stops.length > 40);
   assert.equal((await j("/v1/network?city=delhi")).status, 404);
   assert.equal((await post("/v1/plans", { nope: 1 })).status, 400);
 });

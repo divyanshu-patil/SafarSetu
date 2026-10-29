@@ -43,15 +43,22 @@ function MoveRow({ m, now }: { m: Move; now?: number }) {
 
 function VisitRow({ v, now }: { v: Visit; now?: number }) {
   const active = now !== undefined && now >= v.arriveMin && now < v.leaveMin;
+  const spare = v.maxDwell === v.minDwell ? Math.round(v.dwellMin - v.minDwell) : 0;
+  const late = v.arriveBy !== undefined && v.arriveMin > v.arriveBy + 0.5;
   return (
     <div className={`visit ${active ? "now" : ""}`}>
       <div className="t">{fmtTime(v.startMin)}<small>until {fmtTime(v.leaveMin)}</small></div>
       <div>
         <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}><Chip name="MapPin" color="#163300" size={16} box={30} />{v.place.name}</h3>
-        <p className="sub mt" style={{ marginTop: 6 }}>
-          Stay {fmtDuration(v.dwellMin)} · open {fmtTime(v.opens)}–{fmtTime(v.closes)}
+        {v.place.task && <p style={{ marginTop: 6, fontWeight: 600, color: "var(--color-forest-ink)" }}><Icon name="Briefcase" size={14} /> {v.place.task}</p>}
+        <p className="sub" style={{ marginTop: 6 }}>
+          {v.maxDwell === v.minDwell ? `${fmtDuration(v.minDwell)} planned${spare >= 10 ? ` · ${fmtDuration(spare)} spare before you leave` : ""}` : `Stay ${fmtDuration(v.dwellMin)}`}
+          {v.closes < 1440 && v.opens > 0 ? ` · open ${fmtTime(v.opens)}–${fmtTime(v.closes)}` : ""}
           {v.waitMin >= 5 && ` · opens after you arrive — ${Math.round(v.waitMin)} min wait`}
         </p>
+        {v.arriveBy !== undefined && (
+          <p className="status" style={{ marginTop: 6, color: late ? "#cb272f" : "#15803d" }}><Icon name={late ? "AlertTriangle" : "ShieldCheck"} size={14} />{late ? `Late for ${fmtTime(v.arriveBy)} — arrive ${fmtTime(v.arriveMin)}` : `Be there by ${fmtTime(v.arriveBy)} · arrive ${fmtTime(v.arriveMin)}`}</p>
+        )}
       </div>
     </div>
   );

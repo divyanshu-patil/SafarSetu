@@ -20,6 +20,9 @@ const placeInput = z.object({
   maxDwell: z.number().int().min(5).max(900).optional(),
   opens: z.number().min(0).max(1440).optional(),
   closes: z.number().min(0).max(1440).optional(),
+  arriveBy: z.number().min(0).max(1440).optional(),
+  task: z.string().max(120).optional(),
+  required: z.boolean().optional(),
 });
 const prefs = z.object({ pace: z.enum(["relaxed", "normal", "fast"]).optional(), maxWalkM: z.number().min(200).max(3000).optional(), avoid: z.array(z.enum(["metro", "train", "bus"])).optional(), style: z.enum(["calm", "brief"]).optional() });
 const planReq = z.object({
@@ -29,6 +32,7 @@ const planReq = z.object({
   startMin: z.number().min(0).max(1439),
   endMin: z.number().min(1).max(1440),
   returnToOrigin: z.boolean().optional(),
+  keepOrder: z.boolean().optional(),
   places: z.array(placeInput).min(1).max(12),
   prefs: prefs.optional(),
   traveller: z.object({ name: z.string().max(60).optional() }).optional(),
@@ -75,7 +79,11 @@ export function createApp(engine: Engine): Express {
   app.get("/health", (_req, res) => res.json({ ok: true, store: engine.store.kind, sim: simOn, now: engine.clock.state() }));
 
   app.get("/v1/cities", (_req, res) => res.json({ items: Object.values(networks).map((n) => ({ id: n.id, city: n.city, bbox: n.bbox, presets: n.presets, meta: n.meta })) }));
-  app.get("/v1/network", (req, res) => res.json(engine.network(city(req))));
+  // light by default (places, presets, bbox, meta): the state network carries hundreds of timetabled routes. ?full=1 for stops + routes.
+  app.get("/v1/network", (req, res) => {
+    const n = engine.network(city(req));
+    res.json(req.query.full ? n : { ...n, stops: [], routes: [], counts: { stops: n.stops.length, routes: n.routes.length } });
+  });
   app.get("/v1/places", (req, res) => {
     const q = String(req.query.q ?? "").toLowerCase();
     res.json({ items: engine.network(city(req)).places.filter((p) => !q || p.name.toLowerCase().includes(q)) });

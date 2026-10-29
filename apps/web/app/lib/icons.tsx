@@ -1,9 +1,9 @@
 "use client";
-import { AlertTriangle, Accessibility, Archive, ArrowRight, BellRing, Building2, Bus, BusFront, CalendarCheck, CircleCheck, CircleHelp, Clock, Construction, FileWarning, Flag, Footprints, Hourglass, Inbox, Landmark, LogIn, LogOut, type LucideIcon, Map as MapIcon, MapPin, MapPinOff, MessageCircleQuestion, Route, Search, Send, Shield, ShieldCheck, Shuffle, Sparkles, CarTaxiFront, TrainFront, TramFront, TrendingUp, Users, Wallet, CloudRain } from "lucide-react";
+import { ArrowDown, ArrowUp, Briefcase, Plus, SlidersHorizontal, X, AlertTriangle, Accessibility, Archive, ArrowRight, BellRing, Building2, Bus, BusFront, CalendarCheck, CircleCheck, CircleHelp, Clock, Construction, FileWarning, Flag, Footprints, Hourglass, Inbox, Landmark, LogIn, LogOut, type LucideIcon, Map as MapIcon, MapPin, MapPinOff, MessageCircleQuestion, Route, Search, Send, Shield, ShieldCheck, Shuffle, Sparkles, CarTaxiFront, TrainFront, TramFront, TrendingUp, Users, Wallet, CloudRain } from "lucide-react";
 
 // lucide icon names used by @repo/core metadata (CATEGORIES / STATUSES) -> components
 const REGISTRY: Record<string, LucideIcon> = {
-  AlertTriangle, Accessibility, Archive, ArrowRight, BellRing, Building2, Bus, BusFront, CalendarCheck, CircleCheck, CircleHelp, Clock, Construction, FileWarning, Flag, Footprints, Hourglass, Inbox, Landmark, LogIn, LogOut, Map: MapIcon, MapPin, MapPinOff, MessageCircleQuestion, Route, Search, Send, Shield, ShieldCheck, Shuffle, Sparkles, CarTaxiFront, TrainFront, TramFront, TrendingUp, Users, Wallet, CloudRain,
+  ArrowDown, ArrowUp, Briefcase, Plus, SlidersHorizontal, X, AlertTriangle, Accessibility, Archive, ArrowRight, BellRing, Building2, Bus, BusFront, CalendarCheck, CircleCheck, CircleHelp, Clock, Construction, FileWarning, Flag, Footprints, Hourglass, Inbox, Landmark, LogIn, LogOut, Map: MapIcon, MapPin, MapPinOff, MessageCircleQuestion, Route, Search, Send, Shield, ShieldCheck, Shuffle, Sparkles, CarTaxiFront, TrainFront, TramFront, TrendingUp, Users, Wallet, CloudRain,
 };
 
 export function Icon({ name, size = 18, className, strokeWidth = 2 }: { name: string; size?: number; className?: string; strokeWidth?: number }) {

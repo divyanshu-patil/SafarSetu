@@ -15,16 +15,18 @@ export interface MapMarker {
   label: string;
   kind: "origin" | "visit" | "board";
   n?: number;
+  /** text inside the pin, e.g. "A", "B" (Google-Maps style) */
+  text?: string;
 }
 
 const walkColor = "#64748b";
 
 export function planToMapLayers(plan: Plan): { lines: MapLine[]; markers: MapMarker[] } {
   const lines: MapLine[] = [];
-  const markers: MapMarker[] = [{ lat: plan.request.origin.lat, lon: plan.request.origin.lon, label: plan.request.origin.name, kind: "origin" }];
+  const markers: MapMarker[] = [{ lat: plan.request.origin.lat, lon: plan.request.origin.lon, label: plan.request.origin.name, kind: "origin", text: "A" }];
   let n = 0;
   for (const e of plan.timeline) {
-    if (e.kind === "visit") markers.push({ lat: e.place.lat, lon: e.place.lon, label: e.place.name, kind: "visit", n: ++n });
+    if (e.kind === "visit") markers.push({ lat: e.place.lat, lon: e.place.lon, label: e.place.name, kind: "visit", n: ++n, text: String.fromCharCode(65 + n) });
     else
       for (const l of e.itinerary.legs) {
         if (l.kind === "transit") lines.push({ coords: l.stops.map((s) => [s.lat, s.lon]), color: l.color, dashed: false, label: `${l.routeName} ${fmtTime(l.departMin)}→${fmtTime(l.arriveMin)}` });

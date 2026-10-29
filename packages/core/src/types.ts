@@ -138,6 +138,12 @@ export interface PlaceInput {
   maxDwell?: number;
   opens?: number;
   closes?: number;
+  /** appointment: be there no later than this (minutes since midnight). We leave later, not earlier, when possible. */
+  arriveBy?: number;
+  /** what you are doing there ("Client meeting", "Bank") */
+  task?: string;
+  /** never dropped; if it cannot be met the plan reports a conflict instead */
+  required?: boolean;
 }
 
 export interface Prefs {
@@ -154,6 +160,8 @@ export interface PlanRequest {
   startMin: number;
   endMin: number;
   returnToOrigin?: boolean;
+  /** visit stops in the given order (Google-Maps style). Default false = best order. */
+  keepOrder?: boolean;
   places: PlaceInput[];
   prefs?: Prefs;
   traveller?: { name?: string };
@@ -164,6 +172,7 @@ export interface PlaceRef {
   name: string;
   lat: number;
   lon: number;
+  task?: string;
 }
 export interface Move {
   kind: "move";
@@ -187,6 +196,8 @@ export interface Visit {
   maxDwell: number;
   opens: number;
   closes: number;
+  arriveBy?: number;
+  required?: boolean;
 }
 export type Entry = Move | Visit;
 
@@ -203,6 +214,8 @@ export interface Plan {
   request: PlanRequest;
   timeline: Entry[];
   dropped: { name: string; reason: string }[];
+  /** stops that cannot be done as asked (deadline missed, closed) — shown, never hidden */
+  conflicts?: { name: string; reason: string }[];
   totals: { walkM: number; fare: number; transfers: number; confidencePct: number; riskiest?: string };
   reminders: Reminder[];
   changes: string[];

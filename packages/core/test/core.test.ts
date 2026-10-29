@@ -94,3 +94,25 @@ test("mumbai presets plan feasibly", () => {
     assert.ok(visits >= 3);
   }
 });
+
+test("work stops: keepOrder, arriveBy leaves later, required conflicts are reported not dropped", () => {
+  const stop = (name: string, lat: number, lon: number, extra = {}) => ({ name, lat, lon, minDwell: 30, maxDwell: 30, ...extra });
+  const base = { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 8 * 60, endMin: 20 * 60, returnToOrigin: false };
+  const far = stop("Hinjewadi client", 18.5912, 73.7389);
+  const near = stop("Shivajinagar bank", 18.5308, 73.8475);
+  // user order is kept even though near-first would be shorter
+  const kept = planDay(puneNetwork, { ...base, keepOrder: true, places: [far, near] });
+  assert.deepEqual(kept.timeline.filter((e) => e.kind === "visit").map((e) => e.kind === "visit" && e.place.name), ["Hinjewadi client", "Shivajinagar bank"]);
+  // appointment at 11:00: arrive by then, but leave later than the unconstrained 08:00 start
+  const appt = planDay(puneNetwork, { ...base, keepOrder: true, places: [stop("Meeting", 18.5195, 73.8553, { arriveBy: 11 * 60, required: true })] });
+  const v = appt.timeline.find((e) => e.kind === "visit")!;
+  const m = appt.timeline[0]!;
+  assert.ok(v.kind === "visit" && v.arriveMin <= 11 * 60 - 2 && v.arriveMin >= 10 * 60 + 40, `arrive ${fmtTime(v.kind === "visit" ? v.arriveMin : 0)}`);
+  assert.ok(m.kind === "move" && m.departMin > 9 * 60, `leaves at ${fmtTime(m.kind === "move" ? m.departMin : 0)}`);
+  assert.deepEqual(appt.conflicts, []);
+  // impossible deadline for a required stop: kept, with a conflict
+  const bad = planDay(puneNetwork, { ...base, keepOrder: true, places: [stop("Too far", 18.5912, 73.7389, { arriveBy: 8 * 60 + 5, required: true })] });
+  assert.equal(bad.timeline.filter((e) => e.kind === "visit").length, 1);
+  assert.equal(bad.dropped.length, 0);
+  assert.match(bad.conflicts![0]!.reason, /can't arrive by 08:05/);
+});

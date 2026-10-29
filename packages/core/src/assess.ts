@@ -75,7 +75,7 @@ function activity(plan: Plan, now: number) {
  * 2) otherwise re-plan the rest of the day from where the rider will be        -> "replanned"
  */
 export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: number): Assessment {
-  const c = makeCtx(net, live, plan.request.prefs);
+  const c = makeCtx(net, live, plan.request.prefs, plan.request.keepOrder);
   const tl = plan.timeline;
   const idx = activity(plan, nowMin);
   if (idx < 0) return { state: "on_track", plan };

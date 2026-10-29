@@ -53,7 +53,7 @@ export default function MapView({ bbox, lines = [], markers = [], me, onPick, pi
       pts.push(...l.coords);
     }
     for (const k of markers) {
-      const icon = L.divIcon({ className: "", html: `<div class="pin ${k.kind === "visit" ? "" : k.kind}">${k.kind === "visit" ? k.n : ""}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+      const icon = L.divIcon({ className: "", html: `<div class="pin ${k.kind === "visit" ? "" : k.kind}">${k.text ?? (k.kind === "visit" ? k.n : "")}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
       L.marker([k.lat, k.lon], { icon, title: k.label }).bindTooltip(k.label).addTo(g);
       pts.push([k.lat, k.lon]);
     }
