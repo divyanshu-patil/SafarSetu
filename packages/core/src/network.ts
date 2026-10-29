@@ -93,6 +93,8 @@ export interface Indexed {
   routes: RouteDef[];
   /** routes serving each stop: [routeIndex, position] */
   serving: [number, number][][];
+  /** stop index of every position of every route (avoids string lookups in the router hot loop) */
+  routeStops: Int32Array[];
   foot: Footpath[][];
 }
 
@@ -131,7 +133,8 @@ export function indexNetwork(net: Network): Indexed {
           }
         }
   });
-  return { net, service: net.routes.map(routeService), stops: net.stops, stopIdx, routes: net.routes, serving, foot };
+  const routeStops = net.routes.map((r) => Int32Array.from(r.stopIds, (id) => stopIdx.get(id)!));
+  return { net, service: net.routes.map(routeService), stops: net.stops, stopIdx, routes: net.routes, serving, routeStops, foot };
 }
 
 /** fare in INR for riding `hops` stops (synthetic slabs modelled on public fare tables) */

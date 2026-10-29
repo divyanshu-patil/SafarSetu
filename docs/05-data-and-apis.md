@@ -12,7 +12,7 @@ Principle: **free and keyless first; synthetic only where no feed exists; label 
 | Walking geometry | **FOSSGIS OSRM foot** (`routing.openstreetmap.de/routed-foot`) | Real pedestrian paths, keyless (the main OSRM demo server is car-only) | Fair-use; self-host OSRM/Valhalla or OpenRouteService (free key) in prod |
 | Weather | **Open-Meteo** | Keyless, hourly rain probability, non-commercial free | Commercial plan or IMD feed when monetised |
 | Live road traffic | *(optional)* TomTom Traffic / Google Routes | Only matters for cab fallback legs; both need keys | Free tiers (TomTom ≈ 2 500 req/day) — **not required for demo** |
-| Transit schedules | **Synthetic Pune pack** (this repo) | Pune Metro/Railways publish no API | See below |
+| Transit schedules | **Real community bus GTFS** (PMPML, BEST) + real railway timetable; synthetic metro/locals (this repo) | Pune Metro/Railways publish no API | See below |
 | Fares | Slab formulas per mode | Official slabs approximated | Replace with GTFS `fare_rules` |
 
 ### Using maps efficiently
@@ -31,13 +31,13 @@ Modelled on the real network so the demo looks right, **not** claimed accurate:
 |---|---|---|
 | Metro | Purple (PCMC–Swargate, 14 stops), Aqua (Vanaz–Ramwadi, 16 stops), shared Civil Court interchange; 10/15-min headways, 06:00–22:00 | Public station lists; coordinates approximated |
 | Local train | Pune Jn ↔ Lonavala (Pune Suburban), ~hourly explicit timetable, *higher delay profile* | Public line/stations; times invented |
-| Bus | 4 feeder routes (Swargate–Parvati, Station–Koregaon Park–Aga Khan Palace, Deccan–University–Baner, Shivajinagar–University–Aundh), 20-min headway | Invented; mirrors PMPML coverage |
+| Bus | **Real, not synthetic:** PMPML (Pune: 623 route patterns, 10,039 weekday trips, 4,534 stops) and BEST (Mumbai: 884 patterns, 88,041 trips, 4,266 stops) imported from community GTFS (croyla/pmpml-gtfs, croyla/mumbai-gtfs; MIT-0) by `scripts/gtfs/import-gtfs.mjs` into `src/data/{pmpml,best}.generated.json`. Intermediate stop times are modelled by the feed author (~20 km/h) | Community GTFS, single weekday service, not official data |
 | Places | ~16 attractions with opening hours and dwell ranges (Shaniwar Wada, Dagdusheth Ganpati, Kelkar Museum, Aga Khan Palace, Parvati, Osho Garden, University, …) | Public knowledge |
 | Delay profiles | per-mode distributions | Assumed; to be learned |
 
 **Maharashtra pack (real data):** `packages/core/src/data/maharashtra.ts` merges Mumbai + Pune with a scraped railway network (549 stations, 959 trains from Datameet) and 71 OSM places across 13 areas; scripts in `packages/core/scripts/scrape/`, sources in [`DATA_SOURCES.md`](../DATA_SOURCES.md). Real trains connect to the synthetic city networks by the 400 m footpath rule.
 
-**Mumbai pack:** Western (Churchgate–Borivali, fast) and Central (CSMT–Thane) locals, Metro Line 1 (Versova–Ghatkopar) and Line 3 (Cuffe Parade–Aarey) with the Marol Naka interchange, 7 BEST feeder routes, 13 places (Gateway of India, CSMT, Marine Drive, museum, Haji Ali, Siddhivinayak, Juhu, SGNP …). Each city also ships 2 one-click *presets* for the demo.
+**Mumbai pack:** Western (Churchgate–Borivali, fast) and Central (CSMT–Thane) locals, Metro Line 1 (Versova–Ghatkopar) and Line 3 (Cuffe Parade–Aarey) with the Marol Naka interchange, real BEST bus network from community GTFS (884 route patterns; the synthetic BEST feeders were removed), 13 places (Gateway of India, CSMT, Marine Drive, museum, Haji Ali, Siddhivinayak, Juhu, SGNP …). Each city also ships 2 one-click *presets* for the demo.
 
 Accuracy caveat is printed in the dashboard footer and in every API response `meta`.
 

@@ -59,6 +59,8 @@ export function search(ix: Indexed, live: LiveState, from: Pt, to: Pt, departMin
     }
   });
 
+  // fast path: with no disruptions the live lookups are constant, skip them in the hot loop
+  const quiet = live.disruptions.length === 0 && live.maxDelay === 0;
   const results: { it: Label; total: number; egressM: number }[] = [];
   let bestTotal = INF;
   const egress = () => {
@@ -86,18 +88,23 @@ export function search(ix: Indexed, live: LiveState, from: Pt, to: Pt, departMin
         const cur = routeStart.get(ri);
         if (cur === undefined || pos < cur) routeStart.set(ri, pos);
       }
+    let minReady = INF;
+    for (const s of improved) minReady = Math.min(minReady, snap[s]!.arr + o.boardBuffer);
     for (const [ri, startPos] of routeStart) {
       const r = ix.routes[ri]!;
       if (o.avoid.includes(r.mode) || (ix.service[ri] !== undefined && o.avoid.includes(ix.service[ri]!))) continue;
+      // no trip of this route can still be boarded: its last arrival is before anyone is ready
+      if (r.departures.length === 0 || r.departures[r.departures.length - 1]! + r.offsets[r.offsets.length - 1]! + live.maxDelay < minReady) continue;
+      const rs = ix.routeStops[ri]!;
       let trip = -1;
       let boardPos = -1;
       for (let pos = startPos; pos < r.stopIds.length; pos++) {
-        const s = ix.stopIdx.get(r.stopIds[pos]!)!;
-        const open = !live.closed(r.stopIds[pos]!, departMin);
+        const s = rs[pos]!;
+        const open = quiet || !live.closed(r.stopIds[pos]!, departMin);
         if (trip >= 0 && open) {
-          const t = r.departures[trip]! + r.offsets[pos]! + live.delay(r.id, r.departures[trip]!);
+          const t = r.departures[trip]! + r.offsets[pos]! + (quiet ? 0 : live.delay(r.id, r.departures[trip]!));
           if (t < bestArr[s]! - 1e-9) {
-            const lab: Label = { arr: t, stop: s, kind: "transit", prev: snap[ix.stopIdx.get(r.stopIds[boardPos]!)!], route: ri, trip, boardPos, alightPos: pos };
+            const lab: Label = { arr: t, stop: s, kind: "transit", prev: snap[rs[boardPos]!], route: ri, trip, boardPos, alightPos: pos };
             best[s] = lab;
             bestArr[s] = t;
             marked.add(s);
@@ -107,7 +114,8 @@ export function search(ix: Indexed, live: LiveState, from: Pt, to: Pt, departMin
         if (sl && open) {
           const ready = sl.arr + o.boardBuffer;
           let d = firstTrip(r.departures, ready - r.offsets[pos]! - live.maxDelay);
-          for (; d < r.departures.length; d++) {
+          if (quiet) { if (trip >= 0 && d >= trip) continue; }
+          else for (; d < r.departures.length; d++) {
             const dep = r.departures[d]!;
             if (live.cancelled(r.id, dep)) continue;
             if (dep + r.offsets[pos]! + live.delay(r.id, dep) >= ready) break;

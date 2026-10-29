@@ -1,12 +1,13 @@
-import type { Mode, Network, Place } from "../types";
+import type { Mode, Network, Place, RouteDef, Stop } from "../types";
 import { buildRoutes, type RouteSpec } from "../network";
+import pmpml from "./pmpml.generated.json";
 
-// SYNTHETIC demo pack: network shape follows the real Pune lines; coordinates are
-// approximate and timings are invented. Replace with GTFS / operator data in production.
+// MIXED pack. REAL: PMPML buses (community GTFS croyla/pmpml-gtfs, imported by scripts/gtfs; see DATA_SOURCES.md).
+// SYNTHETIC: Purple/Aqua metro and the Pune-Lonavala local (shape follows the real lines; coordinates approximate, timings invented).
 
 const S = (id: string, name: string, lat: number, lon: number, mode: Mode) => ({ id, name, lat, lon, mode });
 
-const stops = [
+const stops: Stop[] = [
   // Purple line (PCMC - Swargate)
   S("m_pcmc", "PCMC Bhavan", 18.6298, 73.7997, "metro"),
   S("m_sant", "Sant Tukaram Nagar", 18.6196, 73.8045, "metro"),
@@ -49,20 +50,6 @@ const stops = [
   S("t_dehu", "Dehu Road", 18.6781, 73.7393, "train"),
   S("t_talegaon", "Talegaon", 18.7339, 73.6772, "train"),
   S("t_lonavala", "Lonavala", 18.7509, 73.4066, "train"),
-  // Bus stops (PMPML-style feeders)
-  S("b_swargate", "Swargate Bus Stand", 18.501, 73.859, "bus"),
-  S("b_sarasbaug", "Sarasbaug", 18.5018, 73.8531, "bus"),
-  S("b_parvati", "Parvati Paytha", 18.4975, 73.8425, "bus"),
-  S("b_stn", "Pune Station Bus Stand", 18.529, 73.8752, "bus"),
-  S("b_bund", "Bund Garden Road", 18.5372, 73.8835, "bus"),
-  S("b_osho", "Koregaon Park (Osho)", 18.5388, 73.8928, "bus"),
-  S("b_agakhan", "Aga Khan Palace", 18.5535, 73.901, "bus"),
-  S("b_deccan", "Deccan Bus Stop", 18.5165, 73.8415, "bus"),
-  S("b_fc", "FC Road", 18.524, 73.841, "bus"),
-  S("b_univ", "Pune University Gate", 18.5535, 73.8235, "bus"),
-  S("b_baner", "Baner", 18.559, 73.7868, "bus"),
-  S("b_aundh", "Aundh", 18.558, 73.807, "bus"),
-  S("b_shivaji", "Shivajinagar Bus Stop", 18.5318, 73.849, "bus"),
 ];
 
 const peak: [number, number, number][] = [
@@ -72,14 +59,6 @@ const peak: [number, number, number][] = [
   [1020, 1200, 10],
   [1200, 1320, 15],
 ];
-const busHw: [number, number, number][] = [
-  [390, 480, 20],
-  [480, 660, 15],
-  [660, 1020, 20],
-  [1020, 1200, 15],
-  [1200, 1290, 20],
-];
-
 const specs: RouteSpec[] = [
   {
     id: "purple",
@@ -110,46 +89,6 @@ const specs: RouteSpec[] = [
     gap: [5, 6, 5, 8, 4, 3, 9, 10, 18],
     times: [365, 450, 530, 610, 690, 770, 855, 940, 1025, 1105, 1190, 1275],
     timesReverse: [330, 420, 500, 580, 660, 740, 825, 910, 995, 1075, 1160, 1245],
-    both: true,
-  },
-  {
-    id: "b1",
-    mode: "bus",
-    name: "Bus 1 · Swargate–Parvati",
-    color: "#ea580c",
-    stops: ["b_swargate", "b_sarasbaug", "b_parvati"],
-    gap: 6,
-    headways: busHw,
-    both: true,
-  },
-  {
-    id: "b2",
-    mode: "bus",
-    name: "Bus 2 · Station–Osho–Aga Khan",
-    color: "#16a34a",
-    stops: ["b_stn", "b_bund", "b_osho", "b_agakhan"],
-    gap: [6, 4, 7],
-    headways: busHw,
-    both: true,
-  },
-  {
-    id: "b3",
-    mode: "bus",
-    name: "Bus 3 · Deccan–University–Baner",
-    color: "#2563eb",
-    stops: ["b_deccan", "b_fc", "b_univ", "b_baner"],
-    gap: [4, 12, 9],
-    headways: busHw,
-    both: true,
-  },
-  {
-    id: "b4",
-    mode: "bus",
-    name: "Bus 4 · Shivajinagar–University–Aundh",
-    color: "#db2777",
-    stops: ["b_shivaji", "b_univ", "b_aundh"],
-    gap: [11, 7],
-    headways: busHw,
     both: true,
   },
 ];
@@ -198,12 +137,12 @@ export const puneNetwork: Network = {
   ],
   timezone: "Asia/Kolkata",
   bbox: [73.3, 18.4, 74.0, 18.8],
-  stops,
-  routes: buildRoutes(specs),
+  stops: [...stops, ...(pmpml.stops as Stop[])],
+  routes: [...buildRoutes(specs), ...(pmpml.routes as RouteDef[])],
   places,
   meta: {
     dataQuality: "synthetic",
-    note: "Synthetic demo data modelled on Pune's metro, suburban rail and PMPML buses. Not for real travel decisions.",
+    note: "MIXED. Real: PMPML bus routes, stops and trip times from the community GTFS croyla/pmpml-gtfs (weekday service, ~10k trips; start times from the PMPML API, in-between stop times modelled by the feed author at ~20 km/h). Synthetic (invented timings): Purple/Aqua metro and the Pune-Lonavala local. Not for real travel decisions.",
   },
 };
 

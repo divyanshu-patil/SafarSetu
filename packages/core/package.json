@@ -8,6 +8,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "scrape:gtfs": "node scripts/gtfs/run.mjs",
     "scrape:mh": "node scripts/scrape/rail.mjs && node scripts/scrape/osm.mjs && node scripts/scrape/build.mjs",
     "test": "tsx --test test/*.test.ts",
     "check-types": "tsc --noEmit",

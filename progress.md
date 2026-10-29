@@ -38,3 +38,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 - 2026-10-30 — browser QA found+fixed: CARTO tiles need API key (→ OSM, greyscaled), marker class clash `.pin.visit`, zero-length first move, vague 'open the app' alert (now suggests cab/walk), walking thresholds by pace.
 - 2026-10-30 — Citizen gap reports, authority portal (roles), Wise design on web + mobile, Google-Maps-style stop planner for work/errands (ordered stops, be-there-by, required, conflicts).
 - 2026-10-30 — Maharashtra network added (real Datameet rail timetable: 549 stations/959 trains; 71 OSM places; no metro/buses yet). CSMT↔Pune Deccan Express plan verified end to end. DATA_SOURCES.md written.
+- 2026-10-30 — Transport mode filter (local/express/metro/bus/cab), empty start + clear-all. Real buses imported: PMPML (Pune, 623 patterns/10k departures, feed 2026-10-07) and BEST (Mumbai, 884 patterns/88k departures, community feed 2026-08-19); both MIT-0, stop-to-stop ride times modelled by the feed generator.

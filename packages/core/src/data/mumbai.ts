@@ -1,12 +1,13 @@
-import type { Mode, Network, Place } from "../types";
+import type { Mode, Network, Place, RouteDef, Stop } from "../types";
 import { buildRoutes, type RouteSpec } from "../network";
+import best from "./best.generated.json";
 
 // SYNTHETIC demo pack: station order follows the real Mumbai Suburban, Metro 1/3 and BEST corridors;
 // coordinates are approximate and timings invented. Replace with GTFS / operator data in production.
 
 const S = (id: string, name: string, lat: number, lon: number, mode: Mode) => ({ id, name, lat, lon, mode });
 
-const stops = [
+const stops: Stop[] = [
   // Western line (fast, Churchgate - Borivali)
   S("w_churchgate", "Churchgate", 18.9322, 72.8264, "train"),
   S("w_marine", "Marine Lines", 18.9437, 72.8228, "train"),
@@ -53,22 +54,6 @@ const stops = [
   S("m3_t2", "Airport T2", 19.098, 72.87, "metro"),
   S("m3_seepz", "SEEPZ", 19.126, 72.874, "metro"),
   S("m3_aarey", "Aarey JVLR", 19.145, 72.87, "metro"),
-  // BEST buses
-  S("b_gateway", "Gateway of India", 18.922, 72.8347, "bus"),
-  S("b_churchgate", "Churchgate Stn Rd", 18.9334, 72.8272, "bus"),
-  S("b_csmt", "CSMT Bus Stop", 18.94, 72.835, "bus"),
-  S("b_dadar", "Dadar TT", 19.018, 72.8435, "bus"),
-  S("b_sidd", "Siddhivinayak Temple", 19.0165, 72.8304, "bus"),
-  S("b_worli", "Worli Sea Face", 19.009, 72.816, "bus"),
-  S("b_bandra", "Bandra Stn (W)", 19.0541, 72.8408, "bus"),
-  S("b_bandstand", "Bandra Bandstand", 19.0436, 72.819, "bus"),
-  S("b_andheri", "Andheri Stn (W)", 19.1196, 72.8468, "bus"),
-  S("b_juhu", "Juhu Beach", 19.0988, 72.8265, "bus"),
-  S("b_borivali", "Borivali Stn (E)", 19.23, 72.857, "bus"),
-  S("b_sgnp", "SGNP Gate", 19.229, 72.91, "bus"),
-  S("b_colaba", "Colaba Causeway", 18.9215, 72.8305, "bus"),
-  S("b_mahalaxmi", "Haji Ali", 18.9827, 72.8089, "bus"),
-  S("b_central", "Mumbai Central Depot", 18.9692, 72.8197, "bus"),
 ];
 
 const localHw: [number, number, number][] = [
@@ -85,26 +70,11 @@ const metroHw: [number, number, number][] = [
   [1020, 1260, 5],
   [1260, 1380, 10],
 ];
-const busHw: [number, number, number][] = [
-  [360, 480, 15],
-  [480, 660, 10],
-  [660, 1020, 15],
-  [1020, 1260, 10],
-  [1260, 1380, 20],
-];
-
 const specs: RouteSpec[] = [
   { id: "western", mode: "train", name: "Western Line (fast)", color: "#e11d48", stops: ["w_churchgate", "w_marine", "w_grant", "w_central", "w_dadar", "w_bandra", "w_santacruz", "w_andheri", "w_borivali"], gap: [3, 4, 3, 8, 8, 4, 5, 15], headways: localHw, both: true },
   { id: "central", mode: "train", name: "Central Line", color: "#d97706", stops: ["c_csmt", "c_byculla", "c_dadar", "c_kurla", "c_ghatkopar", "c_thane"], gap: [7, 8, 12, 5, 17], headways: localHw, both: true },
   { id: "metro1", mode: "metro", name: "Metro Line 1", color: "#2563eb", stops: ["m1_versova", "m1_dn", "m1_azad", "m1_andheri", "m1_weh", "m1_chakala", "m1_airport", "m_marol", "m1_saki", "m1_asalpha", "m1_jagruti", "m1_ghatkopar"], gap: 2, headways: metroHw, both: true },
   { id: "metro3", mode: "metro", name: "Metro Line 3 (Aqua)", color: "#0891b2", stops: ["m3_cuffe", "m3_churchgate", "m3_hutatma", "m3_csmt", "m3_grant", "m3_central", "m3_mahalaxmi", "m3_worli", "m3_sidd", "m3_dadar", "m3_dharavi", "m3_bkc", "m3_t2", "m_marol", "m3_seepz", "m3_aarey"], gap: [3, 2, 2, 4, 2, 3, 3, 3, 2, 3, 3, 4, 3, 3, 3], headways: metroHw, both: true },
-  { id: "bA", mode: "bus", name: "BEST 1 · Gateway–CSMT", color: "#ea580c", stops: ["b_gateway", "b_churchgate", "b_csmt"], gap: [7, 6], headways: busHw, both: true },
-  { id: "bB", mode: "bus", name: "BEST 2 · Dadar–Siddhivinayak–Worli", color: "#16a34a", stops: ["b_dadar", "b_sidd", "b_worli"], gap: [8, 9], headways: busHw, both: true },
-  { id: "bC", mode: "bus", name: "BEST 3 · Bandra–Bandstand", color: "#7c3aed", stops: ["b_bandra", "b_bandstand"], gap: 14, headways: busHw, both: true },
-  { id: "bD", mode: "bus", name: "BEST 4 · Andheri–Juhu Beach", color: "#db2777", stops: ["b_andheri", "b_juhu"], gap: 18, headways: busHw, both: true },
-  { id: "bE", mode: "bus", name: "BEST 5 · Borivali–SGNP", color: "#0d9488", stops: ["b_borivali", "b_sgnp"], gap: 20, headways: busHw, both: true },
-  { id: "bF", mode: "bus", name: "BEST 6 · Gateway–Colaba", color: "#4f46e5", stops: ["b_colaba", "b_gateway"], gap: 8, headways: busHw, both: true },
-  { id: "bG", mode: "bus", name: "BEST 7 · Mumbai Central–Haji Ali", color: "#ca8a04", stops: ["b_central", "b_mahalaxmi"], gap: 12, headways: busHw, both: true },
 ];
 
 const P = (id: string, name: string, lat: number, lon: number, opens: string, closes: string, minDwell: number, maxDwell: number, category: string, blurb: string): Place => {
@@ -140,11 +110,11 @@ export const mumbaiNetwork: Network = {
   ],
   timezone: "Asia/Kolkata",
   bbox: [72.75, 18.88, 73.05, 19.3],
-  stops,
-  routes: buildRoutes(specs),
+  stops: [...stops, ...(best.stops as Stop[])],
+  routes: [...buildRoutes(specs), ...(best.routes as RouteDef[])],
   places,
   meta: {
     dataQuality: "synthetic",
-    note: "Synthetic demo data modelled on Mumbai Suburban, Metro 1/3 and BEST corridors. Not for real travel decisions.",
+    note: "MIXED. Real: BEST bus routes, stops and trip times from the community GTFS croyla/mumbai-gtfs (Aug 2026 snapshot, not official BEST data; weekday service; stop times modelled by the feed author). Synthetic (invented timings): Western/Central locals and Metro Lines 1 and 3. Not for real travel decisions.",
   },
 };

@@ -34,6 +34,6 @@ export const maharashtraNetwork: Network = mergeNetworks(
     places: [...tag(mumbaiNetwork, "Mumbai"), ...tag(puneNetwork, "Pune"), ...g.places],
     presets,
     note:
-      "MIXED. Real: intercity/suburban rail halts and scheduled times from the datameet/railways Indian Railways timetable (assumed daily; no run-days) and notable-place POIs from OpenStreetMap (ODbL; dwell times and most opening hours assumed). Synthetic: Mumbai and Pune urban detail (metro, local rail, buses, their places) is demo data, not for real travel decisions. No Maharashtra metro lines were imported from OSM.",
+      "MIXED. Real: intercity/suburban rail halts and scheduled times from the datameet/railways Indian Railways timetable (assumed daily; no run-days) and notable-place POIs from OpenStreetMap (ODbL; dwell times and most opening hours assumed). City buses are real community GTFS: PMPML (Pune, croyla/pmpml-gtfs, Oct 2026) and BEST (Mumbai, croyla/mumbai-gtfs, Aug 2026), weekday service, in-between stop times modelled by the feed author. Synthetic: Mumbai and Pune metro and local-rail lines and the Mumbai/Pune places are demo data, not for real travel decisions. No Maharashtra metro lines were imported from OSM.",
   },
 );
