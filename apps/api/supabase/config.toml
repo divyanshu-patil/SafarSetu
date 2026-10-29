@@ -1,0 +1,12 @@
+# Minimal Supabase local config. `npx supabase start` fills in defaults for everything else.
+project_id = "safarsetu"
+
+[api]
+port = 54321
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+port = 54323
