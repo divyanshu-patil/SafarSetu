@@ -1,17 +1,17 @@
 # 10 — Demo script & judge Q&A
 
-## 5-minute demo (Pune, synthetic data — labelled)
+## 5-minute demo (Pune, synthetic metro/locals, real buses — labelled)
 
 1. **Problem (30 s):** "You have a client meeting at 11:30 in Hinjewadi, a bank before it closes, and a parcel to collect — and you don't drive."
-2. **Plan (60 s):** Example *Work errands in Pune*: start Pune Junction 09:00; stops added Google-Maps style with task, time needed and "be there by 11:30". Plan appears: leave 10:2x so you arrive 5 min early, spare time at each stop, confidence. Toggle *Best order*, mark the pick-up optional, add a stop by clicking the map.
-3. **Compare (30 s):** switch pace to *relaxed* → timings re-flow; drop a place → time re-allocated.
-4. **Go live (30 s):** open trip view, start sim clock at 60×. Reminders fire: "Leave in 30 min…".
-5. **Delay (60 s):** simulator → *Local train late 30 min*. Alert: "No need to rush — … leave at 10:40". Plan diff shows nothing lost. Then *same delay with tight slack* → action-first alert.
-6. **Cancellation (45 s):** *Aqua line cancelled* → re-plan, Aga Khan Palace shortened, notification explains.
-7. **Authority view (30 s):** insights: which connections break most — Track B.
-8. **Close (15 s):** city = data pack; mobile app shares the same core.
+2. **Plan (60 s):** *Clear all*, then add stops like a maps app (search, or click the map): Hinjewadi (client, 60 min, **be there by 11:30**, must happen), Shivajinagar (bank), Swargate (parcel, optional). *Plan my route*: real PMPML buses, arrive 11:18, leave 10:08 — spare time goes to the previous stop, not the bus stop. Show the cab comparison (`/impact`).
+3. **Your choices (30 s):** switch off *Express train / Cab*; set **Gentle** pace; flip the UI to **मराठी** — alerts follow.
+4. **Go live (30 s):** *Start live trip → Start demo day* (60×). Reminders fire; open the shared read-only link in a second tab.
+5. **Delay (60 s):** simulator → *Train 30 min late*: action-first alert "PMPML 203 is 30 min late. Take PMPML 208 … leave by 10:08. Your day still works." Then a delay that would make the **11:30 meeting late**: "You'll be late for Hinjewadi — arrive 11:48, 18 min after 11:30."
+6. **Cancellation (45 s):** *Metro cancelled* → re-plan with explanation.
+7. **Citizen → authority (60 s):** *Report a gap* (Hinjewadi → Shivajinagar, no feeder) → sign in as the Pune officer → ranked gaps with adjustable weights, change status → the citizen's tracking page shows it. Show the analyst role being refused a status change.
+8. **Close (15 s):** the 4-stage pilot plan; data pack per city; same core on mobile.
 
-Backup: pre-recorded GIF; memory store works offline; synthetic map tiles cached.
+Backup: screenshots in `docs/media`; the memory store works offline; synthetic parts are labelled.
 
 ## Likely questions
 
