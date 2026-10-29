@@ -9,7 +9,8 @@
     "test": "tsx --test test/*.test.ts",
     "check-types": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "seed:sql": "tsx scripts/seed-sql.ts > supabase/seed.sql"
+    "seed:sql": "tsx scripts/seed-sql.ts > supabase/seed.sql",
+    "test:supabase": "tsx scripts/supabase-smoke.mts"
   },
   "dependencies": {
     "@repo/core": "workspace:*",

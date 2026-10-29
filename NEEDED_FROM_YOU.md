@@ -14,6 +14,7 @@ See `submission/TODO-before-submit.md`: team names/roles/qualifications (slide 6
 | 3 | Hosting accounts (Vercel + an API host) | A public demo link beats screenshots |
 | 4 | 30-minute call/visit with PMPML or a ward office | Turns "to approach" into a pilot lead |
 | 5 | Meta WhatsApp rate card, a Marathi translation quote | Firms up the cost table |
+| 6 | Run `npx supabase start` (Docker) then `pnpm --filter api test:supabase` | The database adapter has never been run live |
 
 ## Blocking / time-critical
 

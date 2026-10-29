@@ -10,6 +10,8 @@ cp .env.example .env        # fill SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY from
 pnpm --filter api dev
 ```
 
+> **Run `pnpm --filter api test:supabase`** (script: `apps/api/scripts/supabase-smoke.mts`; local Supabase only — it refuses non-local URLs) to exercise every store method through the real engine. It compiles but **has not been run** in the build environment (no network for the Supabase CLI, and running a PostgREST test binary was blocked).
+
 > Verified: `0001_init.sql` + generated `seed.sql` apply cleanly on PostgreSQL (109 stops / 36 routes / 26 places across both cities). The `SupabaseStore` adapter is written against this schema but was **not exercised against a running PostgREST** in the build environment (no network to pull the Supabase CLI) — run `pnpm --filter api test` with `SUPABASE_*` set to verify on your machine.
 
 Without those env vars the API uses the **memory store** (same interface, seeded from the Pune pack) so the demo works offline.

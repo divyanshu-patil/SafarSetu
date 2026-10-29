@@ -1,19 +1,23 @@
-# TODO before submitting (fill in `scripts/ppt/deck.json`, then `python3 scripts/ppt/build_deck.py`)
+# Before you submit — Maharashtra Zone, last date **30 Oct 2026**
 
-Slide 6 (team) - not known, left as visible `[Add: ...]` prompts:
-- Name 1 (Divyanshu Patil): role, qualification / expertise
-- Names 2, 3, 4 (or delete unused cards' text): name, role, qualification
-- Mentor / faculty guide: name, designation
-- Contact email / mobile
-- Team photos (circles say "Photo"; template has no image slot - add manually if wanted)
-- Support ticks: currently Mentorship, Government pilot, Funding. Change `ticks` in deck.json if wrong.
+Portal: <https://sevainnovationchallenge.in> · helpline +91 91377 78135 · support@sevainnovationchallenge.in
+Sector: **Urban development** · Upload: `submission/SafarSetu-Seva-First-Pitch.pdf` (1.5 MB; the portal states the limit at upload) · Needs: Aadhaar verification + ID file (≤ 5 MB).
+The registration page showed a **"Prototype mode"** notice — ask the helpline to confirm real submissions are accepted.
 
-Slide 2 (evidence): add one cited, dated source (Census / MoHUA / agency report) or run the 10-20 commuter survey; the "3-5 apps" figure is an unsourced estimate (docs/01).
+## Must fill (cannot be done for you)
+**Slide 6 — team** (everything in `[Add: …]`):
+- Your role and qualification (Name 1 is *Divyanshu Patil*, from git) · names/roles/qualifications of members 2–4 (up to 5 core members allowed) · mentor/faculty guide and designation · contact email/mobile (last line).
+- The template has no photo slot; the circles say "Photo".
+- Ticks currently: Mentorship · Pilot with a government department · Funding. Edit `ticks` in `scripts/ppt/deck.json` if different.
 
-Slide 5 (impact): the three KPI values are `TBD`. Provide first-year beneficiary target, % time/cost saving (measure in pilot) and jobs/livelihoods, or reword.
+## Strongly recommended (raises the score; guide's judging item #1 is evidence)
+- **Slide 2 — evidence:** it cites sourced secondary facts and says *"Baseline interviews planned"*. After you run ≥ 10 interviews (`/field`, script in `docs/15-field-research-kit.md`), replace that line with the real n, dates and averages from `GET /v1/field/summary` (e.g. "12 commuters, 1–7 Nov: avg 110 min and ₹340 lost per week"). Never write numbers you did not collect.
+- Add 2–3 field photos (no faces) of the corridor/stop if the form allows attachments.
 
-Slide 4: confirm cost estimate (about Rs 3-13k/month, from docs/01, est.), timeline, and whether Marathi/Hindi alerts are really planned (not implemented in repo today). Partners are "to be confirmed" - no agreements exist.
+## Check (numbers on the slides)
+- Slide 4: pilot cost "₹8.7–13.7k per month for 10,000 users ≈ ₹0.9–1.4 per user" is an **estimate** (₹90/$, SMS/WhatsApp rates from secondary sources). Partners are "to approach" — no agreements exist; don't say otherwise.
+- Slide 5: "3,000" is a **year-1 pilot target**, "~₹980" is a **modelled saving vs an all-cab day** (`/impact`), "2 per city" is a plan — none is a measured result. The slide labels say so; keep the labels.
+- Re-export the PDF on a machine with PowerPoint or LibreOffice if you can: the PDF here was exported through Keynote (fonts render slightly differently). Rebuild with `python3 scripts/ppt/build_deck.py` after editing `scripts/ppt/deck.json`.
 
-Slide 1: add screenshots to `docs/media/` (hero.png, live.png, authority.png, report.png); the build picks up the first two present.
-
-Process: apply on sevainnovationchallenge.in (Maharashtra Zone, last date 30 Oct 2026); confirm the portal accepts submissions today (research 0.10). Sector: Urban development.
+## Not claimed anywhere (keep it that way)
+"Guaranteed ₹10 lakh", "93 lakh riders", "X % of locals are late", "replaces ITMS", measured time saved, pilot results, MoUs.
