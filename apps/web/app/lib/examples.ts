@@ -21,4 +21,12 @@ export const EXAMPLES: Example[] = [
       { name: "Dadar", lat: 19.0186, lon: 72.8429, task: "Collect samples", dwell: 20, required: false },
     ],
   },
+  {
+    city: "maharashtra", name: "Mumbai → Pune meeting by train", leave: "06:45", start: "Home", returnHome: true,
+    origin: { name: "CSMT Station", lat: 18.9398, lon: 72.8355 },
+    stops: [
+      { name: "Client office, Shivajinagar, Pune", lat: 18.5308, lon: 73.8475, task: "Client meeting", dwell: 90, arriveBy: "11:30", required: true },
+      { name: "Pune Junction", lat: 18.5285, lon: 73.8742, task: "Collect documents", dwell: 20, required: false },
+    ],
+  },
 ];
