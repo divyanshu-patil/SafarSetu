@@ -8,12 +8,12 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 - ✅ Docs 01–10, NEEDED_FROM_YOU.md
 
 ## Phase 1 — `@repo/core`
-- ⬜ types, time utils, synthetic Pune pack
-- ⬜ router (round-based), arrive-by
-- ⬜ confidence (Monte-Carlo)
-- ⬜ day planner (order, drop, dwell allocation, reminders)
-- ⬜ live state, assess/replan, notification composer
-- ⬜ unit tests
+- ✅ types, time utils, synthetic Pune + Mumbai packs
+- ✅ router (round-based), arrive-by
+- ✅ confidence (Monte-Carlo)
+- ✅ day planner (order, drop, dwell allocation, reminders)
+- ✅ live state, assess/replan, notification composer
+- ✅ unit tests (node:test)
 
 ## Phase 2 — `apps/api`
 - ⬜ Express skeleton, store (memory + Supabase), migrations
@@ -32,3 +32,4 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 
 ## Log
 - 2026-10-30 — docs written.
+- 2026-10-30 — user scoped demo cities to **Mumbai + Pune**; core package done with both packs, tests green.
