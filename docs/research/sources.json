@@ -1,0 +1,324 @@
+[
+ {
+  "id": "S1",
+  "title": "Seva First Innovation Challenge, Maharashtra Zone",
+  "url": "https://sevainnovationchallenge.in/",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S2",
+  "title": "Seva First Innovation Challenge (South Zone Edition)",
+  "url": "https://sevafirst.mic.gov.in/",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S3",
+  "title": "FPJ: Seva First 2026 sees 65,000 registrations in Maharashtra Zone",
+  "url": "https://www.freepressjournal.in/mumbai/seva-first-innovation-challenge-2026-sees-65000-registrations-in-maharashtra-zone-students-and-innovators-can-apply-till-october-30",
+  "date": "2026-10-28",
+  "confidence": "MED"
+ },
+ {
+  "id": "S4",
+  "title": "The First-Time Problem Solvers Guide (local PDF)",
+  "url": "repo:The First-Time Problem Solvers Guide.pdf",
+  "date": "2026",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S5",
+  "title": "BW Education: Maharashtra minister invites innovators to Seva First",
+  "url": "https://www.bweducation.com/article/maharashtra-minister-invites-young-innovators-to-participate-in-seva-first-challenge-628000",
+  "date": "2026-10",
+  "confidence": "MED"
+ },
+ {
+  "id": "S6",
+  "title": "FPJ: Mumbai suburban rail earns more despite lower ridership",
+  "url": "https://www.freepressjournal.in/mumbai/mumbai-suburban-rail-earns-more-despite-lower-ridership-post-pandemic-travel-shift",
+  "date": "2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S7",
+  "title": "Mumbai Live: 12.7 crore local footfall Jan 2026",
+  "url": "https://www.mumbailive.com/en/civic/over-12.7-crore-mumbai-local-passenger-footfall-recorded-in-january-2026-91760",
+  "date": "2026-01",
+  "confidence": "MED"
+ },
+ {
+  "id": "S8",
+  "title": "Geosquare: suburban ridership nears 1 crore",
+  "url": "https://www.geosquare.in/mumbais-suburban-railway-surges-as-daily-ridership-nears-1-crore-37155-news.html",
+  "date": "2026-02",
+  "confidence": "LOW"
+ },
+ {
+  "id": "S9",
+  "title": "FPJ: BEST owned fleet shrinks to 17%",
+  "url": "https://www.freepressjournal.in/mumbai/mumbai-news-bests-owned-bus-fleet-shrinks-to-just-17-amid-rising-reliance-on-private-operators",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S10",
+  "title": "FPJ: Mumbai One 1.04 crore tickets; MMRDA Mumbai One launch",
+  "url": "https://freepressjournal.in/mumbai/mumbai-over-104-crore-tickets-booked-across-metro-suburban-railway-and-municipal-bus-services-through-single-integrated-app-mumbai-one",
+  "date": "2026-08",
+  "confidence": "MED"
+ },
+ {
+  "id": "S11",
+  "title": "The Bridge Chronicle / Geosquare: PMPML ridership 2025",
+  "url": "https://www.geosquare.in/pmpml-sees-revenue-rise-but-ridership-declines-in-2025-35935-news.html",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S12",
+  "title": "Parisar PMPML Data Dashboard",
+  "url": "https://www.parisar.org/what-we-do/urban-transport/analysis-reports/pmpml-dashboard",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S13",
+  "title": "FPJ: Pune Metro March 2026 revenue/ridership",
+  "url": "https://www.freepressjournal.in/pune/pune-metro-records-896-crore-revenue-in-march-2026-ridership-crosses-5769-lakh",
+  "date": "2026-03",
+  "confidence": "MED"
+ },
+ {
+  "id": "S14",
+  "title": "FPJ/PSU Watch: MSRTC ridership and losses",
+  "url": "https://psuwatch.com/newsupdates/msrtc-incurred-daily-losses-of-rs-16-crore-during-fy-25-26",
+  "date": "2026-04",
+  "confidence": "MED"
+ },
+ {
+  "id": "S15",
+  "title": "TomTom Traffic Index Pune / Mumbai",
+  "url": "https://www.tomtom.com/traffic-index/city/pune/",
+  "date": "2025",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S16",
+  "title": "Bridge Chronicle: Pune 152 hours a year",
+  "url": "https://www.thebridgechronicle.com/pune/raghav-chadha-pune-traffic-152-hours-parliament-mp99",
+  "date": "2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S17",
+  "title": "MoveInSync Travel Time Report Q1 2019",
+  "url": "https://www.moveinsync.com/wp-content/uploads/2020/03/Travel-Time-Report.pdf",
+  "date": "2019",
+  "confidence": "MED"
+ },
+ {
+  "id": "S18",
+  "title": "FPJ: 92-95% punctuality claim masks peak chaos",
+  "url": "https://www.freepressjournal.in/mumbai/mumbais-suburban-rail-network-under-scanner-92-95-punctuality-claim-masks-peak-hour-chaos-say-commuters",
+  "date": "2025-26",
+  "confidence": "MED"
+ },
+ {
+  "id": "S19",
+  "title": "FPJ: PMPML breakdowns (several articles)",
+  "url": "https://www.freepressjournal.in/pune/pune-pmpml-records-53243-bus-breakdowns-in-last-3-years-4118-reported-in-2025-so-far",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S20",
+  "title": "FPJ: PMPML 3561 grievances; PMPML app complaints",
+  "url": "https://www.freepressjournal.in/amp/pune/pune-pmpml-aims-to-address-pending-upi-complaints-within-2-days-following-3211-grievances-since-october",
+  "date": "2024",
+  "confidence": "MED"
+ },
+ {
+  "id": "S21",
+  "title": "WRI India/TMF: Improving Metro Access in India",
+  "url": "https://wri-india.org/sites/default/files/Improving%20metro%20access%20in%20India_%20Working%20Paper.pdf",
+  "date": "2023-07",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S22",
+  "title": "Bridge Chronicle: Aapli PMPML app turns one; Chalo-BEST launch coverage",
+  "url": "https://www.thebridgechronicle.com/news/aapli-pmpml-app-turns-one-digital-bus-ticketing-growth-challenges",
+  "date": "2025-08",
+  "confidence": "MED"
+ },
+ {
+  "id": "S23",
+  "title": "Mumbai Live: local train fatalities fall 7% in 2025",
+  "url": "https://www.mumbailive.com/en/civic/mumbai-local-train-fatality-falls-7-in-2025-track-crossing-and-overcrowding-main-reasons-for-death-91328",
+  "date": "2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S24",
+  "title": "Greenpeace India women bus survey; NARI 2025 (Outlook); ITDP",
+  "url": "https://www.greenpeace.org/india/en/press/16880/94-women-respondents-demand-fare-free-public-bus-transport-ahead-of-maharashtra-assembly-polls-greenpeace-india/",
+  "date": "2024",
+  "confidence": "MED"
+ },
+ {
+  "id": "S25",
+  "title": "Google Maps Help: multiple destinations not for public transit; 2019 India live transit launch",
+  "url": "https://support.google.com/maps/answer/144339",
+  "date": "2019-2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S26",
+  "title": "Moovit updates: Mumbai data update",
+  "url": "https://updates.moovit.com/explore-mumbai-seamlessly-with-our-latest-data-update-on-moovit/",
+  "date": "2025-02",
+  "confidence": "MED"
+ },
+ {
+  "id": "S27",
+  "title": "m-Indicator (Wikipedia / store listings)",
+  "url": "https://en.wikipedia.org/wiki/M-Indicator",
+  "date": "2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S28",
+  "title": "NTES / Datameet thread on railway API",
+  "url": "https://groups.google.com/g/datameet/c/UITeGvlaYWc",
+  "date": "2015",
+  "confidence": "LOW"
+ },
+ {
+  "id": "S29",
+  "title": "Hindustan Times (PressReader): BEST Rs 112 crore ITMS",
+  "url": "https://www.pressreader.com/india/hindustan-times-st-mumbai/20181124/281668256026730",
+  "date": "2018-11-24",
+  "confidence": "MED"
+ },
+ {
+  "id": "S30",
+  "title": "Pune Smart City project cost reports",
+  "url": "https://www.punekarnews.in/?p=213391",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S31",
+  "title": "Deccan Herald: Nagpur CMP; Maha-Metro Pune CMP",
+  "url": "https://www.deccanherald.com/india/maharashtra/nagpur-to-get-rs-25567-crore-comprehensive-mobility-plan-for-infrastructure-development-3651482",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S32",
+  "title": "Supabase Pricing",
+  "url": "https://supabase.com/pricing",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S33",
+  "title": "Vercel Pricing",
+  "url": "https://vercel.com/pricing",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S34",
+  "title": "Meta: Pricing on the WhatsApp Business Platform",
+  "url": "https://developers.facebook.com/docs/whatsapp/pricing/",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S35",
+  "title": "Fast2SMS pricing; MSG91",
+  "url": "https://fast2sms.com/pricing",
+  "date": "2026",
+  "confidence": "MED"
+ },
+ {
+  "id": "S36",
+  "title": "GHG Platform India: Rail and Road Transport technical papers",
+  "url": "https://indiaghgp.org/sites/default/files/Road%20Transport%20Technical%20Paper.pdf",
+  "date": "c.2015",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S37",
+  "title": "Down To Earth: How India moves; India Environment Portal",
+  "url": "https://www.downtoearth.org.in/air/how-india-moves-countrys-state-of-mobility-enables-private-vehicle-dependence-how-to-overcome-it",
+  "date": "n/d",
+  "confidence": "MED"
+ },
+ {
+  "id": "S38",
+  "title": "ITF/OECD LCA of passenger transport in India; TERI Delhi per-passenger emissions",
+  "url": "https://www.itf-oecd.org/sites/default/files/docs/life-cycle-assessment-passenger-transport-india.pdf",
+  "date": "n/d",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S39",
+  "title": "FPJ: Pune auto fare hike Sep 2026; Ola/Uber meter May 2025; Business Today Mumbai fares",
+  "url": "https://www.freepressjournal.in/pune/pune-rta-approves-autorickshaw-fare-hike-from-september-1",
+  "date": "2025-26",
+  "confidence": "MED"
+ },
+ {
+  "id": "S40",
+  "title": "FPJ: PMPML fare hike; Mumbai Metro 3 fares",
+  "url": "https://www.freepressjournal.in/pune/attention-punekars-pmpml-fare-hike-announced-for-first-time-since-2014-base-fare-now-10-check-full-fare-details",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S41",
+  "title": "Economic Survey 2024-25 / PLFS 2023-24 (urban regular wage Rs 25,501)",
+  "url": "https://www.mospi.gov.in/",
+  "date": "2025",
+  "confidence": "MED"
+ },
+ {
+  "id": "S42",
+  "title": "YourStory: Maharashtra Startup Week winners/work orders",
+  "url": "https://yourstory.com/2020/08/24-winning-startups-maharashtra-startup-week/amp",
+  "date": "2020",
+  "confidence": "MED"
+ },
+ {
+  "id": "S43",
+  "title": "Smart Move challenge (IIT Roorkee); Mercedes mobility challenge; SIH 2025 Pune",
+  "url": "https://www.autocarpro.in/NEWS/mercedes-benz-research-and-development-india-names-tummoc-and-namma-yatri-as-winners-of-mobility-service-challenge-122175",
+  "date": "2024-26",
+  "confidence": "MED"
+ },
+ {
+  "id": "S44",
+  "title": "Mondaq/SS Rana: DPDP Rules 2025 notified",
+  "url": "https://ssrana.in/articles/meity-notifies-final-digital-personal-data-protection-rules-2025/",
+  "date": "2025-11",
+  "confidence": "MED"
+ },
+ {
+  "id": "S45",
+  "title": "DPDP Act 2023 (MeitY PDF; fetch returned 403)",
+  "url": "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf",
+  "date": "2023",
+  "confidence": "HIGH (not read)"
+ },
+ {
+  "id": "S46",
+  "title": "Lokmat: Maharashtra State Data Policy cabinet nod",
+  "url": "https://www.lokmattimes.com/maharashtra/state-data-policy-gets-green-light-maharashtra-moves-towards-digital-governance-a525/amp",
+  "date": "2025-02",
+  "confidence": "MED"
+ }
+]

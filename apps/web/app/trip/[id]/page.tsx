@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fmtTime, nextAction, planToMapLayers, positionAt, type ClockState, type Disruption, type NotificationItem, type Plan } from "@repo/core";
 import { Timeline } from "../../components/Timeline";
 import { api } from "../../lib/api";
+import { useLang } from "../../lib/i18n";
 import { Chip, Icon } from "../../lib/icons";
 
 const MapView = dynamic(() => import("../../components/MapView"), { ssr: false });
@@ -21,6 +22,9 @@ const KIND_ICON: Record<string, [string, string]> = { relax: ["ShieldCheck", "#1
 const KIND: Record<string, string> = { relax: "No rush", adjust: "Plan adjusted", replan: "Re-planned", urgent: "Act now", heads_up: "Heads up", prepare: "Reminder", leave: "Reminder", board: "Reminder", wrapup: "Reminder" };
 
 export default function Trip() {
+  const { t } = useLang();
+  const [readOnly, setReadOnly] = useState(false);
+  useEffect(() => { setReadOnly(new URLSearchParams(window.location.search).get("share") === "1"); }, []);
   const { id } = useParams<{ id: string }>();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [clock, setClock] = useState<{ c: ClockState; at: number } | null>(null);
@@ -75,22 +79,22 @@ export default function Trip() {
   return (
     <main>
       <section className="hero wrap" style={{ paddingBottom: 40 }}>
-        <div className="kicker">Live trip{plan.request.traveller?.name ? ` · ${plan.request.traveller.name}` : ""}</div>
+        <div className="kicker">{readOnly ? "Shared live trip (view only)" : "Live trip"}{plan.request.traveller?.name ? ` · ${plan.request.traveller.name}` : ""}</div>
         <div className="clock" style={{ margin: "20px 0 12px" }} aria-live="off">{fmtTime(now)}</div>
         <p className="sub" style={{ margin: "0 auto" }}>{clock?.c.date} · simulated clock{clock?.c.running ? ` · ${clock.c.speed}×` : " · paused"} · revision {plan.revision}</p>
-        <div className="row mt" style={{ justifyContent: "center" }}>
-          <button className="pill-primary" onClick={startDemo}>Start demo day</button>
+        {!readOnly && <div className="row mt" style={{ justifyContent: "center" }}>
+          <button className="pill-primary" onClick={startDemo}>{t("startDemo")}</button>
           <button className="pill-outline" onClick={() => clock && setC({ running: !clock.c.running })}>{clock?.c.running ? "Pause" : "Play"}</button>
           <div className="seg" role="group" aria-label="Speed">{[1, 30, 60, 120].map((s) => <button key={s} aria-pressed={clock?.c.speed === s} onClick={() => setC({ speed: s })}>{s}×</button>)}</div>
-        </div>
-        <label className="sr" htmlFor="scrub">Scrub time</label>
-        <input id="scrub" className="range mt" style={{ maxWidth: 640 }} type="range" min={Math.max(0, plan.request.startMin - 60)} max={Math.min(1439, plan.request.endMin + 30)} value={Math.round(now)} onChange={(e) => setC({ minute: Number(e.target.value), date: plan.request.date })} />
+        </div>}
+        {!readOnly && <><label className="sr" htmlFor="scrub">Scrub time</label>
+        <input id="scrub" className="range mt" style={{ maxWidth: 640 }} type="range" min={Math.max(0, plan.request.startMin - 60)} max={Math.min(1439, plan.request.endMin + 30)} value={Math.round(now)} onChange={(e) => setC({ minute: Number(e.target.value), date: plan.request.date })} /></>}
       </section>
 
       <section className="section tight" style={{ paddingTop: 0 }}>
         <div className="wrap" style={{ textAlign: "center" }}>
-          <div className="label">Next</div>
-          <div className="next" style={{ margin: "8px auto 8px", maxWidth: 900 }}>{next?.title ?? "Day complete — enjoy your evening."}</div>
+          <div className="label">{t("nextUp")}</div>
+          <div className="next" style={{ margin: "8px auto 8px", maxWidth: 900 }}>{next?.title ?? t("dayDone")}</div>
           <p className="sub">{next?.detail}</p>
         </div>
       </section>
@@ -100,7 +104,7 @@ export default function Trip() {
           <div className="frame" style={{ height: 560 }}><MapView bbox={bbox} lines={layers?.lines} markers={layers?.markers} me={me} /></div>
           <div className="stack">
             <div className="card">
-              <div className="row between"><h2 className="h3">Alerts</h2>
+              <div className="row between"><h2 className="h3">{t("alertsTitle")}</h2>
                 {perm === "default" && typeof Notification !== "undefined" && <button className="pill-outline" onClick={() => Notification.requestPermission().then(setPerm)}>Enable browser alerts</button>}
               </div>
               <div className="alerts mt">
@@ -116,19 +120,19 @@ export default function Trip() {
                 ))}
               </div>
             </div>
-            <div className="card">
-              <h2 className="h3">Disruption simulator</h2>
+            {!readOnly && <div className="card">
+              <h2 className="h3">{t("simulator")}</h2>
               <p className="sub" style={{ marginTop: 6 }}>Same code path as real feeds: events in, calm plan out. Aimed at what this trip rides next.</p>
               <div className="chips mt">{SCENARIOS.map((s) => <button key={s.name} className="chip" disabled={busy !== null} onClick={() => run(s.name)} title={s.hint}><span style={{ color: s.color, display: "inline-flex", marginRight: 6, verticalAlign: "middle" }}><Icon name={s.icon} size={14} /></span>{busy === s.name ? "…" : s.label}</button>)}</div>
               {err && <p className="err mt" role="alert">{err}</p>}
               {dis.length > 0 && <><div className="divider" /><div className="label">Active events</div>{dis.map((d) => <p key={d.id} className="sub">{d.type.replace("_", " ")}{d.delayMin ? ` · ${d.delayMin} min` : ""} — {d.note ?? d.routeId}</p>)}</>}
               {plan.changes.length > 0 && <><div className="divider" /><div className="label">What changed (revision {plan.revision})</div>{plan.changes.map((c, i) => <p key={i} className="sub">· {c.replace(/Leave time moved (\d+) → (\d+) \(minutes of day\)/, (_, a, b) => `Leave time moved ${fmtTime(+a)} → ${fmtTime(+b)}`)}</p>)}</>}
-            </div>
+            </div>}
           </div>
         </div>
       </section>
 
-      <section className="section tight"><div className="wrap"><h2 className="h2" style={{ marginBottom: 28 }}>Today’s plan</h2><Timeline plan={plan} now={now} /></div></section>
+      <section className="section tight"><div className="wrap"><h2 className="h2" style={{ marginBottom: 28 }}>{t("todaysPlan")}</h2><Timeline plan={plan} now={now} /></div></section>
 
       {toast && <div className="toast" role="status"><span className={`label ${toast.kind === "replan" || toast.kind === "urgent" ? "hot" : ""}`}>{KIND[toast.kind] ?? toast.kind}</span><h4 style={{ font: "600 17px/1.24 var(--font-text)", margin: "4px 0" }}>{toast.title}</h4><p className="sub" style={{ color: "var(--color-ink)" }}>{toast.body}</p></div>}
     </main>

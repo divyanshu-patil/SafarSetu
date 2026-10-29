@@ -88,3 +88,14 @@ test("citizen report -> authority login -> role-scoped update", async () => {
   const ov = await (await fetch(`${base}/v1/authority/overview`, auth(sup))).json() as any;
   assert.ok(ov.totals.reports > 30 && ov.topIssues.length === 5);
 });
+
+test("field interviews: consent required, anonymous, summary has n and dates", async () => {
+  const good = { code: "P-001", date: "2026-10-31", city: "Pune", role: "IT employee", route: "Hinjewadi – Shivajinagar", modes: ["bus"], problem: "Evening bus never connects to the metro", perWeek: 4, minutesLostPerWeek: 120, rupeesLostPerWeek: 400, workaround: "shared auto", triedAndFailed: "waited for PMPML 285", consent: true };
+  assert.equal((await post("/v1/field/interviews", { ...good, consent: false })).status, 400);
+  assert.equal((await post("/v1/field/interviews", good)).status, 201);
+  const s = (await j("/v1/field/summary")).body;
+  assert.equal(s.n, 1);
+  assert.equal(s.avgMinutesLostPerWeek, 120);
+  assert.equal(s.quotes[0].code, "P-001");
+  assert.equal(s.quotes[0].name, undefined);
+});

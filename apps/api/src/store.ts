@@ -25,6 +25,25 @@ export interface NotifRec {
   sent: boolean;
   meta?: { delayMin?: number; beforeLeave?: boolean; routeName?: string };
 }
+/** Field interview (Step 1 of the problem-solver guide): anonymous, consented, no names. */
+export interface Interview {
+  id: string;
+  code: string; // participant code, e.g. P-014 — never a name
+  date: string;
+  city: string;
+  role: string; // student, office worker, vendor, senior…
+  route: string; // area/route they travel
+  modes: string[];
+  problem: string;
+  perWeek: number; // how often the problem happens per week
+  minutesLostPerWeek: number;
+  rupeesLostPerWeek: number;
+  workaround: string;
+  triedAndFailed: string;
+  consent: boolean;
+  createdAt: string;
+}
+
 export interface DisruptionRec extends Disruption {
   active: boolean;
   createdAt: string;
@@ -50,6 +69,8 @@ export interface Store {
   getReport(idOrRef: string): Promise<Report | undefined>;
   listReports(): Promise<Report[]>;
   updateReport(r: Report): Promise<void>;
+  addInterview(i: Interview): Promise<void>;
+  listInterviews(): Promise<Interview[]>;
 }
 
 export class MemoryStore implements Store {
@@ -78,6 +99,9 @@ export class MemoryStore implements Store {
   async getReport(k: string) { const r = this.reports.get(k) ?? [...this.reports.values()].find((x) => x.ref === k); return r && structuredClone(r); }
   async listReports() { return [...this.reports.values()].map((r) => structuredClone(r)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
   async updateReport(r: Report) { this.reports.set(r.id, structuredClone(r)); }
+  interviews: Interview[] = [];
+  async addInterview(i: Interview) { this.interviews.push(i); }
+  async listInterviews() { return [...this.interviews].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
 }
 
 /** Supabase (Postgres) store. Column names follow supabase/migrations/0001_init.sql. */
@@ -139,6 +163,8 @@ export class SupabaseStore implements Store {
   }
   async listReports() { return (this.ok(await this.db.from("reports").select("*").order("created_at", { ascending: false }).limit(5000)) ?? []).map(this.toRep); }
   async updateReport(r: Report) { this.ok(await this.db.from("reports").update(this.fromRep(r)).eq("id", r.id)); }
+  async addInterview(i: Interview) { this.ok(await this.db.from("field_interviews").insert({ id: i.id, code: i.code, date: i.date, city: i.city, role: i.role, route: i.route, modes: i.modes, problem: i.problem, per_week: i.perWeek, minutes_lost_per_week: i.minutesLostPerWeek, rupees_lost_per_week: i.rupeesLostPerWeek, workaround: i.workaround, tried_and_failed: i.triedAndFailed, consent: i.consent })); }
+  async listInterviews() { return (this.ok(await this.db.from("field_interviews").select("*").order("created_at", { ascending: false })) ?? []).map((r: any): Interview => ({ id: r.id, code: r.code, date: r.date, city: r.city, role: r.role, route: r.route, modes: r.modes ?? [], problem: r.problem, perWeek: r.per_week, minutesLostPerWeek: r.minutes_lost_per_week, rupeesLostPerWeek: r.rupees_lost_per_week, workaround: r.workaround, triedAndFailed: r.tried_and_failed, consent: r.consent, createdAt: r.created_at })); }
 }
 
 export function createStore(): Store {

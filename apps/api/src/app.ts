@@ -3,6 +3,7 @@ import express, { type Express, type NextFunction, type Request, type Response }
 import { z } from "zod";
 import { buildLive, getNetwork, networks, planRoute, type PlanRequest } from "@repo/core";
 import { Engine, HttpError, SCENARIOS, type Scenario } from "./engine";
+import { mountField } from "./field-routes";
 import { mountReports } from "./reports-routes";
 import { geocode, reverse, walkRoute, weather } from "./proxies";
 
@@ -24,7 +25,7 @@ const placeInput = z.object({
   task: z.string().max(120).optional(),
   required: z.boolean().optional(),
 });
-const prefs = z.object({ pace: z.enum(["relaxed", "normal", "fast"]).optional(), maxWalkM: z.number().min(200).max(3000).optional(), avoid: z.array(z.enum(["metro", "train", "bus", "local", "express", "cab"])).optional(), style: z.enum(["calm", "brief"]).optional() });
+const prefs = z.object({ pace: z.enum(["gentle", "relaxed", "normal", "fast"]).optional(), maxWalkM: z.number().min(200).max(3000).optional(), avoid: z.array(z.enum(["metro", "train", "bus", "local", "express", "cab"])).optional(), style: z.enum(["calm", "brief"]).optional(), lang: z.enum(["en", "hi", "mr"]).optional() });
 const planReq = z.object({
   city: z.string().max(20).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -166,6 +167,7 @@ export function createApp(engine: Engine): Express {
   app.get("/v1/insights", async (_req, res) => res.json(await engine.insights()));
 
   mountReports(app, engine);
+  mountField(app, engine.store);
 
   app.use((_req, _res, next) => next(new HttpError(404, "not_found", "No such route")));
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

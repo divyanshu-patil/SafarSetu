@@ -136,3 +136,29 @@ test("no allowed transport for a long hop -> conflict, not a 100 km walk plan", 
   const p = planDay(puneNetwork, { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 540, endMin: 1200, keepOrder: true, prefs: { avoid: ["metro", "bus", "train", "local", "express", "cab"] }, places: [{ name: "Far client", lat: 18.7509, lon: 73.4066, minDwell: 30, maxDwell: 30, required: true }] });
   assert.ok(p.conflicts!.some((c) => /transport you allowed/.test(c.reason)));
 });
+
+import { composeAlert as ca, planImpact } from "../src/index";
+test("alerts in Hindi and Marathi carry the same facts", () => {
+  const base = { reason: "delay" as const, routeName: "Local", delayMin: 30, beforeLeave: true, nowMin: 600, oldBoardMin: 620, oldLeaveMin: 610, newLeaveMin: 640, slackMin: 40, dwellLost: [], dropped: [], nextPlace: "Shaniwar Wada", newArriveMin: 720 };
+  for (const lang of ["en", "hi", "mr"] as const) {
+    const a = ca(base, { name: "Asha" }, "calm", lang);
+    assert.equal(a.kind, "relax");
+    assert.match(a.body, /10:40/);
+    assert.match(a.body, /30/);
+    assert.match(a.body, /Asha/);
+  }
+  assert.match(ca(base, undefined, "calm", "hi").title, /[ऀ-ॿ]/);
+  assert.match(ca(base, undefined, "calm", "mr").body, /[ऀ-ॿ]/);
+});
+
+test("gentle pace walks less; impact estimate; dark-walk warning", () => {
+  const req = { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 9 * 60, endMin: 20 * 60, keepOrder: true, places: [{ name: "Shivajinagar", lat: 18.5308, lon: 73.8475, minDwell: 30, maxDwell: 30 }] };
+  const g = planDay(puneNetwork, { ...req, prefs: { pace: "gentle" } });
+  const n = planDay(puneNetwork, { ...req, prefs: { pace: "normal" } });
+  const walk = (p: typeof g) => p.timeline.flatMap((e) => (e.kind === "move" ? e.itinerary.legs : [])).filter((l) => l.kind === "walk").reduce((s, l) => s + (l.kind === "walk" ? l.distM : 0), 0);
+  assert.ok(walk(g) <= walk(n) + 1, "gentle never walks more than normal");
+  const imp = planImpact(n);
+  assert.ok(imp.cabFare > 0 && imp.co2Kg >= 0 && imp.savedInr >= 0);
+  const night = planDay(puneNetwork, { ...req, startMin: 20 * 60 + 30, endMin: 23 * 60 + 30, places: [{ name: "Far walk", lat: 18.5075, lon: 73.805, minDwell: 30, maxDwell: 30 }] });
+  assert.ok(Array.isArray(night.warnings));
+});

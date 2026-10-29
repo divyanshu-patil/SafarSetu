@@ -6,6 +6,7 @@ import { CATEGORIES, PROMISE, REGIONS, STATUSES, type MapLine, type PublicReport
 import { LocalBar, OutlinePill } from "../components/LocalBar";
 import { PlaceSearch } from "../components/PlaceSearch";
 import { api } from "../lib/api";
+import { useLang } from "../lib/i18n";
 import { Chip, Icon, MODE_COLOR } from "../lib/icons";
 import { Stepper } from "./Stepper";
 
@@ -18,6 +19,7 @@ const MODES: { id: ReportMode; label: string; icon: string }[] = [
 const SEV = [{ v: 1, label: "Minor", color: "#a16207" }, { v: 2, label: "Real problem", color: "#c2410c" }, { v: 3, label: "Serious", color: "#b91c1c" }] as const;
 
 export default function ReportPage() {
+  const { t } = useLang();
   const [cat, setCat] = useState<ReportCategory | null>(null);
   const [sev, setSev] = useState<1 | 2 | 3>(2);
   const [from, setFrom] = useState<Area | null>(null);
@@ -79,7 +81,7 @@ export default function ReportPage() {
 
   return (
     <main>
-      <LocalBar title="Report a connectivity gap" crumb="Help authorities see where public transport falls short"><OutlinePill href="/">Back to planner</OutlinePill></LocalBar>
+      <LocalBar title={t("reportTitle")} crumb={t("reportSub")}><OutlinePill href="/">Back to planner</OutlinePill></LocalBar>
       <section className="hero wrap" style={{ paddingBottom: 40 }}>
         <div className="kicker">Your journey, your evidence</div>
         <h1 style={{ maxWidth: "16ch" }}>Can’t get there? Tell us.</h1>
@@ -128,7 +130,7 @@ export default function ReportPage() {
 
             <div className="note"><Icon name="ShieldCheck" size={14} /> We store the areas, category and your text. No name, phone or exact device location is collected. {PROMISE.split(".")[2]?.trim()}.</div>
             {err && <p className="err" role="alert">{err}</p>}
-            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? "Sending…" : "Send report"}</button></div>
+            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? t("sending") : t("sendReport")}</button></div>
           </div>
           <div className="frame map"><MapView bbox={bbox} pins={pins} lines={lines} picking={!!picking} onPick={pick} /></div>
         </div>

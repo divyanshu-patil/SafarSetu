@@ -2,12 +2,13 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fmtTime, planToMapLayers, type MapLine, type MapMarker, type Network, type Pace, type Plan, type PlanRequest } from "@repo/core";
+import { IMPACT_FACTORS, fmtTime, planImpact, planToMapLayers, type MapLine, type MapMarker, type Network, type Pace, type Plan, type PlanRequest } from "@repo/core";
 import { LocalBar, OutlinePill } from "./components/LocalBar";
 import { PlaceSearch } from "./components/PlaceSearch";
 import { Timeline } from "./components/Timeline";
 import { EXAMPLES } from "./lib/examples";
 import { Chip, Icon } from "./lib/icons";
+import { useLang } from "./lib/i18n";
 import { api, fromHHMM, LAST_PLAN_KEY, toHHMM, todayISO } from "./lib/api";
 
 const MapView = dynamic(() => import("./components/MapView"), { ssr: false });
@@ -20,6 +21,7 @@ let uid = 0;
 const newStop = (p: Partial<Stop> & { name: string; lat: number; lon: number }): Stop => ({ id: `s${++uid}`, task: "", dwell: 30, arriveBy: "", required: true, ...p });
 
 export default function Planner() {
+  const { t, lang } = useLang();
   const [cities, setCities] = useState<CityInfo[]>([]);
   const [cityId, setCityId] = useState("maharashtra");
   const [net, setNet] = useState<Network | null>(null);
@@ -45,6 +47,7 @@ export default function Planner() {
   const [area, setArea] = useState("");
   const [showPop, setShowPop] = useState(false);
   const resultRef = useRef<HTMLElement>(null);
+  const [shared, setShared] = useState(false);
 
   useEffect(() => { api.cities().then((r) => setCities(r.items)).catch(() => setErr("Cannot reach the API. Start it with: pnpm --filter api dev")); }, []);
   useEffect(() => { setArea(""); api.network(cityId).then(setNet).catch(() => {}); }, [cityId]);
@@ -84,7 +87,7 @@ export default function Planner() {
     const startMin = fromHHMM(leave);
     return {
       city: cityId, date, origin, startMin, endMin: finish ? fromHHMM(finish) : Math.min(1439, startMin + 14 * 60),
-      returnToOrigin: returnHome, keepOrder: order === "mine", prefs: { pace, style, avoid: Object.entries(modes).filter(([, on]) => !on).map(([k]) => k) as never[] }, traveller: name ? { name } : undefined,
+      returnToOrigin: returnHome, keepOrder: order === "mine", prefs: { pace, style, lang, avoid: Object.entries(modes).filter(([, on]) => !on).map(([k]) => k) as never[] }, traveller: name ? { name } : undefined,
       places: stops.map((s) => ({ name: s.name, lat: s.lat, lon: s.lon, task: s.task || undefined, minDwell: s.dwell, maxDwell: s.dwell, arriveBy: s.arriveBy ? fromHHMM(s.arriveBy) : undefined, required: s.required, priority: s.required ? 3 : 2, opens: s.opens, closes: s.closes })),
     };
   };
@@ -143,19 +146,20 @@ export default function Planner() {
 
   const areas = useMemo(() => [...new Set((net?.places ?? []).map((p) => p.area).filter(Boolean) as string[])], [net]);
   const popular = useMemo(() => (net?.places ?? []).filter((p) => !area || p.area === area).slice(0, 24), [net, area]);
-  const t = result?.plan.totals;
+  const tot = result?.plan.totals;
+  const impact = useMemo(() => (result ? planImpact(result.plan) : null), [result]);
   const cityList = (cities.length ? [...cities].sort((a, b) => (a.id === "maharashtra" ? -1 : b.id === "maharashtra" ? 1 : 0)) : [{ id: "pune", city: "Pune" }, { id: "mumbai", city: "Mumbai" }]);
 
   return (
     <main>
-      <LocalBar title="Plan your route" crumb="Work, errands and appointments — across Maharashtra">
+      <LocalBar title={t("planTitle")} crumb={t("planCrumb")}>
         <OutlinePill href="/report">Report a gap</OutlinePill>
-        <a href="#plan" className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 14 }}>Plan my route</a>
+        <a href="#plan" className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 14 }}>{t("planBtn")}</a>
       </LocalBar>
       <section className="hero wrap" style={{ paddingBottom: 24 }}>
         <div className="kicker">SafarSetu</div>
-        <h1 style={{ maxWidth: "14ch" }}>Get your work done on the move.</h1>
-        <p>Add the places you need to be and when. We line up buses, metro and trains so you reach each one on time — and keep it right when things change.</p>
+        <h1 style={{ maxWidth: "14ch" }}>{t("heroH1")}</h1>
+        <p>{t("heroP")}</p>
         <nav className="anchors" aria-label="On this page">
           <a href="#plan">Plan</a><a href="#how">How it works</a><a href="#report">Report a gap</a><a href="#authorities">For authorities</a>
         </nav>
@@ -165,14 +169,14 @@ export default function Planner() {
         <div className="wrap stage">
           <div className="card stack" aria-label="Your route">
             <div className="row between">
-              <h2 className="h3">Your route</h2>
-              <button className="pill-outline" onClick={clearAll} disabled={!origin && !stops.length}><Icon name="X" size={14} />Clear all</button>
+              <h2 className="h3">{t("yourRoute")}</h2>
+              <button className="pill-outline" onClick={clearAll} disabled={!origin && !stops.length}><Icon name="X" size={14} />{t("clearAll")}</button>
               <div className="seg" role="group" aria-label="Region">
                 {cityList.map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
               </div>
             </div>
 
-            <div className="field"><span>Try an example</span>
+            <div className="field"><span>{t("tryExample")}</span>
               <div className="chips">{EXAMPLES.map((ex) => <button key={ex.name} className="chip" onClick={() => loadExample(ex)}>{ex.name}</button>)}</div>
             </div>
 
@@ -188,8 +192,8 @@ export default function Planner() {
                     </>
                   ) : (
                     <>
-                      <PlaceSearch city={cityId} label="" placeholder="Where are you starting from?" onPick={(h) => { setOrigin(h); setEditStart(false); }} />
-                      <div className="sub" style={{ marginTop: 4 }}>Leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /> · <button className="tlink" style={{ fontSize: 14 }} onClick={locate}>use my location</button>{origin && <> · <button className="tlink" style={{ fontSize: 14 }} onClick={() => setEditStart(false)}>cancel</button></>}</div>
+                      <PlaceSearch city={cityId} label="" placeholder={t("whereStart")} onPick={(h) => { setOrigin(h); setEditStart(false); }} />
+                      <div className="sub" style={{ marginTop: 4 }}>Leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /> · <button className="tlink" style={{ fontSize: 14 }} onClick={locate}>{t("useLocation")}</button>{origin && <> · <button className="tlink" style={{ fontSize: 14 }} onClick={() => setEditStart(false)}>cancel</button></>}</div>
                     </>
                   )}
                 </div>
@@ -210,12 +214,12 @@ export default function Planner() {
                   </div>
                   {open === s.id && (
                     <div className="stopdetails">
-                      <label className="field"><span>What are you doing here?</span><input className="input" value={s.task} maxLength={100} placeholder="Client meeting, bank, pick-up…" onChange={(e) => patch(s.id, { task: e.target.value })} /></label>
+                      <label className="field"><span>{t("doing")}</span><input className="input" value={s.task} maxLength={100} placeholder="Client meeting, bank, pick-up…" onChange={(e) => patch(s.id, { task: e.target.value })} /></label>
                       <div className="grid2">
-                        <label className="field"><span>Time needed</span><select className="input" value={s.dwell} onChange={(e) => patch(s.id, { dwell: Number(e.target.value) })}>{DWELLS.map((d) => <option key={d} value={d}>{d >= 60 ? `${d / 60} h` : `${d} min`}</option>)}</select></label>
-                        <label className="field"><span>Be there by (optional)</span><input className="input" type="time" value={s.arriveBy} onChange={(e) => patch(s.id, { arriveBy: e.target.value })} /></label>
+                        <label className="field"><span>{t("timeNeeded")}</span><select className="input" value={s.dwell} onChange={(e) => patch(s.id, { dwell: Number(e.target.value) })}>{DWELLS.map((d) => <option key={d} value={d}>{d >= 60 ? `${d / 60} h` : `${d} min`}</option>)}</select></label>
+                        <label className="field"><span>{t("beThereBy")}</span><input className="input" type="time" value={s.arriveBy} onChange={(e) => patch(s.id, { arriveBy: e.target.value })} /></label>
                       </div>
-                      <label className="check"><input type="checkbox" checked={s.required} onChange={(e) => patch(s.id, { required: e.target.checked })} /> Must happen — never skip this stop</label>
+                      <label className="check"><input type="checkbox" checked={s.required} onChange={(e) => patch(s.id, { required: e.target.checked })} /> {t("mustHappen")}</label>
                     </div>
                   )}
                 </div>
@@ -223,38 +227,39 @@ export default function Planner() {
               <div className="stoprow add">
                 <span className="badge ghost"><Icon name="Plus" size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <PlaceSearch city={cityId} label="" placeholder="Add a stop — search a place or address" onPick={(h) => { const st = newStop({ ...h }); setStops((s) => [...s, st]); setOpen(st.id); }} />
+                  <PlaceSearch city={cityId} label="" placeholder={t("addStop")} onPick={(h) => { const st = newStop({ ...h }); setStops((s) => [...s, st]); setOpen(st.id); }} />
                 </div>
                 <button className="icobtn" aria-pressed={pick === "stop"} title="Add stops by clicking the map" onClick={() => setPick(pick === "stop" ? null : "stop")}><Icon name="MapPin" size={16} /></button>
               </div>
               {pick && <p className="sub" role="status" style={{ marginLeft: 44 }}>{pick === "stop" ? "Click the map to add stops. Click the pin again to stop." : "Click the map to set your start."}</p>}
-              {!stops.length && <p className="sub" style={{ marginLeft: 44 }}>Add your first stop — search a place, or use the pin and click the map. Add as many as you need.</p>}
+              {!stops.length && <p className="sub" style={{ marginLeft: 44 }}>{t("addFirst")}</p>}
             </div>
 
             <div className="grid2">
-              <label className="field"><span>Date</span><input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-              <label className="field"><span>Finish by (optional)</span><input className="input" type="time" value={finish} onChange={(e) => setFinish(e.target.value)} /></label>
+              <label className="field"><span>{t("date")}</span><input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+              <label className="field"><span>{t("finishBy")}</span><input className="input" type="time" value={finish} onChange={(e) => setFinish(e.target.value)} /></label>
             </div>
             <div className="row between">
-              <div className="field"><span>Order of stops</span><div className="seg" role="group" aria-label="Order"><button aria-pressed={order === "mine"} onClick={() => setOrder("mine")}>My order</button><button aria-pressed={order === "best"} onClick={() => setOrder("best")}>Best order</button></div></div>
-              <label className="check"><input type="checkbox" checked={returnHome} onChange={(e) => setReturnHome(e.target.checked)} /> Return to start</label>
+              <div className="field"><span>{t("orderOfStops")}</span><div className="seg" role="group" aria-label="Order"><button aria-pressed={order === "mine"} onClick={() => setOrder("mine")}>{t("myOrder")}</button><button aria-pressed={order === "best"} onClick={() => setOrder("best")}>{t("bestOrder")}</button></div></div>
+              <label className="check"><input type="checkbox" checked={returnHome} onChange={(e) => setReturnHome(e.target.checked)} /> {t("returnStart")}</label>
             </div>
             <div className="row between">
-              <div className="field"><span>Pace</span><div className="seg" role="group" aria-label="Pace">{(["relaxed", "normal", "fast"] as Pace[]).map((p) => <button key={p} aria-pressed={pace === p} onClick={() => setPace(p)}>{p[0]!.toUpperCase() + p.slice(1)}</button>)}</div></div>
-              <div className="field"><span>Alerts</span><div className="seg" role="group" aria-label="Alert style">{(["calm", "brief"] as const).map((s) => <button key={s} aria-pressed={style === s} onClick={() => setStyle(s)}>{s === "calm" ? "Calm" : "Brief"}</button>)}</div></div>
+              <div className="field"><span>{t("pace")}</span><div className="seg" role="group" aria-label="Pace">{(["gentle", "relaxed", "normal", "fast"] as Pace[]).map((p) => <button key={p} aria-pressed={pace === p} onClick={() => setPace(p)}>{t(p)}</button>)}</div></div>
+              <div className="field"><span>{t("alertsLbl")}</span><div className="seg" role="group" aria-label="Alert style">{(["calm", "brief"] as const).map((s) => <button key={s} aria-pressed={style === s} onClick={() => setStyle(s)}>{t(s)}</button>)}</div></div>
             </div>
-            <div className="field"><span>Transport I’m happy to use</span>
+            <div className="field"><span>{t("transportLbl")}</span>
               <div className="chips">
-                {([["local", "Local train", "TrainFront"], ["express", "Express train", "TrainFront"], ["metro", "Metro", "TramFront"], ["bus", "Bus", "BusFront"], ["cab", "Cab if needed", "CarTaxiFront"]] as const).map(([k, label, icon]) => (
+                {([["local", t("localTrain"), "TrainFront"], ["express", t("expressTrain"), "TrainFront"], ["metro", t("metro"), "TramFront"], ["bus", t("bus"), "BusFront"], ["cab", t("cab"), "CarTaxiFront"]] as const).map(([k, label, icon]) => (
                   <button key={k} className="chip" aria-pressed={modes[k]} style={{ display: "inline-flex", gap: 6, alignItems: "center" }} onClick={() => setModes((m) => ({ ...m, [k]: !m[k] }))}><Icon name={icon} size={14} />{label}</button>
                 ))}
               </div>
               {modes.local && <span className="sub" style={{ fontWeight: 400 }}>Mumbai suburban and Pune–Lonavala local-train times are demo data (synthetic) until real timetables are added.</span>}
             </div>
-            <label className="field"><span>Your name (optional, for friendlier alerts)</span><input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} /></label>
+            {pace === "gentle" && <p className="sub" role="note">{t("gentleHint")}</p>}
+            <label className="field"><span>{t("yourName")}</span><input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} /></label>
 
             <div>
-              <button className="tlink" onClick={() => setShowPop((x) => !x)}>{showPop ? "Hide" : "Show"} popular places{areas.length ? "" : ""}</button>
+              <button className="tlink" onClick={() => setShowPop((x) => !x)}>{t("popular")} {showPop ? "▴" : "▾"}</button>
               {showPop && (
                 <div className="stack mt">
                   {areas.length > 1 && <div className="seg" style={{ flexWrap: "wrap", borderRadius: 20 }} role="group" aria-label="Area">{["", ...areas].map((a) => <button key={a} aria-pressed={area === a} onClick={() => setArea(a)}>{a || "All"}</button>)}</div>}
@@ -264,14 +269,14 @@ export default function Planner() {
             </div>
 
             {err && <p className="err" role="alert">{err}</p>}
-            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? "Planning…" : "Plan my route"}</button></div>
+            <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? t("planning") : t("planBtn")}</button></div>
           </div>
 
           <div className="frame map">
             <MapView bbox={net?.bbox ?? [72.7, 18.4, 74, 19.3]} lines={lines ?? previewLine} markers={layers?.markers ?? preview} picking={!!pick} onPick={onMapPick} />
-            {result && t && (
+            {result && tot && (
               <div className="capsule">
-                <Icon name="ShieldCheck" size={18} /><div><b>{result.plan.timeline.filter((e) => e.kind === "visit").length} stops · {t.confidencePct}% on time</b><span className="s">₹{t.fare} fares · {(t.walkM / 1000).toFixed(1)} km walking</span></div>
+                <Icon name="ShieldCheck" size={18} /><div><b>{result.plan.timeline.filter((e) => e.kind === "visit").length} stops · {tot.confidencePct}% on time</b><span className="s">₹{tot.fare} fares · {(tot.walkM / 1000).toFixed(1)} km walking</span></div>
                 <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none", padding: "8px 16px", fontSize: 14 }}>Start live trip</Link>
               </div>
             )}
@@ -279,26 +284,38 @@ export default function Planner() {
         </div>
       </section>
 
-      {result && t && (
+      {result && tot && (
         <section className="section" ref={resultRef}>
           <div className="wrap">
             <div className="row between">
-              <div><div className="label">Your plan · revision {result.plan.revision}</div><h2 className="h2" style={{ marginTop: 8 }}>{fmtTime(result.plan.timeline[0] && result.plan.timeline[0].kind === "move" ? result.plan.timeline[0].departMin : result.plan.request.startMin)} to {fmtTime((() => { const l = result.plan.timeline.at(-1); return l ? (l.kind === "move" ? l.arriveMin : l.leaveMin) : result.plan.request.endMin; })())}</h2></div>
-              <Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none" }}>Start live trip</Link>
+              <div><div className="label">{t("yourPlan")} · revision {result.plan.revision}</div><h2 className="h2" style={{ marginTop: 8 }}>{fmtTime(result.plan.timeline[0] && result.plan.timeline[0].kind === "move" ? result.plan.timeline[0].departMin : result.plan.request.startMin)} to {fmtTime((() => { const l = result.plan.timeline.at(-1); return l ? (l.kind === "move" ? l.arriveMin : l.leaveMin) : result.plan.request.endMin; })())}</h2></div>
+              <div className="row"><button className="pill-outline" onClick={() => { const u = `${location.origin}/trip/${result.id}?share=1`; navigator.clipboard?.writeText(u).then(() => { setShared(true); setTimeout(() => setShared(false), 2500); }); }}><Icon name="Send" size={14} />{shared ? t("copied") : t("shareTrip")}</button><Link href={`/trip/${result.id}`} className="pill-primary" style={{ textDecoration: "none" }}>{t("startLive")}</Link></div>
             </div>
             <div className="stats mt2">
-              <div className="stat"><b>{result.plan.timeline.filter((e) => e.kind === "visit").length}</b><span>stops</span></div>
-              <div className="stat"><b>{(t.walkM / 1000).toFixed(1)} km</b><span>walking</span></div>
-              <div className="stat"><b>₹{t.fare}</b><span>fares</span></div>
-              <div className="stat"><b>{t.confidencePct}%</b><span>on-time confidence{t.riskiest ? ` · tightest: ${t.riskiest}` : ""}</span></div>
+              <div className="stat"><b>{result.plan.timeline.filter((e) => e.kind === "visit").length}</b><span>{t("stops")}</span></div>
+              <div className="stat"><b>{(tot.walkM / 1000).toFixed(1)} km</b><span>{t("walking")}</span></div>
+              <div className="stat"><b>₹{tot.fare}</b><span>{t("fares")}</span></div>
+              <div className="stat"><b>{tot.confidencePct}%</b><span>{t("onTime")}{tot.riskiest ? ` · tightest: ${tot.riskiest}` : ""}</span></div>
             </div>
+            {impact && (impact.savedInr > 0 || impact.savedCo2Kg > 0) && (
+              <div className="note mt2" style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <Chip name="TrendingUp" color="#15803d" size={16} box={32} />
+                <p><b>{t("impactTitle")}:</b> {t("saves")} <b>₹{impact.savedInr}</b> · <b>{impact.savedCo2Kg} kg</b> {t("co2")}. <Link href="/impact" style={{ textDecoration: "underline" }}>{t("howEstimate")}</Link>{IMPACT_FACTORS.provisional ? " (provisional factors)" : ""}</p>
+              </div>
+            )}
+            {(result.plan.warnings?.length ?? 0) > 0 && (
+              <div className="note mt2" role="note" style={{ display: "flex", gap: 12, alignItems: "flex-start", borderLeft: "4px solid var(--color-signal-blue)" }}>
+                <Chip name="ShieldCheck" color="#0b4c72" size={16} box={32} />
+                <div><b>{t("warnTitle")}</b>{result.plan.warnings!.map((w, i) => <p key={i}>{w.text}</p>)}</div>
+              </div>
+            )}
             {(result.plan.conflicts?.length ?? 0) > 0 && (
               <div className="note mt2" role="alert" style={{ borderLeft: "4px solid var(--color-alarm-red)" }}>
-                <b style={{ display: "flex", gap: 8, alignItems: "center" }}><Icon name="AlertTriangle" size={16} />This can’t work as asked</b>
+                <b style={{ display: "flex", gap: 8, alignItems: "center" }}><Icon name="AlertTriangle" size={16} />{t("cantWork")}</b>
                 {result.plan.conflicts!.map((c, i) => <p key={i}><b>{c.name}</b>: {c.reason}. Try starting earlier, moving the time, or making the stop optional.</p>)}
               </div>
             )}
-            {result.plan.dropped.length > 0 && <p className="mt2 label hot">Left out (optional stops that didn’t fit): {result.plan.dropped.map((d) => `${d.name} (${d.reason})`).join(" · ")}</p>}
+            {result.plan.dropped.length > 0 && <p className="mt2 label hot">{t("leftOut")}: {result.plan.dropped.map((d) => `${d.name} (${d.reason})`).join(" · ")}</p>}
             {rain && <p className="mt label">{rain}</p>}
             {result.plan.reminders[0] && <p className="mt sub">First reminder: “{result.plan.reminders[0].title}” at {fmtTime(result.plan.reminders[0].atMin)}.</p>}
           </div>

@@ -13,3 +13,5 @@ export { planToMapLayers, positionAt, nextAction, isTrivialMove, type MapLine, t
 export * from "./client";
 export * from "./reports";
 export * from "./regions";
+export * from "./impact";
+export * from "./i18n";

@@ -1,0 +1,95 @@
+{
+ "_doc": "Keys are template shape names per slide. Value = string, or list of strings (one paragraph each; prefix '• ' for a bullet). 'table' = 5 rows x 3 cols (row 0 = header, [0][0] is blank in the template). 'ticks' = shapes to mark as selected (stage circle / support checkbox).",
+ "slides": {
+  "1": {
+   "Text 0": "SEVA FIRST INNOVATION CHALLENGE 2026  •  MAHARASHTRA ZONE  •  SUBMISSION",
+   "Text 1": "SafarSetu",
+   "Text 2": "Plan your work around the buses, metro and trains you can actually catch — with calm alerts when things change."
+  },
+  "2": {
+   "Text 7": "Commuters juggle several apps and learn of delays late. Google Help: no multi-stop directions for public transit. Nobody plans a working day around deadlines.",
+   "Text 10": "Commuters, students, seniors and visitors in Mumbai and Pune. PMPML carries ~10 lakh a day (2025); MSRTC ~50–55 lakh a day statewide (media).",
+   "Text 13": "Mumbai suburban rail ~68 lakh/day (CR+WR, FY2025-26). PMPML ~60 breakdowns/day (FPJ 2025). TomTom 2025: Pune 33m20s per 10 km. Baseline interviews planned.",
+   "Text 16": "Moovit, m-Indicator and Mumbai One give routes and tickets, not a day of timed stops. We complement agency ITMS, not replace it. Alerts rarely say what to do.",
+   "Text 18": "~68 lakh",
+   "Text 19": "daily Mumbai suburban rail riders, avg. (CR+WR, FY2025-26)",
+   "Text 21": "Pune loses ~152 h a year in traffic (TomTom 2025); PMPML ~60 breakdowns a day (FPJ)."
+  },
+  "3": {
+   "Text 6": "A work-and-errands day planner: ordered stops, be-there-by times, must-do flags and a conflict list. Times every bus, metro and train leg, re-plans on delays; alerts in Marathi, Hindi, English.",
+   "Text 12": "Stops, be-there-by times, pace, language",
+   "Text 18": "Timetable routing, on-time odds, live re-plan",
+   "Text 24": "Leave/board times, calm alerts, shareable trip",
+   "table": [
+    [
+     "",
+     "Existing approach",
+     "Our approach"
+    ],
+    [
+     "Cost",
+     "A-to-B apps, cabs",
+     "One plan; ₹0 demo"
+    ],
+    [
+     "Speed / time",
+     "Guess leave time",
+     "Exact leave times"
+    ],
+    [
+     "Reach / access",
+     "One mode per app",
+     "Bus, metro, rail"
+    ],
+    [
+     "Ease of use",
+     "Single trip only",
+     "Many stops, one plan"
+    ]
+   ],
+   "Text 27": "Plans a working day around deadlines across bus, metro and rail; alerts say what to do; citizen gap reports reach authorities. No patent filed."
+  },
+  "4": {
+   "ticks": [
+    "Shape 11"
+   ],
+   "Text 19": "TypeScript engine, Next.js web, Expo app. Real rail, PMPML, BEST timetables (community GTFS). Fixed on the way: tourist planner → work/errands; vague alerts.",
+   "Text 22": "Demo ₹0. Pilot est. ₹8.7–13.7k/month for 10,000 users ≈ ₹0.9–1.4 per user (est.; ₹90/$).",
+   "Text 25": "3 months: baseline interviews.\n6 months: agency pilot.\n12 months: second city. (planned)",
+   "Text 28": "To approach (no MoUs yet): Urban Development Dept (GoM), PMPML (CMD), BEST (GM), MMRDA, Maha-Metro, MSInS."
+  },
+  "5": {
+   "Text 6": "~10 lakh",
+   "Text 8": "addressable: PMPML riders/day; target TBD",
+   "Text 10": "TBD",
+   "Text 12": "est. only, cab-baseline model; not measured",
+   "Text 14": "TBD",
+   "Text 16": "none claimed; data steward planned",
+   "Text 19": "Fewer missed connections and rushed trips; Gentle pace and late-walk warnings for seniors; citizen gap reports reach authorities. Impact not yet measured.",
+   "Text 22": "Free for commuters; agencies may fund insights and gap ranking. Pilot est. ₹0.9–1.4 per user a month.",
+   "Text 25": "A city is a data pack (GTFS + places). Next: Nashik, Nagpur, then other states. Needs agency feeds and a data steward."
+  },
+  "6": {
+   "Text 7": "Divyanshu Patil",
+   "Text 8": "[Add: role]",
+   "Text 9": "[Add: qualification]",
+   "Text 13": "[Add: name 2]",
+   "Text 14": "[Add: role]",
+   "Text 15": "[Add: qualification]",
+   "Text 19": "[Add: name 3]",
+   "Text 20": "[Add: role]",
+   "Text 21": "[Add: qualification]",
+   "Text 25": "[Add: name 4]",
+   "Text 26": "[Add: role]",
+   "Text 27": "[Add: qualification]",
+   "Text 28": "[Add: mentor / faculty guide, designation]",
+   "ticks": [
+    "Shape 31",
+    "Shape 33",
+    "Shape 35"
+   ],
+   "Text 41": "A mentor and an agency pilot take us from working prototype to a one-city field pilot. Work order up to ₹10 lakh, subject to evaluation.",
+   "Text 42": "Thank you  |  [Add: contact email / mobile]"
+  }
+ }
+}

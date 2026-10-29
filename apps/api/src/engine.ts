@@ -97,7 +97,7 @@ export class Engine {
         this.emit(rec.id, "plan", { id: rec.id, state: a.state, revision: rec.plan.revision, changes: rec.plan.changes });
       }
       if (live.rain && !(await this.store.listNotifications(rec.id)).some((n) => n.kind === "heads_up")) {
-        const w = composeAlert({ reason: "weather", beforeLeave: false, nowMin: now.minute, slackMin: 0, dwellLost: [], dropped: [] });
+        const w = composeAlert({ reason: "weather", beforeLeave: false, nowMin: now.minute, slackMin: 0, dwellLost: [], dropped: [] }, undefined, "calm", rec.plan.request.prefs?.lang);
         notifs.push({ id: newId(), planId: rec.id, userId: rec.userId, kind: w.kind, title: w.title, body: w.body, date: rec.date, fireMin: Math.floor(now.minute), revision: rec.plan.revision, sent: false });
       }
       if (notifs.length) {

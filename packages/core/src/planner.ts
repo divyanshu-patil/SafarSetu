@@ -1,6 +1,7 @@
 import { confidence } from "./confidence";
 import { noLive } from "./live";
 import { indexNetwork, type Indexed } from "./network";
+import { tpl } from "./i18n";
 import { buildReminders } from "./notify";
 import { PACE_OPTS, bestItinerary, cabItinerary, defaultOpts, latestDeparture, search, walkItinerary, type RouteOpts } from "./router";
 import { fmtTime, haversine } from "./time";
@@ -16,13 +17,13 @@ export interface Ctx {
   keepOrder: boolean;
 }
 
-const END_BUFFER: Record<Pace, number> = { relaxed: 15, normal: 5, fast: 0 };
+const END_BUFFER: Record<Pace, number> = { gentle: 20, relaxed: 15, normal: 5, fast: 0 };
 const indexCache = new WeakMap<Network, Indexed>();
 
 export function makeCtx(net: Network, live: LiveState = noLive, prefs: Prefs = {}, keepOrder = false): Ctx {
   let ix = indexCache.get(net);
   if (!ix) indexCache.set(net, (ix = indexNetwork(net)));
-  const p: Required<Prefs> = { pace: prefs.pace ?? "normal", maxWalkM: prefs.maxWalkM ?? (prefs.pace === "relaxed" ? 800 : prefs.pace === "fast" ? 1500 : 1200), avoid: prefs.avoid ?? [], style: prefs.style ?? "calm" };
+  const p: Required<Prefs> = { pace: prefs.pace ?? "normal", maxWalkM: prefs.maxWalkM ?? (prefs.pace === "gentle" ? 400 : prefs.pace === "relaxed" ? 800 : prefs.pace === "fast" ? 1500 : 1200), avoid: prefs.avoid ?? [], style: prefs.style ?? "calm", lang: prefs.lang ?? "en" };
   const o: RouteOpts = { ...defaultOpts(), ...PACE_OPTS[p.pace], maxWalkM: p.maxWalkM, avoid: p.avoid };
   return { ix, live, o, prefs: p, cache: new Map(), later: new Map(), keepOrder };
 }
@@ -108,7 +109,7 @@ function simulate(c: Ctx, start: Pt, startMin: number, items: Item[], dwell: Map
     let it = travel(c, cur, item, t);
     // arriving well before an appointment/opening time: leave later (stay longer where you are) instead of waiting there
     // appointments get a safety buffer (relaxed 10 / normal 5 / fast 2 min): aim to be early, never exactly on the minute
-    const target = item.arriveBy !== undefined ? item.arriveBy - { relaxed: 10, normal: 5, fast: 2 }[c.prefs.pace] : item.opens > it.arriveMin + 2 ? item.opens : undefined;
+    const target = item.arriveBy !== undefined ? item.arriveBy - { gentle: 15, relaxed: 10, normal: 5, fast: 2 }[c.prefs.pace] : item.opens > it.arriveMin + 2 ? item.opens : undefined;
     if (target !== undefined && it.arriveMin < target - 10) {
       const later = leaveLater(c, cur, item, target);
       if (later && later.departMin >= t && later.arriveMin <= target + 0.5) it = later;
@@ -252,19 +253,25 @@ export function finalize(c: Ctx, req: PlanRequest, built: Built, revision: numbe
     transfers += e.itinerary.transfers;
     if (e.confidence.pOnTime < minP) (minP = e.confidence.pOnTime), (riskiest = e.confidence.riskiest?.label);
   }
+  const warnings: NonNullable<Plan["warnings"]> = [];
+  for (const e of entries) {
+    if (e.kind !== "move") continue;
+    for (const l of e.itinerary.legs) if (l.kind === "walk" && l.distM >= 500 && (l.departMin >= 20 * 60 || l.arriveMin >= 20 * 60 + 30)) warnings.push({ kind: "dark_walk", text: tpl(c.prefs.lang).darkWalk(Math.round(l.distM), fmtTime(l.departMin)) });
+  }
   const plan: Plan = {
     revision,
     request: req,
     timeline: entries,
     dropped: built.dropped,
     conflicts: built.conflicts ?? [],
+    warnings,
     totals: { walkM, fare: fareSum, transfers, confidencePct: Math.round(minP * 100), riskiest },
     reminders: [],
     changes,
     generatedAtMin: nowMin,
     meta: { dataQuality: c.ix.net.meta.dataQuality, note: c.ix.net.meta.note },
   };
-  plan.reminders = buildReminders(plan, c.prefs.pace);
+  plan.reminders = buildReminders(plan, c.prefs.pace, c.prefs.lang);
   return plan;
 }
 

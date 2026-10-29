@@ -3,7 +3,8 @@
 export type Mode = "metro" | "train" | "bus";
 /** things a rider can switch off: a mode, a kind of train, or the cab fallback */
 export type Avoid = Mode | "local" | "express" | "cab";
-export type Pace = "relaxed" | "normal" | "fast";
+export type Pace = "gentle" | "relaxed" | "normal" | "fast";
+export type Lang = "en" | "hi" | "mr";
 
 export interface LatLon {
   lat: number;
@@ -153,6 +154,8 @@ export interface Prefs {
   maxWalkM?: number;
   avoid?: Avoid[];
   style?: "calm" | "brief";
+  /** language of reminders and alerts */
+  lang?: Lang;
 }
 
 export interface PlanRequest {
@@ -218,6 +221,8 @@ export interface Plan {
   dropped: { name: string; reason: string }[];
   /** stops that cannot be done as asked (deadline missed, closed) — shown, never hidden */
   conflicts?: { name: string; reason: string }[];
+  /** things worth knowing but not blocking (e.g. a long walk after dark) */
+  warnings?: { kind: "dark_walk"; text: string }[];
   totals: { walkM: number; fare: number; transfers: number; confidencePct: number; riskiest?: string };
   reminders: Reminder[];
   changes: string[];
@@ -268,6 +273,7 @@ export interface ChangeSummary {
   nextBoard?: { routeName: string; stopName: string; departMin: number };
   /** replacement when no vehicle is available, e.g. "Take a cab (about ₹120, 18 min)" */
   altText?: string;
+  alt?: { kind: "cab" | "walk"; mins: number; fare?: number; to?: string };
   nextPlace?: string;
   newArriveMin?: number;
   slackMin: number;

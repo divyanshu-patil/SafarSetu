@@ -154,7 +154,7 @@ export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: nu
     // sub-3-minute drifts are noise: keep the old plan, send nothing
     if (!summary || (summary.dwellLost.length === 0 && Math.abs((summary.newLeaveMin ?? 0) - (summary.oldLeaveMin ?? 0)) < 3 && Math.abs((summary.newArriveMin ?? 0) - (plan.timeline.find((e, i) => i >= idx && e.kind === "move")?.arriveMin ?? 0)) < 3)) return { state: "on_track", plan };
     next.changes = changeLines(summary);
-    return { state: "adjusted", plan: next, summary, alert: composeAlert(summary, plan.request.traveller, plan.request.prefs?.style) };
+    return { state: "adjusted", plan: next, summary, alert: composeAlert(summary, plan.request.traveller, plan.request.prefs?.style, plan.request.prefs?.lang) };
   }
 
   // --- re-plan the remainder -------------------------------------------
@@ -186,7 +186,7 @@ export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: nu
   const reason = broke?.reason ?? "delay";
   const summary = summarise(plan, next, idx, nowMin, beforeLeave, live, reason, broke?.move, built.dropped.map((d) => d.name));
   if (summary) next.changes = changeLines(summary);
-  return { state: "replanned", plan: next, summary, alert: summary ? composeAlert(summary, plan.request.traveller, plan.request.prefs?.style) : undefined };
+  return { state: "replanned", plan: next, summary, alert: summary ? composeAlert(summary, plan.request.traveller, plan.request.prefs?.style, plan.request.prefs?.lang) : undefined };
 }
 
 function changeLines(s: ChangeSummary): string[] {
@@ -240,6 +240,7 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
     oldLeaveMin: om?.departMin,
     newLeaveMin: nm?.departMin,
     altText: !newTransit ? altText(nm) : undefined,
+    alt: !newTransit ? altOf(nm) : undefined,
     nextBoard: newTransit ? { routeName: newTransit.routeName, stopName: newTransit.from.name, departMin: newTransit.departMin } : undefined,
     nextPlace: nextVisit?.place.name,
     newArriveMin: nm?.arriveMin,
@@ -250,6 +251,14 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
 }
 
 export { travel };
+
+function altOf(m?: Move): ChangeSummary["alt"] {
+  const l = m?.itinerary.legs[0];
+  if (!l) return undefined;
+  if (l.kind === "cab") return { kind: "cab", mins: Math.round(l.arriveMin - l.departMin), fare: l.fare };
+  if (l.kind === "walk") return { kind: "walk", mins: Math.round(l.arriveMin - l.departMin), to: l.to.name };
+  return undefined;
+}
 
 function altText(m?: Move): string | undefined {
   const l = m?.itinerary.legs[0];

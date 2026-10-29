@@ -10,6 +10,7 @@ export interface RouteOpts {
   avoid: Avoid[];
 }
 export const PACE_OPTS = {
+  gentle: { walkSpeed: 50, boardBuffer: 6 },
   relaxed: { walkSpeed: 60, boardBuffer: 5 },
   normal: { walkSpeed: 80, boardBuffer: 3 },
   fast: { walkSpeed: 95, boardBuffer: 1 },
@@ -275,7 +276,7 @@ export function cabItinerary(from: Pt, to: Pt, departMin: number): Itinerary {
     distM: m,
     departMin,
     arriveMin: departMin + wait + Math.ceil(m / 367), // ~22 km/h urban
-    fare: Math.round(40 + 14 * (m / 1000)),
+    fare: Math.round(37 + 22 * Math.max(0, m / 1000 - 1.5)),
   };
   return summarize([leg]);
 }
