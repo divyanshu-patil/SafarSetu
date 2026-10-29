@@ -103,6 +103,19 @@ export function mountReports(app: Express, engine: Engine) {
     if (f("q")) { const n = f("q")!.toLowerCase(); items = items.filter((r) => [r.description, r.ref, r.from?.name, r.to?.name, r.location.name].join(" ").toLowerCase().includes(n)); }
     res.json({ total: items.length, facets, items: items.slice(0, 200).map(staff) });
   });
+  /** CSV for departments' own tools. Cells that could be read as spreadsheet formulas are neutralised. */
+  app.get("/v1/authority/reports.csv", requireAuthority, async (_req, res) => {
+    const cell = (v: unknown) => {
+      let t = String(v ?? "").replace(/\r?\n/g, " ");
+      if (/^[=+\-@\t]/.test(t)) t = "'" + t;
+      return `"${t.replace(/"/g, '""')}"`;
+    };
+    const rows = (await visible(res.locals.authority)).map((r) => [r.ref, r.createdAt, r.city, r.category, r.severity, r.status, r.from?.name, r.to?.name, r.from?.lat, r.from?.lon, r.mode, r.timeOfDay, r.description, r.synthetic ? "synthetic" : "real"].map(cell).join(","));
+    res.setHeader("content-type", "text/csv; charset=utf-8");
+    res.setHeader("content-disposition", 'attachment; filename="safarsetu-reports.csv"');
+    res.send(["ref,created,region,category,severity,status,from,to,lat,lon,mode,time,description,data", ...rows].join("\n"));
+  });
+
   app.get("/v1/authority/reports/:id", requireAuthority, async (req, res) => {
     const r = await store.getReport(String(req.params.id));
     if (!r || !canSee(res.locals.authority, r.city)) throw new HttpError(404, "not_found", "Report not found");

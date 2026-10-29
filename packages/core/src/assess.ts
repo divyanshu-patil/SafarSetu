@@ -104,6 +104,7 @@ export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: nu
       prevVisit = v;
       t = v.leaveMin;
       if (v.startMin + v.minDwell > v.closes) ok = false;
+      if (v.arriveBy !== undefined && v.arriveMin > v.arriveBy + 0.5) ok = false; // a delay must never silently make an appointment late
       continue;
     }
     const m = cur;
@@ -227,7 +228,8 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
     if (o && o.dwellMin - e.dwellMin >= 3) dwellLost.push({ name: e.place.name, mins: Math.round(o.dwellMin - e.dwellMin) });
   }
   const nextVisit = newP.timeline.slice(idx).find((e): e is Visit => e.kind === "visit");
-  const slack = nextVisit ? Math.round(nextVisit.dwellMin - nextVisit.minDwell) : 0;
+  const slack = nextVisit ? (nextVisit.arriveBy !== undefined ? Math.round(nextVisit.arriveBy - nextVisit.arriveMin) : Math.round(nextVisit.dwellMin - nextVisit.minDwell)) : 0;
+  const late = newP.timeline.slice(idx).filter((e): e is Visit => e.kind === "visit" && e.arriveBy !== undefined && e.arriveMin > e.arriveBy + 0.5).map((v) => ({ name: v.place.name, byMin: v.arriveBy!, arriveMin: v.arriveMin }));
   const closedStop = live.disruptions.find((d) => d.type === "stop_closed");
   return {
     reason: reason === "delay" && !delayLeg && !dropped.length && !dwellLost.length ? "delay" : reason,
@@ -247,6 +249,8 @@ function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave
     slackMin: slack,
     dwellLost,
     dropped,
+    late,
+    switched: !!oldTransit && !!delayLeg && !newLegs.some((l) => l.routeId === oldTransit.routeId && l.tripDeparture === oldTransit.tripDeparture),
   };
 }
 

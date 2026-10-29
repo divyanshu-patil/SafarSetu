@@ -20,6 +20,10 @@ SafarSetu helps people **organise their work and errands around the connecting p
 | 10 | [Demo script & judge Q&A](10-demo-and-qa.md) | 5-minute demo, likely questions |
 | 11 | [Data sources](../DATA_SOURCES.md) | Every dataset/API used, licence, what is real vs synthetic |
 | 12 | [Reports & authority portal](12-reports-and-authority.md) | Citizen gap reports, authority login, ranking, roles |
+| 13 | [Seva scorecard](13-seva-scorecard.md) | Criteria × evidence × gaps × test log (the improvement loop) |
+| 14 | [Pilot plan](14-pilot-plan.md) | 4 stages with numbers, owners, finance, measurement |
+| 15 | [Field research kit](15-field-research-kit.md) | Interview script + logging for primary evidence |
+| R | [Sourced research](research/seva-research.md) | Every fact for the pitch with source, date, confidence |
 
 Also see root: [`progress.md`](../progress.md), [`NEEDED_FROM_YOU.md`](../NEEDED_FROM_YOU.md), earlier research in `Research.md`, `Prototype-Ideas.md`, `safarsetu_product_workflow_spec.md`.
 

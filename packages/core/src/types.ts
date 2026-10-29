@@ -258,7 +258,7 @@ export interface LiveState {
 
 // ---- Alerts ---------------------------------------------------------------
 
-export type AlertKind = "relax" | "adjust" | "replan" | "urgent" | "heads_up";
+export type AlertKind = "relax" | "adjust" | "replan" | "urgent" | "late" | "heads_up";
 
 export interface ChangeSummary {
   reason: "delay" | "cancellation" | "closure" | "weather" | "mixed";
@@ -273,6 +273,10 @@ export interface ChangeSummary {
   nextBoard?: { routeName: string; stopName: string; departMin: number };
   /** replacement when no vehicle is available, e.g. "Take a cab (about ₹120, 18 min)" */
   altText?: string;
+  /** appointments the rider can no longer make on time */
+  late?: { name: string; byMin: number; arriveMin: number }[];
+  /** the delayed vehicle is no longer used: the rider should board something else */
+  switched?: boolean;
   alt?: { kind: "cab" | "walk"; mins: number; fare?: number; to?: string };
   nextPlace?: string;
   newArriveMin?: number;

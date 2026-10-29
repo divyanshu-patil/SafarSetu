@@ -99,3 +99,21 @@ test("field interviews: consent required, anonymous, summary has n and dates", a
   assert.equal(s.quotes[0].code, "P-001");
   assert.equal(s.quotes[0].name, undefined);
 });
+
+test("malformed JSON is a 400, not a 500", async () => {
+  const r = await fetch(base + "/v1/plans", { method: "POST", headers: { "content-type": "application/json" }, body: "not json" });
+  assert.equal(r.status, 400);
+  assert.equal(((await r.json()) as any).error.code, "invalid_json");
+});
+
+test("authority CSV export is scoped, auth-protected and formula-safe", async () => {
+  assert.equal((await fetch(base + "/v1/authority/reports.csv")).status, 401);
+  const demo = (await j("/v1/auth/demo")).body.accounts as { email: string; password: string }[];
+  const tok = (await post("/v1/auth/login", { email: "mumbai.analyst@transport.demo", password: demo.find((d) => d.email === "mumbai.analyst@transport.demo")!.password })).body.token as string;
+  const r = await fetch(base + "/v1/authority/reports.csv", { headers: { authorization: `Bearer ${tok}` } });
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
+  const csv = await r.text();
+  assert.match(csv.split("\n")[0]!, /^ref,created,region/);
+  assert.ok(csv.split("\n").slice(1).every((l) => l.includes('"mumbai"')), "analyst only sees Mumbai rows");
+});

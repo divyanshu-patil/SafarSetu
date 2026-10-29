@@ -71,7 +71,7 @@ export default function AuthorityOverview() {
           </div>
 
           <div className="stage" style={{ gridTemplateColumns: "1fr 1fr" }}>
-            <div className="frame map" style={{ position: "relative", minHeight: 480 }}>
+            <div className="frame map" style={{ position: "relative", top: 0, minHeight: 480 }}>
               <MapView bbox={[72.6, 15.6, 80.9, 22.1]} pins={pins} lines={lines} onPin={() => router.push("/authority/reports")} />
               <div className="capsule"><Icon name="MapPin" size={16} /><div><b>{ov?.totals.reports ?? 0} reports on the map</b><span className="s">Dots = problem location · dashed line = the unconnected pair</span></div></div>
             </div>

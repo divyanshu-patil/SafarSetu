@@ -27,6 +27,7 @@ export interface Tpl {
   shifts: string;
   lostItem: (name: string, mins: number) => string;
   rain: { title: string; body: string };
+  late: (name: string, by: string, arrive: string, mins: number, next: string) => { title: string; body: string };
   darkWalk: (m: number, t: string) => string;
 }
 
@@ -53,6 +54,7 @@ const en: Tpl = {
   shifts: "Your plan simply shifts later.",
   lostItem: (n, m) => `${n} by ${m} min`,
   rain: { title: "Rain expected", body: "Rain is likely today. Carry an umbrella and allow extra time for walking." },
+  late: (n, by, a, m, next) => ({ title: `You'll be late for ${n}`, body: `With the delay you'd reach ${n} at ${a}, ${m} min after ${by}. ${next} Consider letting them know.`.replace("  ", " ") }),
   darkWalk: (m, t) => `Long walk after dark (${m} m around ${t}) — consider a cab or auto for the last stretch, or share your live trip with someone.`,
 };
 
@@ -79,6 +81,7 @@ const hi: Tpl = {
   shifts: "आपकी योजना बस थोड़ी देर से शुरू होगी।",
   lostItem: (n, m) => `${n} ${m} मिनट`,
   rain: { title: "बारिश की संभावना", body: "आज बारिश हो सकती है — छाता रखें और पैदल चलने के लिए अतिरिक्त समय रखें।" },
+  late: (n, by, a, m, next) => ({ title: `${n} के लिए देर होगी`, body: `देरी के कारण आप ${n} ${a} पर पहुँचेंगे, यानी ${by} के ${m} मिनट बाद। ${next} उन्हें सूचित कर दें।`.replace("  ", " ") }),
   darkWalk: (m, t) => `अंधेरे में लंबी पैदल दूरी (${m} मी, लगभग ${t}) — आख़िरी हिस्से के लिए कैब/ऑटो लें या अपनी लाइव यात्रा किसी के साथ साझा करें।`,
 };
 
@@ -105,6 +108,7 @@ const mr: Tpl = {
   shifts: "तुमची योजना थोडी उशिरा सुरू होईल.",
   lostItem: (n, m) => `${n} ${m} मिनिटे`,
   rain: { title: "पावसाची शक्यता", body: "आज पाऊस पडण्याची शक्यता आहे — छत्री ठेवा आणि चालण्यासाठी जास्त वेळ राखा." },
+  late: (n, by, a, m, next) => ({ title: `${n} साठी उशीर होईल`, body: `उशिरामुळे तुम्ही ${n} येथे ${a} वाजता पोहोचाल, म्हणजे ${by} नंतर ${m} मिनिटांनी. ${next} त्यांना कळवा.`.replace("  ", " ") }),
   darkWalk: (m, t) => `अंधारात लांब चालणे (${m} मी, सुमारे ${t}) — शेवटच्या टप्प्यासाठी कॅब/रिक्षा घ्या किंवा तुमचा लाइव्ह प्रवास कुणाशी तरी शेअर करा.`,
 };
 

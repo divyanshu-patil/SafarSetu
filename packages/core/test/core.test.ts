@@ -162,3 +162,31 @@ test("gentle pace walks less; impact estimate; dark-walk warning", () => {
   const night = planDay(puneNetwork, { ...req, startMin: 20 * 60 + 30, endMin: 23 * 60 + 30, places: [{ name: "Far walk", lat: 18.5075, lon: 73.805, minDwell: 30, maxDwell: 30 }] });
   assert.ok(Array.isArray(night.warnings));
 });
+
+test("late-for-appointment alert (en/hi/mr) and big disruption feeds stay fast", () => {
+  const s = { reason: "delay" as const, routeName: "PMPML 203", delayMin: 60, beforeLeave: true, nowMin: 600, oldLeaveMin: 608, newLeaveMin: 620, slackMin: 0, dwellLost: [], dropped: [], late: [{ name: "Hinjewadi client", byMin: 690, arriveMin: 708 }], nextBoard: { routeName: "PMPML 208", stopName: "Collector Kacheri", departMin: 629 } };
+  for (const lang of ["en", "hi", "mr"] as const) {
+    const a = composeAlert(s, undefined, "calm", lang);
+    assert.equal(a.kind, "late");
+    assert.match(a.body, /Hinjewadi client/);
+    assert.match(a.body, /11:30/);
+    assert.match(a.body, /11:48/);
+    assert.match(a.body, /18/);
+  }
+  // 2,000+ simultaneous delay events (a GTFS-RT-sized feed) must not make planning slow
+  const ds: Disruption[] = puneNetwork.routes.concat(puneNetwork.routes).map((r, i) => ({ id: "d" + i, type: "delay", routeId: r.id, delayMin: 20, fromMin: 0, untilMin: 2000, source: "gtfs-rt" }));
+  const t0 = Date.now();
+  planDay(puneNetwork, { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 540, endMin: 1200, keepOrder: true, places: [{ name: "Hinjewadi client", lat: 18.5912, lon: 73.7389, minDwell: 60, maxDwell: 60 }] }, buildLive(ds));
+  assert.ok(Date.now() - t0 < 4000, `planning with ${ds.length} disruptions took ${Date.now() - t0} ms`);
+});
+
+test("a delayed trip with a good alternative says to take the alternative", () => {
+  const p = planDay(puneNetwork, { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 540, endMin: 1200, keepOrder: true, places: [{ name: "Hinjewadi client", lat: 18.5912, lon: 73.7389, minDwell: 60, maxDwell: 60, arriveBy: 690, required: true }] });
+  const m = p.timeline[0]!;
+  const leg = m.kind === "move" ? m.itinerary.legs.find((l) => l.kind === "transit") : undefined;
+  if (!leg || leg.kind !== "transit") return assert.fail("expected a transit leg");
+  const a = assessPlan(puneNetwork, p, buildLive([{ id: "d", type: "delay", routeId: leg.routeId, tripDeparture: leg.tripDeparture, delayMin: 45, fromMin: 0, untilMin: 2000, source: "simulator" }]), 8 * 60 + 30);
+  assert.notEqual(a.state, "on_track");
+  assert.ok(a.alert && a.alert.kind !== "relax", `got ${a.alert?.kind}: ${a.alert?.body}`);
+  if (a.summary?.switched) assert.match(a.alert!.body, /Take /);
+});

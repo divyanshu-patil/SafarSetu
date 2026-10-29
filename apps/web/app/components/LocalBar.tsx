@@ -6,7 +6,7 @@ export function LocalBar({ title, crumb, children }: { title: string; crumb?: st
   return (
     <div className="local">
       <div className="local-in">
-        <h1>{title}</h1>
+        <p className="title">{title}</p>
         {crumb && <span className="crumb">{crumb}</span>}
         <span className="spacer" />
         {children}

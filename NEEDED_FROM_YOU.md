@@ -1,6 +1,19 @@
 # Needed from you
 
-**The demo needs no API keys.** Everything below is either a decision, an account, or an optional upgrade. Items are ordered by urgency.
+## 🔴 TODAY — Maharashtra Zone application closes 30 Oct 2026
+The Maharashtra Zone portal is **<https://sevainnovationchallenge.in>** (not `sevafirst.mic.gov.in`, which is the South Zone). Last date to apply: **30 October 2026** (no time shown). You need: Aadhaar verification, an ID upload (PDF/JPG/PNG ≤ 5 MB), the 6-slide deck (`submission/SafarSetu-Seva-First-Pitch.pdf`), sector **Urban development**. Helpline +91 91377 78135 · support@sevainnovationchallenge.in. The registration page displayed a "Prototype mode" notice — ask them to confirm real submissions are accepted.
+
+## Before you submit (deck is otherwise ready)
+See `submission/TODO-before-submit.md`: team names/roles/qualifications (slide 6), mentor, contact line, and a real source or survey line on slide 2.
+
+## To raise the score (biggest first)
+| # | Item | Why |
+|---|---|---|
+| 1 | **10+ commuter interviews** with `/field` (script in docs/15), 3 field photos | The guide's #1 judging item is evidence from real people |
+| 2 | Native Marathi + Hindi review | Strings were written for the prototype |
+| 3 | Hosting accounts (Vercel + an API host) | A public demo link beats screenshots |
+| 4 | 30-minute call/visit with PMPML or a ward office | Turns "to approach" into a pilot lead |
+| 5 | Meta WhatsApp rate card, a Marathi translation quote | Firms up the cost table |
 
 ## Blocking / time-critical
 

@@ -120,7 +120,7 @@ export default function ReportPage() {
 
             <div className="grid2">
               <div className="field"><span>How serious?</span>
-                <div className="seg" role="group" aria-label="Severity">{SEV.map((s) => <button key={s.v} aria-pressed={sev === s.v} onClick={() => setSev(s.v)} style={sev === s.v ? { color: s.color } : undefined}>{s.label}</button>)}</div>
+                <div className="seg" role="group" aria-label="Severity">{SEV.map((s) => <button key={s.v} aria-pressed={sev === s.v} onClick={() => setSev(s.v)}>{s.label}</button>)}</div>
               </div>
               <label className="field"><span>Usual time (optional)</span><input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
             </div>

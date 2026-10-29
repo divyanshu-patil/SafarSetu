@@ -64,7 +64,7 @@ export default function Inbox() {
 
           <div className="inbox">
             <div className="stack" style={{ gap: 8 }}>
-              <p className="label">{data?.total ?? 0} report{data?.total === 1 ? "" : "s"}</p>
+              <div className="row between"><p className="label">{data?.total ?? 0} report{data?.total === 1 ? "" : "s"}</p><button className="pill-outline" onClick={async () => { const a = (await import("../../lib/auth")).getAuth(); const r = await fetch(`${(await import("../../lib/api")).api.baseUrl}/v1/authority/reports.csv`, { headers: { authorization: `Bearer ${a?.token}` } }); const b = await r.blob(); const u = URL.createObjectURL(b); const l = document.createElement("a"); l.href = u; l.download = "safarsetu-reports.csv"; l.click(); URL.revokeObjectURL(u); }}>Export CSV</button></div>
               {data?.items.slice(0, 60).map((r) => (
                 <button key={r.id} className="rcard" aria-current={sel?.id === r.id} onClick={() => setSel(r)}>
                   <Chip name={CATEGORIES[r.category].icon} color={CATEGORIES[r.category].color} />

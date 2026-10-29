@@ -33,6 +33,8 @@ export function buildReminders(plan: Plan, pace: Pace = "normal", lang: Lang = "
 
 export function pickKind(s: ChangeSummary): AlertKind {
   if (s.reason === "weather") return "heads_up";
+  if (s.late?.length) return "late";
+  if (s.switched && (s.delayMin ?? 0) >= 5) return "replan";
   if (s.reason === "cancellation" || s.reason === "closure" || s.dropped.length) return "replan";
   if (s.beforeLeave && s.newLeaveMin !== undefined && s.newLeaveMin - s.nowMin <= 10) return "urgent";
   const lost = s.dwellLost.reduce((a, d) => a + d.mins, 0);
@@ -64,6 +66,11 @@ export function composeAlert(s: ChangeSummary, traveller?: { name?: string }, st
       return { kind, ...T.urgent(s.nextBoard?.routeName, s.nextBoard?.stopName, s.nextBoard ? fmtTime(s.nextBoard.departMin) : undefined) };
     case "replan":
       return s.reason === "closure" ? { kind, ...T.closure(s.stopName ?? "—", next, keep) } : s.reason === "cancellation" ? { kind, ...T.cancelled(route, old, next, keep) } : { kind, ...T.updated(route, s.delayMin, next, keep) };
+    case "late": {
+      const l = s.late![0]!;
+      const hint = s.nextBoard || alt ? next : "";
+      return { kind, ...T.late(l.name, fmtTime(l.byMin), fmtTime(l.arriveMin), Math.round(l.arriveMin - l.byMin), hint) };
+    }
     case "heads_up":
       return { kind, ...T.rain };
   }

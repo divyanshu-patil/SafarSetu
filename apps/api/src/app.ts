@@ -171,7 +171,9 @@ export function createApp(engine: Engine): Express {
 
   app.use((_req, _res, next) => next(new HttpError(404, "not_found", "No such route")));
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    const e = err instanceof HttpError ? err : new HttpError(500, "internal", "Something went wrong");
+    // body-parser errors (malformed JSON, payload too large) are the client's fault: 4xx, not 500
+    const bp = err as { status?: number; type?: string };
+    const e = err instanceof HttpError ? err : bp?.status && bp.status >= 400 && bp.status < 500 ? new HttpError(bp.status, bp.type === "entity.parse.failed" ? "invalid_json" : "bad_request", bp.type === "entity.parse.failed" ? "Request body is not valid JSON" : "Bad request") : new HttpError(500, "internal", "Something went wrong");
     if (e.status === 500) console.error(err);
     res.status(e.status).json({ error: { code: e.code, message: e.message } });
   });

@@ -22,7 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Nav />
           {children}
         <footer className="footer">
-          <div className="wrap"><b>SafarSetu</b> · Demo uses synthetic city transport data modelled on real networks, plus real railway timetables where marked — not for real travel decisions. Map © OpenStreetMap contributors. See DATA_SOURCES.md. · <a href="/impact" style={{ color: "inherit", textDecoration: "underline" }}>How we estimate impact</a> · <a href="/field" style={{ color: "inherit", textDecoration: "underline" }}>Field research kit</a></div>
+          <div className="wrap"><b>SafarSetu</b> · Demo uses synthetic city transport data modelled on real networks, plus real railway timetables where marked — not for real travel decisions. Map © OpenStreetMap contributors. See DATA_SOURCES.md. · <a href="/impact" style={{ color: "inherit", textDecoration: "underline" }}>How we estimate impact</a> · <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy</a> · <a href="/field" style={{ color: "inherit", textDecoration: "underline" }}>Field research kit</a></div>
         </footer>
         </LangProvider>
       </body>
