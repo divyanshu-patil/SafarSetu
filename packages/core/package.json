@@ -3,10 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
+    "scrape:mh": "node scripts/scrape/rail.mjs && node scripts/scrape/osm.mjs && node scripts/scrape/build.mjs",
     "test": "tsx --test test/*.test.ts",
     "check-types": "tsc --noEmit",
     "lint": "tsc --noEmit"

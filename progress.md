@@ -36,3 +36,5 @@ Legend: ✅ done · 🔄 in progress · ⬜ todo
 - 2026-10-30 — API, web, mobile proof built; fixed replan attribution + 'wait at previous place' behaviour found in e2e run.
 - Next ideas: visual QA in browser, import real GTFS (PMPML/BEST), Web Push (VAPID), learned delay profiles, Marathi/Hindi alert copy, run SupabaseStore against local Supabase.
 - 2026-10-30 — browser QA found+fixed: CARTO tiles need API key (→ OSM, greyscaled), marker class clash `.pin.visit`, zero-length first move, vague 'open the app' alert (now suggests cab/walk), walking thresholds by pace.
+- 2026-10-30 — Citizen gap reports, authority portal (roles), Wise design on web + mobile, Google-Maps-style stop planner for work/errands (ordered stops, be-there-by, required, conflicts).
+- 2026-10-30 — Maharashtra network added (real Datameet rail timetable: 549 stations/959 trains; 71 OSM places; no metro/buses yet). CSMT↔Pune Deccan Express plan verified end to end. DATA_SOURCES.md written.

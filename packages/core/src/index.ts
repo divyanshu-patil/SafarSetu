@@ -2,7 +2,7 @@ export * from "./types";
 export * from "./time";
 export { buildRoutes, mergeNetworks, indexNetwork, fare } from "./network";
 export { PUNE_JN } from "./data/pune";
-export { networks, getNetwork, puneNetwork, mumbaiNetwork } from "./data";
+export { networks, getNetwork, puneNetwork, mumbaiNetwork, maharashtraNetwork } from "./data";
 export { buildLive, noLive } from "./live";
 export { search, bestItinerary, latestDeparture, defaultOpts } from "./router";
 export { confidence } from "./confidence";

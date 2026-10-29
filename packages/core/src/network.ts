@@ -48,7 +48,7 @@ export function buildRoutes(specs: RouteSpec[]): RouteDef[] {
   return out;
 }
 
-/** Union of networks: first occurrence of an id wins; stops within 400 m auto-link at index time. */
+/** Union of networks: first occurrence of an id wins (extra.places take precedence over part places); stops within 400 m auto-link at index time. */
 export function mergeNetworks(
   id: string,
   city: string,
@@ -72,7 +72,7 @@ export function mergeNetworks(
     bbox,
     stops,
     routes,
-    places: dedupe([...parts.flatMap((p) => p.places), ...(extra.places ?? [])]),
+    places: dedupe([...(extra.places ?? []), ...parts.flatMap((p) => p.places)]),
     meta: { dataQuality: synthetic ? "synthetic" : "scheduled", note: extra.note },
   };
 }

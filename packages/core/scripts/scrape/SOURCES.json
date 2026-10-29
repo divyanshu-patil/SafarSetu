@@ -1,0 +1,71 @@
+[
+  {
+    "name": "datameet/railways (stations, trains, schedules)",
+    "url": "https://raw.githubusercontent.com/datameet/railways/master/",
+    "license": "ODbL-1.0 / data from Indian Railways via Datameet (see repo)",
+    "recordsUsed": {
+      "stationsWithCoordsInMH": 718,
+      "stationsUsed": 549,
+      "trainRoutes": 959
+    },
+    "notes": "Scheduled timetable snapshot (undated). No run-days: every train assumed daily. Only stations with coordinates kept that are state=Maharashtra or (state missing, ~half of stations, and inside a coarse hand-made Maharashtra outline polygon); stations lacking coordinates are skipped (their times are kept inside offsets). arrival==departure is treated as pass-through, so only stops with dwell>0 are halts (some real 1-min halts are lost). Foreign/other-state stations break segments; each contiguous MH segment is one route.",
+    "retrievedAt": "2026-10-29T21:02:17.109Z"
+  },
+  {
+    "name": "OpenStreetMap via Overpass API (POIs + metro/light_rail relations)",
+    "url": "https://overpass-api.de/api/interpreter (mirrors tried: kumi.systems, maps.mail.ru)",
+    "license": "ODbL-1.0 (c) OpenStreetMap contributors",
+    "recordsUsed": {
+      "placesPerCity": {
+        "Ajanta & Ellora": 12,
+        "Alibag": 5,
+        "Amravati": 2,
+        "Chhatrapati Sambhajinagar": 9,
+        "Kolhapur": 4,
+        "Lonavala": 1,
+        "Mahabaleshwar": 1,
+        "Nagpur": 12,
+        "Nashik": 9,
+        "Navi Mumbai": 6,
+        "Shirdi": 1,
+        "Solapur": 1,
+        "Thane": 8
+      },
+      "metroLines": [],
+      "queryStatus": {
+        "Ajanta & Ellora": "39 raw elements",
+        "Alibag": "5 raw elements",
+        "Amravati": "28 raw elements",
+        "Chhatrapati Sambhajinagar": "14 raw elements",
+        "Kolhapur": "12 raw elements",
+        "Lonavala": "4 raw elements",
+        "Mahabaleshwar": "10 raw elements",
+        "Nagpur": "20 raw elements",
+        "Nashik": "10 raw elements",
+        "Navi Mumbai": "16 raw elements",
+        "Shirdi": "2 raw elements",
+        "Solapur": "2 raw elements",
+        "Thane": "11 raw elements",
+        "metro": "Overpass returned 4 Mumbai-area relations (Lines 2B, 9 etc.); skipped: Mumbai metro already synthetic, Nagpur/Pune metro relations not obtained before time-box"
+      }
+    },
+    "notes": "Places: named tourism/historic/worship objects ranked by tag richness (wikidata/wikipedia/heritage/website), capped at 12 per city; opening hours only when trivially parseable, otherwise category defaults; dwell times assumed. Metro: stop order from OSM relations; 3 min/stop and 06:00-22:00 every 10 min are ASSUMED (derived from OSM geometry; timings assumed). Cities with 0 places returned nothing/failed (see queryStatus).",
+    "retrievedAt": "2026-10-29T21:02:17.200Z"
+  },
+  {
+    "name": "Overpass mirrors availability",
+    "url": "overpass-api.de, overpass.kumi.systems, maps.mail.ru",
+    "license": "n/a",
+    "retrievedAt": "2026-10-29T21:03:00.572Z",
+    "recordsUsed": {},
+    "notes": "overpass-api.de frequently 502; kumi.systems timeouts/fetch failed; mail.ru not reached. POST+UA worked intermittently. Nagpur/Pune/Navi Mumbai metro route geometry was NOT imported (only Mumbai-area relations 2B/9 were listed; fetch time-boxed). Metro lines: 0 imported."
+  },
+  {
+    "name": "GTFS buses (croyla/pmpml-gtfs, BEST)",
+    "url": "https://github.com/croyla/pmpml-gtfs",
+    "license": "unknown",
+    "retrievedAt": "2026-10-29T21:03:00.572Z",
+    "recordsUsed": {},
+    "notes": "NOT attempted: skipped to land data quickly (optional item). No bus data imported."
+  }
+]

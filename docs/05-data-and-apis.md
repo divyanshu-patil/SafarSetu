@@ -35,6 +35,8 @@ Modelled on the real network so the demo looks right, **not** claimed accurate:
 | Places | ~16 attractions with opening hours and dwell ranges (Shaniwar Wada, Dagdusheth Ganpati, Kelkar Museum, Aga Khan Palace, Parvati, Osho Garden, University, …) | Public knowledge |
 | Delay profiles | per-mode distributions | Assumed; to be learned |
 
+**Maharashtra pack (real data):** `packages/core/src/data/maharashtra.ts` merges Mumbai + Pune with a scraped railway network (549 stations, 959 trains from Datameet) and 71 OSM places across 13 areas; scripts in `packages/core/scripts/scrape/`, sources in [`DATA_SOURCES.md`](../DATA_SOURCES.md). Real trains connect to the synthetic city networks by the 400 m footpath rule.
+
 **Mumbai pack:** Western (Churchgate–Borivali, fast) and Central (CSMT–Thane) locals, Metro Line 1 (Versova–Ghatkopar) and Line 3 (Cuffe Parade–Aarey) with the Marol Naka interchange, 7 BEST feeder routes, 13 places (Gateway of India, CSMT, Marine Drive, museum, Haji Ali, Siddhivinayak, Juhu, SGNP …). Each city also ships 2 one-click *presets* for the demo.
 
 Accuracy caveat is printed in the dashboard footer and in every API response `meta`.
