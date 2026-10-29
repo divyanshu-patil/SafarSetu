@@ -15,6 +15,9 @@ Design system: [DESIGN.md](DESIGN.md) — currently the **Wise-style** spec: For
 ### Colour and icons
 Neutral Apple surfaces stay; **semantic colour carries meaning only through icons and text**: tinted icon chips (accent at 12 % alpha) for modes (metro cyan, train crimson, bus orange, walk slate, cab amber), report categories and case statuses (`CATEGORIES`/`STATUSES` in `@repo/core`, icons from lucide). Status is shown as icon + coloured bare text (no coloured pills). Confidence uses ShieldCheck (green ≥ 90 %), amber, and AlertTriangle (orange) below 80 %.
 
+### Route editor
+Starts **empty** (examples are optional shortcuts; *Clear all* resets). Start by search, *use my location* or map pin; stops by search or map click; per stop task / time needed / be-there-by / must-happen; *My order* vs *Best order*; **transport filter** (Local train, Express train, Metro, Bus, Cab if needed) → `prefs.avoid`. Trains are split into *local* (suburban/passenger/MEMU/EMU/DMU) and *express* by `routeService()` in core. If the allowed modes cannot reach a stop, the plan reports a conflict instead of a very long walk.
+
 ### UX rules
 1. The first thing on a plan is **the next action and its time** ("Leave 09:04 → Aqua line 09:10").
 2. Every time shown is exact (HH:MM, 24 h option). Durations as "1 h 05 min".

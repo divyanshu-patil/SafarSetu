@@ -244,6 +244,8 @@ export function finalize(c: Ctx, req: PlanRequest, built: Built, revision: numbe
   let riskiest: string | undefined;
   for (const e of entries) {
     if (e.kind !== "move") continue;
+    // a walk this long means nothing allowed by the rider's transport choices reaches there
+    if (e.itinerary.legs.some((l) => l.kind === "walk" && l.distM > 6000)) (built.conflicts ??= []).push({ name: (e.to as { name?: string }).name ?? "A stop", reason: "no route with the transport you allowed — switch on another mode or allow a cab" });
     e.confidence = confidence(c.ix, e.itinerary, { boardBuffer: c.o.boardBuffer });
     walkM += e.itinerary.walkM;
     fareSum += e.itinerary.fare;
@@ -287,7 +289,7 @@ export function planRoute(net: Network, a: Pt, b: Pt, opts: { departMin?: number
   }
   const all = search(c.ix, c.live, a, b, departMin, c.o);
   if (haversine(a, b) <= 1500) all.push(walkItinerary(a, b, departMin, c.o));
-  all.push(cabItinerary(a, b, departMin));
+  if (!c.o.avoid.includes("cab")) all.push(cabItinerary(a, b, departMin));
   const sorted = all.sort((x, y) => x.arriveMin - y.arriveMin);
   return { leaveByMin, itineraries: sorted.map((it) => ({ ...it, confidence: it.legs.some((l) => l.kind === "transit") ? confidence(c.ix, it, { boardBuffer: c.o.boardBuffer }) : undefined })) };
 }

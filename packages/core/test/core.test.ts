@@ -116,3 +116,23 @@ test("work stops: keepOrder, arriveBy leaves later, required conflicts are repor
   assert.equal(bad.dropped.length, 0);
   assert.match(bad.conflicts![0]!.reason, /can't arrive by 08:05/);
 });
+
+import { routeService } from "../src/index";
+test("mode filter: local/express split, avoid local, avoid cab", () => {
+  assert.equal(routeService({ id: "western", mode: "train", name: "Western Line (fast)" }), "local");
+  assert.equal(routeService({ id: "mh_t_11007", mode: "train", name: "11007 Deccan Express" }), "express");
+  assert.equal(routeService({ id: "mh_t_51410", mode: "train", name: "51410 Kolhapur Pune Passenger" }), "local");
+  assert.equal(routeService({ id: "purple", mode: "metro", name: "Purple Line" }), undefined);
+  const a = { lat: 18.9322, lon: 72.8264 }; // Churchgate
+  const b = { lat: 19.0544, lon: 72.8402 }; // Bandra
+  const modes = (avoid: any[]) => planRoute(mumbaiNetwork, a, b, { departMin: 600, prefs: { avoid } }).itineraries.flatMap((i) => i.legs.map((l) => (l.kind === "transit" ? l.routeId : l.kind)));
+  assert.ok(modes([]).some((m) => m === "western"), "locals are used by default");
+  assert.ok(!modes(["local"]).includes("western"), "avoid local removes the Western line");
+  assert.ok(!modes(["cab"]).includes("cab"), "avoid cab removes cab itineraries");
+  assert.ok(modes(["local", "metro", "bus", "express", "cab"]).every((m) => m === "walk"), "everything off → walking only");
+});
+
+test("no allowed transport for a long hop -> conflict, not a 100 km walk plan", () => {
+  const p = planDay(puneNetwork, { date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 540, endMin: 1200, keepOrder: true, prefs: { avoid: ["metro", "bus", "train", "local", "express", "cab"] }, places: [{ name: "Far client", lat: 18.7509, lon: 73.4066, minDwell: 30, maxDwell: 30, required: true }] });
+  assert.ok(p.conflicts!.some((c) => /transport you allowed/.test(c.reason)));
+});

@@ -1,6 +1,8 @@
 // All times are minutes since midnight (service day) unless named otherwise.
 
 export type Mode = "metro" | "train" | "bus";
+/** things a rider can switch off: a mode, a kind of train, or the cab fallback */
+export type Avoid = Mode | "local" | "express" | "cab";
 export type Pace = "relaxed" | "normal" | "fast";
 
 export interface LatLon {
@@ -149,7 +151,7 @@ export interface PlaceInput {
 export interface Prefs {
   pace?: Pace;
   maxWalkM?: number;
-  avoid?: Mode[];
+  avoid?: Avoid[];
   style?: "calm" | "brief";
 }
 

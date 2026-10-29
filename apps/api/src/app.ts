@@ -24,7 +24,7 @@ const placeInput = z.object({
   task: z.string().max(120).optional(),
   required: z.boolean().optional(),
 });
-const prefs = z.object({ pace: z.enum(["relaxed", "normal", "fast"]).optional(), maxWalkM: z.number().min(200).max(3000).optional(), avoid: z.array(z.enum(["metro", "train", "bus"])).optional(), style: z.enum(["calm", "brief"]).optional() });
+const prefs = z.object({ pace: z.enum(["relaxed", "normal", "fast"]).optional(), maxWalkM: z.number().min(200).max(3000).optional(), avoid: z.array(z.enum(["metro", "train", "bus", "local", "express", "cab"])).optional(), style: z.enum(["calm", "brief"]).optional() });
 const planReq = z.object({
   city: z.string().max(20).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

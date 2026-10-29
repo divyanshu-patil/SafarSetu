@@ -22,7 +22,7 @@ Envelope: success → payload; error → `{ error: { code, message } }` with 4xx
 | POST | `/v1/plans/:id/replan` | `{ reason? }` | new revision |
 | GET | `/v1/plans/:id/status` | | `{ state, nowMin, current, next, slackMin, updates[] }` |
 
-`PlanRequest`: `{ city?:'maharashtra'\|'pune'\|'mumbai', date:'YYYY-MM-DD', origin:{name,lat,lon}, startMin, endMin, returnToOrigin?, keepOrder?, places:[{placeId?|name,lat,lon, task?, required?, arriveBy?, priority:1|2|3, minDwell?, maxDwell?, opens?, closes?}], prefs?:{pace, maxWalkM, avoid:[mode], style:'calm'|'brief'}, traveller?:{name} }`
+`PlanRequest`: `{ city?:'maharashtra'\|'pune'\|'mumbai', date:'YYYY-MM-DD', origin:{name,lat,lon}, startMin, endMin, returnToOrigin?, keepOrder?, places:[{placeId?|name,lat,lon, task?, required?, arriveBy?, priority:1|2|3, minDwell?, maxDwell?, opens?, closes?}], prefs?:{pace, maxWalkM, avoid:['local'|'express'|'metro'|'bus'|'train'|'cab'], style:'calm'|'brief'}, traveller?:{name} }`
 
 `Plan`: `{ id, revision, request, timeline:[Leg|Visit], visits[], dropped[{place,reason}], reminders[], totals:{walkM,fare,transfers,confidencePct}, changes[], meta }`
 

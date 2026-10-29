@@ -1,13 +1,13 @@
 import { WALK_DETOUR, fare, type Indexed } from "./network";
 import { haversine } from "./time";
-import type { CabLeg, Itinerary, LatLon, Leg, LiveState, Mode, Pt, StopTime, TransitLeg, WalkLeg } from "./types";
+import type { Avoid, CabLeg, Itinerary, LatLon, Leg, LiveState, Pt, StopTime, TransitLeg, WalkLeg } from "./types";
 
 export interface RouteOpts {
   walkSpeed: number; // m/min
   maxWalkM: number;
   boardBuffer: number; // min to be at the stop before departure
   maxRounds: number;
-  avoid: Mode[];
+  avoid: Avoid[];
 }
 export const PACE_OPTS = {
   relaxed: { walkSpeed: 60, boardBuffer: 5 },
@@ -88,7 +88,7 @@ export function search(ix: Indexed, live: LiveState, from: Pt, to: Pt, departMin
       }
     for (const [ri, startPos] of routeStart) {
       const r = ix.routes[ri]!;
-      if (o.avoid.includes(r.mode)) continue;
+      if (o.avoid.includes(r.mode) || (ix.service[ri] !== undefined && o.avoid.includes(ix.service[ri]!))) continue;
       let trip = -1;
       let boardPos = -1;
       for (let pos = startPos; pos < r.stopIds.length; pos++) {
@@ -281,6 +281,7 @@ export function bestItinerary(ix: Indexed, live: LiveState, from: LatLon & { nam
   if (direct <= o.maxWalkM * 0.9) cands.push(walkItinerary(from, to, departMin, o));
   cands.sort((a, b) => score(a) - score(b));
   const top = cands[0];
+  if (o.avoid.includes("cab")) return top ?? walkItinerary(from, to, departMin, o); // cab switched off: transit, else a (long) walk
   const cab = cabItinerary(from, to, departMin);
   if (!top) return cab;
   // cab is a last resort: only when transit is far worse (e.g. after cancellations)

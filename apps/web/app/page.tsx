@@ -21,9 +21,11 @@ const newStop = (p: Partial<Stop> & { name: string; lat: number; lon: number }):
 
 export default function Planner() {
   const [cities, setCities] = useState<CityInfo[]>([]);
-  const [cityId, setCityId] = useState("pune");
+  const [cityId, setCityId] = useState("maharashtra");
   const [net, setNet] = useState<Network | null>(null);
-  const [origin, setOrigin] = useState<{ name: string; lat: number; lon: number } | null>({ name: "Pune Junction", lat: 18.5285, lon: 73.8742 });
+  const [origin, setOrigin] = useState<{ name: string; lat: number; lon: number } | null>(null);
+  const [editStart, setEditStart] = useState(false);
+  const [modes, setModes] = useState<Record<string, boolean>>({ local: true, express: true, metro: true, bus: true, cab: true });
   const [stops, setStops] = useState<Stop[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [date, setDate] = useState(todayISO());
@@ -57,7 +59,16 @@ export default function Planner() {
     setResult(null);
     setErr(null);
   };
-  useEffect(() => { if (!stops.length) loadExample(EXAMPLES[0]!); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // start empty: leave time defaults to the next quarter hour
+  useEffect(() => { const d = new Date(); const m = Math.ceil((d.getHours() * 60 + d.getMinutes() + 1) / 15) * 15; setLeave(toHHMM(m >= 22 * 60 ? 9 * 60 : m)); }, []);
+  const clearAll = () => { setOrigin(null); setStops([]); setResult(null); setErr(null); setOpen(null); setPick(null); setFinish(""); setReturnHome(false); setEditStart(false); };
+  const locate = () => {
+    if (!navigator.geolocation) return setErr("Your browser can't share a location — search for a place instead.");
+    navigator.geolocation.getCurrentPosition(
+      (p) => { const o = { name: "My location", lat: p.coords.latitude, lon: p.coords.longitude }; setOrigin(o); setErr(null); api.reverse(o.lat, o.lon).then((r) => setOrigin({ ...o, name: r.name })).catch(() => {}); },
+      () => setErr("Location permission was not given — search for a place instead."),
+    );
+  };
 
   const patch = (id: string, p: Partial<Stop>) => setStops((s) => s.map((x) => (x.id === id ? { ...x, ...p } : x)));
   const move = (i: number, d: -1 | 1) => setStops((s) => { const n = [...s]; const j = i + d; if (j < 0 || j >= n.length) return s; [n[i], n[j]] = [n[j]!, n[i]!]; return n; });
@@ -73,7 +84,7 @@ export default function Planner() {
     const startMin = fromHHMM(leave);
     return {
       city: cityId, date, origin, startMin, endMin: finish ? fromHHMM(finish) : Math.min(1439, startMin + 14 * 60),
-      returnToOrigin: returnHome, keepOrder: order === "mine", prefs: { pace, style }, traveller: name ? { name } : undefined,
+      returnToOrigin: returnHome, keepOrder: order === "mine", prefs: { pace, style, avoid: Object.entries(modes).filter(([, on]) => !on).map(([k]) => k) as never[] }, traveller: name ? { name } : undefined,
       places: stops.map((s) => ({ name: s.name, lat: s.lat, lon: s.lon, task: s.task || undefined, minDwell: s.dwell, maxDwell: s.dwell, arriveBy: s.arriveBy ? fromHHMM(s.arriveBy) : undefined, required: s.required, priority: s.required ? 3 : 2, opens: s.opens, closes: s.closes })),
     };
   };
@@ -155,6 +166,7 @@ export default function Planner() {
           <div className="card stack" aria-label="Your route">
             <div className="row between">
               <h2 className="h3">Your route</h2>
+              <button className="pill-outline" onClick={clearAll} disabled={!origin && !stops.length}><Icon name="X" size={14} />Clear all</button>
               <div className="seg" role="group" aria-label="Region">
                 {cityList.map((c) => <button key={c.id} aria-pressed={cityId === c.id} onClick={() => setCityId(c.id)}>{c.city}</button>)}
               </div>
@@ -169,8 +181,17 @@ export default function Planner() {
               <div className="stoprow">
                 <span className="badge a">A</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="stopname">{origin?.name ?? "Set a starting point"}</div>
-                  <div className="sub">Start · leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /></div>
+                  {origin && !editStart ? (
+                    <>
+                      <div className="stopname">{origin.name}</div>
+                      <div className="sub">Start · leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /> · <button className="tlink" style={{ fontSize: 14 }} onClick={() => setEditStart(true)}>change</button></div>
+                    </>
+                  ) : (
+                    <>
+                      <PlaceSearch city={cityId} label="" placeholder="Where are you starting from?" onPick={(h) => { setOrigin(h); setEditStart(false); }} />
+                      <div className="sub" style={{ marginTop: 4 }}>Leave at <input className="mini" type="time" value={leave} onChange={(e) => setLeave(e.target.value)} aria-label="Leave at" /> · <button className="tlink" style={{ fontSize: 14 }} onClick={locate}>use my location</button>{origin && <> · <button className="tlink" style={{ fontSize: 14 }} onClick={() => setEditStart(false)}>cancel</button></>}</div>
+                    </>
+                  )}
                 </div>
                 <button className="icobtn" aria-pressed={pick === "start"} title="Pick start on map" onClick={() => setPick(pick === "start" ? null : "start")}><Icon name="MapPin" size={16} /></button>
               </div>
@@ -207,7 +228,7 @@ export default function Planner() {
                 <button className="icobtn" aria-pressed={pick === "stop"} title="Add stops by clicking the map" onClick={() => setPick(pick === "stop" ? null : "stop")}><Icon name="MapPin" size={16} /></button>
               </div>
               {pick && <p className="sub" role="status" style={{ marginLeft: 44 }}>{pick === "stop" ? "Click the map to add stops. Click the pin again to stop." : "Click the map to set your start."}</p>}
-              {origin && <PlaceSearch city={cityId} label="" placeholder="Change starting point…" onPick={(h) => setOrigin(h)} />}
+              {!stops.length && <p className="sub" style={{ marginLeft: 44 }}>Add your first stop — search a place, or use the pin and click the map. Add as many as you need.</p>}
             </div>
 
             <div className="grid2">
@@ -221,6 +242,14 @@ export default function Planner() {
             <div className="row between">
               <div className="field"><span>Pace</span><div className="seg" role="group" aria-label="Pace">{(["relaxed", "normal", "fast"] as Pace[]).map((p) => <button key={p} aria-pressed={pace === p} onClick={() => setPace(p)}>{p[0]!.toUpperCase() + p.slice(1)}</button>)}</div></div>
               <div className="field"><span>Alerts</span><div className="seg" role="group" aria-label="Alert style">{(["calm", "brief"] as const).map((s) => <button key={s} aria-pressed={style === s} onClick={() => setStyle(s)}>{s === "calm" ? "Calm" : "Brief"}</button>)}</div></div>
+            </div>
+            <div className="field"><span>Transport I’m happy to use</span>
+              <div className="chips">
+                {([["local", "Local train", "TrainFront"], ["express", "Express train", "TrainFront"], ["metro", "Metro", "TramFront"], ["bus", "Bus", "BusFront"], ["cab", "Cab if needed", "CarTaxiFront"]] as const).map(([k, label, icon]) => (
+                  <button key={k} className="chip" aria-pressed={modes[k]} style={{ display: "inline-flex", gap: 6, alignItems: "center" }} onClick={() => setModes((m) => ({ ...m, [k]: !m[k] }))}><Icon name={icon} size={14} />{label}</button>
+                ))}
+              </div>
+              {modes.local && <span className="sub" style={{ fontWeight: 400 }}>Mumbai suburban and Pune–Lonavala local-train times are demo data (synthetic) until real timetables are added.</span>}
             </div>
             <label className="field"><span>Your name (optional, for friendlier alerts)</span><input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} /></label>
 

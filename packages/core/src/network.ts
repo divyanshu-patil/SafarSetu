@@ -86,6 +86,8 @@ export interface Footpath {
 }
 export interface Indexed {
   net: Network;
+  /** local (suburban/passenger/MEMU) vs express for trains; undefined for other modes */
+  service: ("local" | "express" | undefined)[];
   stops: Stop[];
   stopIdx: Map<string, number>;
   routes: RouteDef[];
@@ -129,7 +131,7 @@ export function indexNetwork(net: Network): Indexed {
           }
         }
   });
-  return { net, stops: net.stops, stopIdx, routes: net.routes, serving, foot };
+  return { net, service: net.routes.map(routeService), stops: net.stops, stopIdx, routes: net.routes, serving, foot };
 }
 
 /** fare in INR for riding `hops` stops (synthetic slabs modelled on public fare tables) */
@@ -137,4 +139,13 @@ export function fare(mode: Mode, hops: number): number {
   if (mode === "metro") return Math.min(10 + 3 * hops, 35);
   if (mode === "bus") return Math.min(5 + 2 * hops, 25);
   return Math.min(10 + 2 * hops, 35);
+}
+
+const LOCAL_NAME = /local|passenger|memu|emu|dmu|suburban|shuttle/i;
+const LOCAL_IDS = /^(western|central|local|harbour)(_r)?$/;
+
+/** Trains split into slow stopping services ("local") and the rest ("express"). */
+export function routeService(r: { id: string; mode: string; name: string }): "local" | "express" | undefined {
+  if (r.mode !== "train") return undefined;
+  return LOCAL_IDS.test(r.id) || LOCAL_NAME.test(r.name) ? "local" : "express";
 }

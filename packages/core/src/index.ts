@@ -1,6 +1,6 @@
 export * from "./types";
 export * from "./time";
-export { buildRoutes, mergeNetworks, indexNetwork, fare } from "./network";
+export { buildRoutes, mergeNetworks, indexNetwork, fare, routeService } from "./network";
 export { PUNE_JN } from "./data/pune";
 export { networks, getNetwork, puneNetwork, mumbaiNetwork, maharashtraNetwork } from "./data";
 export { buildLive, noLive } from "./live";
