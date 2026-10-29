@@ -33,6 +33,8 @@ Neutral Apple surfaces stay; **semantic colour carries meaning only through icon
 
 Shared today: `@repo/core` (types, planner, composer, formatters, API client, synthetic data for offline demo). Mobile adds: native map (`react-native-maps`/MapLibre), Expo push token registration → `POST /v1/devices`, background location (optional) for client-reported position, native sheet UI.
 
-Planned mobile screens mirror web: Plan → Timeline → Live trip (with the same alert feed). View-models (`planToMapLayers`, `nextAction`, `timelineRows`) are in core so both UIs render identically.
+Built so far (same Wise-style tokens as web — `apps/app/src/constants/theme.ts`, Inter via `@expo-google-fonts/inter`): **Plan** (city + preset, Next-up dark card, stats, timeline with mode icons, planning runs on-device) and **Report a gap** (category cards, from/to areas geocoded through the API, receipt with reference). Set `EXPO_PUBLIC_API_URL` (Android emulator: `http://10.0.2.2:4000`). Still to build: Live trip with alert feed and push registration.
+
+Planned screens mirror web: Plan → Timeline → Live trip (with the same alert feed). View-models (`planToMapLayers`, `nextAction`, `timelineRows`) are in core so both UIs render identically.
 
 Metro bundler resolves workspace packages automatically in Expo 58 monorepos; `@repo/core` ships TS source, no build.
