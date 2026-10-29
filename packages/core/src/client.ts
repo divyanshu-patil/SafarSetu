@@ -24,6 +24,7 @@ export function createClient(baseUrl: string, fetchImpl: F = (...a) => fetch(...
     scenario: (name: string, planId?: string, city?: string) => post<{ disruptions: Disruption[] }>("/v1/sim/scenario", { name, planId, city }),
     disruptions: () => call<{ items: Disruption[] }>("/v1/disruptions"),
     geocode: (q: string) => call<{ items: { name: string; lat: number; lon: number }[] }>(`/v1/geocode?q=${encodeURIComponent(q)}`),
+    reverse: (lat: number, lon: number) => call<{ name: string }>(`/v1/reverse?lat=${lat}&lon=${lon}`),
     walk: (a: string, b: string) => call<{ coords: [number, number][]; distM: number; source: string }>(`/v1/walk?from=${a}&to=${b}`),
     weather: (lat: number, lon: number) => call<{ rainProb: number[]; hours: number[]; tempC: number[] }>(`/v1/weather?lat=${lat}&lon=${lon}`),
     insights: () => call<Insights>("/v1/insights"),

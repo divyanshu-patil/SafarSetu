@@ -1,4 +1,5 @@
 import { composeAlert } from "./notify";
+import { latestDeparture } from "./router";
 import { build, finalize, makeCtx, resolveItems, travel, type Ctx, type Item } from "./planner";
 import type { Alert, ChangeSummary, Entry, Itinerary, LiveState, Move, Network, Plan, TransitLeg, Visit } from "./types";
 
@@ -114,7 +115,12 @@ export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: nu
       broke = { reason: bad && live.cancelled(bad.routeId, bad.tripDeparture) ? "cancellation" : bad ? "closure" : "delay", move: m };
       break;
     }
-    const it = retimeLive(c, m.itinerary, inProgress ? m.departMin : notBefore);
+    let it = retimeLive(c, m.itinerary, inProgress ? m.departMin : notBefore);
+    if (!inProgress && it.legs.some((l) => l.kind === "transit" && l.delayMin > 0)) {
+      // a late vehicle should move the wait to where it is pleasant (the previous place), not the platform
+      const later = latestDeparture(c.ix, c.live, m.from, m.to, it.arriveMin, c.o);
+      if (later && later.departMin > it.departMin && later.departMin >= notBefore) it = later;
+    }
     const nm: Move = { ...m, itinerary: it, departMin: it.departMin, arriveMin: it.arriveMin };
     if (prevVisit) {
       // lateness is absorbed by shrinking the previous visit, never by leaving after the vehicle
@@ -168,7 +174,11 @@ export function assessPlan(net: Network, plan: Plan, live: LiveState, nowMin: nu
       const l = m.itinerary.legs.find((x): x is TransitLeg => x.kind === "transit" && x.departMin <= nowMin && x.arriveMin > nowMin)!;
       const arrive = l.scheduledDepartMin + live.delay(l.routeId, l.tripDeparture) + (l.arriveMin - l.departMin);
       anchor = { start: { lat: l.to.lat, lon: l.to.lon, name: l.to.name }, startMin: arrive };
-    } else anchor = { start: { lat: m.from.lat, lon: m.from.lon, name: m.from.name }, startMin: nowMin };
+    } else {
+      const p = done[done.length - 1];
+      const prevEnd = p ? (p.kind === "visit" ? p.leaveMin : p.arriveMin) : plan.request.startMin;
+      anchor = { start: { lat: m.from.lat, lon: m.from.lon, name: m.from.name }, startMin: Math.max(nowMin, prevEnd) };
+    }
     head = done;
   }
   const built = build(c, anchor, endMin, remaining, home);
@@ -191,11 +201,16 @@ function changeLines(s: ChangeSummary): string[] {
 }
 
 /** Facts about what changed for the rider's *next* action, for the notification composer. */
-function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave: boolean, live: LiveState, reason: ChangeSummary["reason"], brokenMove?: Move, dropped: string[] = []): ChangeSummary | undefined {
+function summarise(oldP: Plan, newP: Plan, idx: number, now: number, beforeLeave0: boolean, live: LiveState, reason: ChangeSummary["reason"], brokenMove?: Move, dropped: string[] = []): ChangeSummary | undefined {
+  let beforeLeave = beforeLeave0;
   const oldNext = oldP.timeline.slice(idx).find((e): e is Move => e.kind === "move");
   const newNext = newP.timeline.find((e, i): e is Move => e.kind === "move" && (e.arriveMin > now || e.departMin >= now) && i >= idx - 1 && e.departMin >= Math.min(now, e.departMin));
-  const nm = newP.timeline.slice(idx).find((e): e is Move => e.kind === "move") ?? newNext;
-  const om = brokenMove ?? oldNext;
+  const hitLeg = (l: TransitLeg) => live.cancelled(l.routeId, l.tripDeparture) || live.delay(l.routeId, l.tripDeparture) > 0 || l.stops.some((s) => live.closed(s.stopId, l.departMin));
+  const affected = oldP.timeline.slice(idx).find((e): e is Move => e.kind === "move" && e.itinerary.legs.some((l) => l.kind === "transit" && l.arriveMin > now && hitLeg(l)));
+  const om = brokenMove ?? affected ?? oldNext;
+  // the same journey in the new plan: same destination
+  const nm = (om && newP.timeline.find((e): e is Move => e.kind === "move" && e.to.lat === om.to.lat && e.to.lon === om.to.lon && e.arriveMin > now)) ?? newP.timeline.slice(idx).find((e): e is Move => e.kind === "move") ?? newNext;
+  beforeLeave = om ? om.departMin > now : beforeLeave;
   const upcoming = (m?: Move) => (m?.itinerary.legs ?? []).filter((l): l is TransitLeg => l.kind === "transit" && l.arriveMin > now);
   const hit = (l: TransitLeg) => live.cancelled(l.routeId, l.tripDeparture) || live.delay(l.routeId, l.tripDeparture) > 0 || l.stops.some((s) => live.closed(s.stopId, l.departMin));
   // the leg the news is about: first upcoming leg touched by a live event, else the first upcoming leg

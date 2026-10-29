@@ -55,7 +55,7 @@ export function composeAlert(s: ChangeSummary, traveller?: { name?: string }, st
     case "relax":
       return style === "brief"
         ? { kind, title: "Running late — no rush", body: `${route} is ${s.delayMin} min late. Leave ${leave}, not ${fmtTime(s.oldLeaveMin ?? 0)}.` }
-        : { kind, title: "No need to rush", body: `${who}no need to rush — your${old} ${route} is running ${s.delayMin} min late. Leave at ${leave} instead of ${fmtTime(s.oldLeaveMin ?? 0)}.${reach}`.replace(/^./, (c) => c.toUpperCase()) };
+        : { kind, title: "No need to rush", body: `${who}no need to rush — your${old} ${route} is running ${s.delayMin} min late. ${s.oldLeaveMin !== undefined && s.newLeaveMin !== undefined && Math.round(s.oldLeaveMin) !== Math.round(s.newLeaveMin) ? `Leave at ${leave} instead of ${fmtTime(s.oldLeaveMin)}.` : "Your plan simply shifts later."}${reach}`.replace(/^./, (c) => c.toUpperCase()) };
     case "adjust":
       return { kind, title: "Plan adjusted", body: `${route} is ${s.delayMin ?? "running"} min late.${lost ? ` We shortened ${lost} so the rest of your day still works.` : ""}${leave ? ` Leave at ${leave}.` : ""}`.trim() };
     case "urgent":

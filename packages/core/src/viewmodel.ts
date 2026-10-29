@@ -6,6 +6,8 @@ export interface MapLine {
   color: string;
   dashed: boolean;
   label: string;
+  /** walking segment endpoints, so clients can swap in a real footpath geometry */
+  walk?: { from: [number, number]; to: [number, number]; distM: number };
 }
 export interface MapMarker {
   lat: number;
@@ -26,7 +28,7 @@ export function planToMapLayers(plan: Plan): { lines: MapLine[]; markers: MapMar
     else
       for (const l of e.itinerary.legs) {
         if (l.kind === "transit") lines.push({ coords: l.stops.map((s) => [s.lat, s.lon]), color: l.color, dashed: false, label: `${l.routeName} ${fmtTime(l.departMin)}→${fmtTime(l.arriveMin)}` });
-        else lines.push({ coords: [[l.from.lat, l.from.lon], [l.to.lat, l.to.lon]], color: l.kind === "cab" ? "#f59e0b" : walkColor, dashed: l.kind === "walk", label: l.kind === "walk" ? `Walk ${Math.round(l.arriveMin - l.departMin)} min` : "Cab" });
+        else lines.push({ coords: [[l.from.lat, l.from.lon], [l.to.lat, l.to.lon]], color: l.kind === "cab" ? "#b64400" : walkColor, dashed: l.kind === "walk", label: l.kind === "walk" ? `Walk ${Math.round(l.arriveMin - l.departMin)} min` : "Cab", walk: l.kind === "walk" ? { from: [l.from.lat, l.from.lon], to: [l.to.lat, l.to.lon], distM: l.distM } : undefined });
       }
   }
   return { lines, markers };
