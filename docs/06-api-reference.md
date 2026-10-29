@@ -8,7 +8,8 @@ Envelope: success → payload; error → `{ error: { code, message } }` with 4xx
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | `{ ok, store: 'supabase'\|'memory', now }` |
-| GET | `/v1/network` | stops, routes (w/o expanded departures), places, `meta.dataQuality` |
+| GET | `/v1/cities` | cities with bbox, presets, data-quality meta (`pune`, `mumbai`) |
+| GET | `/v1/network?city=` | stops, routes with timetables, places, presets, `meta.dataQuality` |
 | GET | `/v1/places` | curated POIs; `?q=` filters |
 
 ## Planning
@@ -21,7 +22,7 @@ Envelope: success → payload; error → `{ error: { code, message } }` with 4xx
 | POST | `/v1/plans/:id/replan` | `{ reason? }` | new revision |
 | GET | `/v1/plans/:id/status` | | `{ state, nowMin, current, next, slackMin, updates[] }` |
 
-`PlanRequest`: `{ date:'YYYY-MM-DD', origin:{name,lat,lon}, startMin, endMin, returnToOrigin?, places:[{placeId?|name,lat,lon, priority:1|2|3, minDwell?, maxDwell?, opens?, closes?}], prefs?:{pace, maxWalkM, avoid:[mode], style:'calm'|'brief'}, traveller?:{name} }`
+`PlanRequest`: `{ city?:'pune'\|'mumbai', date:'YYYY-MM-DD', origin:{name,lat,lon}, startMin, endMin, returnToOrigin?, places:[{placeId?|name,lat,lon, priority:1|2|3, minDwell?, maxDwell?, opens?, closes?}], prefs?:{pace, maxWalkM, avoid:[mode], style:'calm'|'brief'}, traveller?:{name} }`
 
 `Plan`: `{ id, revision, request, timeline:[Leg|Visit], visits[], dropped[{place,reason}], reminders[], totals:{walkM,fare,transfers,confidencePct}, changes[], meta }`
 
@@ -39,12 +40,12 @@ Envelope: success → payload; error → `{ error: { code, message } }` with 4xx
 | Method | Path | Notes |
 |---|---|---|
 | GET/POST | `/v1/sim/clock` | `{ date, minute, speed, running }` |
-| POST | `/v1/sim/scenario` | `{ name: 'train-late-30'\|'metro-cancelled'\|'stop-closed'\|'heavy-rain'\|'clear' }` |
+| POST | `/v1/sim/scenario` | `{ name, planId?, city? }`, name ∈ `train-late-30`, `metro-late-5` (too small to alert), `metro-cancelled`, `stop-closed`, `heavy-rain`, `clear`; aimed at what the plan rides next |
 
 ## Proxies (cached)
 | Method | Path | Upstream |
 |---|---|---|
-| GET | `/v1/geocode?q=` | Photon → Nominatim → local gazetteer |
+| GET | `/v1/geocode?q=&city=` | Photon → Nominatim → local gazetteer |
 | GET | `/v1/reverse?lat&lon` | Nominatim |
 | GET | `/v1/walk?from=lat,lon&to=lat,lon` | OSRM foot → straight-line fallback |
 | GET | `/v1/weather?lat&lon` | Open-Meteo |

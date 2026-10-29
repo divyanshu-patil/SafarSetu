@@ -2,7 +2,7 @@
 
 SafarSetu is a **time-synchronised trip planner for a new city**. A visitor enters *where they start*, *which places they want to see* and *when they are free*. SafarSetu builds a day plan across buses, metro and local trains using the actual timetables, tells them **when to leave, how long to stay, what to board**, and keeps the plan alive: when a train is late or a metro is cancelled it re-plans and sends a *calm, personalised* alert ("No need to rush — your train is 30 min late, leave at 10:40") instead of a raw delay notice.
 
-> Status: demo runs on **synthetic Pune data** (clearly labelled). Production data and ingestion path are specified in [05](05-data-and-apis.md) and [09](09-production-readiness.md).
+> Status: demo covers **Mumbai and Pune** (user-scoped), on **synthetic data** modelled on the real networks (clearly labelled). Visual language: [DESIGN.md](DESIGN.md). Production data and ingestion path are specified in [05](05-data-and-apis.md) and [09](09-production-readiness.md).
 
 ## Read in this order
 

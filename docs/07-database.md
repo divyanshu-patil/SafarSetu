@@ -10,9 +10,13 @@ cp .env.example .env        # fill SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY from
 pnpm --filter api dev
 ```
 
+> Verified: `0001_init.sql` + generated `seed.sql` apply cleanly on PostgreSQL (109 stops / 36 routes / 26 places across both cities). The `SupabaseStore` adapter is written against this schema but was **not exercised against a running PostgREST** in the build environment (no network to pull the Supabase CLI) — run `pnpm --filter api test` with `SUPABASE_*` set to verify on your machine.
+
 Without those env vars the API uses the **memory store** (same interface, seeded from the Pune pack) so the demo works offline.
 
 ## Tables
+
+Network tables (`stops`, `routes`, `places`) are seeded from `@repo/core` (ids suffixed `@city`) for analytics/ops and future GTFS import; in the demo the API loads the same pack directly from `@repo/core`.
 
 | Table | Purpose | Key columns |
 |---|---|---|
@@ -22,7 +26,7 @@ Without those env vars the API uses the **memory store** (same interface, seeded
 | `plans` | a user's day plan (latest revision) | `id uuid pk, user_id, date, revision, request jsonb, plan jsonb, status, created_at, updated_at` |
 | `plan_revisions` | audit trail of every re-plan | `plan_id fk, revision, reason, plan jsonb, created_at` |
 | `disruptions` | event store | `id pk, type, route_id, trip_departure, stop_id, delay_min, from_min, until_min, source, verified, note, active` |
-| `notifications` | scheduled + sent alerts | `id uuid pk, plan_id fk, user_id, kind, title, body, fire_at timestamptz, sent_at, read_at, revision` |
+| `notifications` | scheduled + sent alerts | `id uuid pk, plan_id fk, user_id, kind, title, body, date, fire_min, revision, sent, sent_at, read_at, meta jsonb` (service-day date + minute so the demo clock works; production adds `fire_at timestamptz`) |
 | `devices` | push targets | `user_id, platform, token, created_at` |
 | `delay_observations` | realised vs scheduled (feeds learning + insights) | `route_id, trip_departure, stop_id, scheduled_min, actual_min, observed_at` |
 
@@ -35,4 +39,4 @@ Without those env vars the API uses the **memory store** (same interface, seeded
 
 ## Indexing
 
-`notifications (fire_at) where sent_at is null` (scheduler hot path) · `plans (user_id, updated_at desc)` · `disruptions (active, route_id)`.
+`notifications (date, fire_min) where sent = false` (scheduler hot path) · `plans (user_id, updated_at desc)` · `disruptions (active, route_id)`.

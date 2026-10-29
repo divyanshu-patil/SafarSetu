@@ -2,7 +2,7 @@
 
 ## Web dashboard (`apps/web`, Next.js 16)
 
-Design: calm, high-contrast, map-first. Light/dark via CSS variables. Accessible (labels, focus rings, `aria-live` for alerts, keyboard-operable timeline).
+Design system: [DESIGN.md](DESIGN.md) — Apple-style white gallery: #fff canvas, #f5f5f7 bands, 28px shadowless cards, pill controls, blue only for links and compact CTAs, no gradients, SF Pro (system fallback). Tokens live in `apps/web/app/globals.css`; the mobile app uses the same palette/radii. Accessible (labels, focus rings, `aria-live` for alerts, keyboard-operable timeline).
 
 | Route | Screen | Contents |
 |---|---|---|
@@ -22,7 +22,7 @@ Design: calm, high-contrast, map-first. Light/dark via CSS variables. Accessible
 ### State & data
 - `lib/api.ts` = `createClient()` from `@repo/core`; pages are thin.
 - Plan form state in React state + `localStorage` draft; plan id in URL.
-- Leaflet created client-side only (`dynamic(..., {ssr:false})`).
+- Basemap: CARTO Positron (monochrome, OSM data). Leaflet created client-side only (`dynamic(..., {ssr:false})`).
 
 ## Mobile reuse (`apps/app`, Expo)
 
