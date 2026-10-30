@@ -3,6 +3,7 @@ import { BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
 import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { createContext, useContext, useRef } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -59,18 +60,30 @@ export function Header({ title, large = true, actions = [] }: { title: string; l
   );
 }
 
+/** Lets a field ask its screen to scroll it clear of the keyboard (and clear of its own suggestion list). */
+const RevealCtx = createContext<(node: any) => void>(() => {});
+export const useReveal = () => useContext(RevealCtx);
+
 /** Scroll screen. The ScrollView is the screen's first child so the native header and tab bar can inset it and blur behind it. */
 export function Screen({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const ios = Platform.OS === 'ios';
+  const sv = useRef<any>(null); // RN 0.88 types the instance oddly; only scrollTo/getInnerViewRef are used
+  const reveal = (node: any) => {
+    // wait for the keyboard to finish rising, then put the field near the top so its suggestions have room
+    setTimeout(() => {
+      const inner = sv.current?.getInnerViewRef();
+      if (node && inner) node.measureLayout(inner as never, (_x: number, y: number) => sv.current?.scrollTo({ y: Math.max(0, y - 90), animated: true }), () => {});
+    }, 300);
+  };
   return (
-    <>
-      <ScrollView style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom), alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
+    <RevealCtx.Provider value={reveal}>
+      <ScrollView ref={sv} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom), alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <View style={{ width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three }}>{children}</View>
       </ScrollView>
       {footer && <View style={[styles.footer, { backgroundColor: t.background, borderColor: t.border, paddingBottom: Spacing.two + insets.bottom }]}>{footer}</View>}
-    </>
+    </RevealCtx.Provider>
   );
 }
 
@@ -106,7 +119,7 @@ export function Chip({ label, icon, selected, onPress }: { label: string; icon?:
   const fg = selected ? '#ffffff' : t.textStrong;
   return (
     <Pressable testID={`chip-${label}`} accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress}
-      style={({ pressed }) => [styles.chip, { maxWidth: '100%', backgroundColor: selected ? t.brandSolid : t.backgroundElement, opacity: pressed ? 0.75 : 1 }]}>
+      style={({ pressed }) => [styles.chip, { maxWidth: '100%', borderWidth: 1, borderColor: selected ? t.brandSolid : t.borderStrong, backgroundColor: selected ? t.brandSolid : t.backgroundElement, opacity: pressed ? 0.75 : 1 }]}>
       {icon && <Ionicons name={icon} size={14} color={fg} />}
       <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: fg, flexShrink: 1 }}>{label}</Text>
     </Pressable>
@@ -118,19 +131,19 @@ export { Seg } from './seg';
 export function Field({ icon, style, bg, ...p }: TextInputProps & { icon?: IconName; bg?: string }) {
   const t = useTheme();
   return (
-    <View style={[styles.field, { backgroundColor: bg ?? t.backgroundElement, alignItems: p.multiline ? 'flex-start' : 'center', paddingTop: p.multiline ? 12 : 0 }]}>
-      {icon && <Ionicons name={icon} size={18} color={t.textSecondary} />}
-      <TextInput placeholderTextColor={t.textSecondary} {...p} style={[{ flex: 1, fontFamily: Font.regular, fontSize: 16, color: t.textStrong, paddingVertical: 12 }, style]} />
+    <View style={[styles.field, { borderColor: t.borderStrong, borderRadius: p.multiline ? Radius.card + 10 : Radius.pill, backgroundColor: bg ?? t.backgroundElement, alignItems: p.multiline ? 'flex-start' : 'center', paddingTop: p.multiline ? 12 : 0 }]}>
+      {icon && <Ionicons name={icon} size={18} color={t.textSecondary} style={p.multiline ? { marginTop: 1 } : undefined} />}
+      <TextInput placeholderTextColor={t.textSecondary} {...p} style={[{ flex: 1, fontFamily: Font.regular, fontSize: 16, color: t.textStrong, paddingTop: p.multiline ? 0 : 12, paddingBottom: p.multiline ? 12 : 12 }, style]} />
     </View>
   );
 }
 
 /** Native bottom sheet (SwiftUI sheet / Material bottom sheet). */
-export function Sheet({ visible, title, onClose, children }: { visible: boolean; title: string; onClose: () => void; children: ReactNode }) {
+export function Sheet({ visible, title, onClose, children, half }: { visible: boolean; title: string; onClose: () => void; children: ReactNode; half?: boolean }) {
   const { width } = useWindowDimensions(); // the native sheet sizes its content to fit, so give it the full width explicitly
   return (
     <Host style={{ position: 'absolute' }}>
-      <BottomSheet isPresented={visible} onDismiss={onClose} snapPoints={['full']}>
+      <BottomSheet isPresented={visible} onDismiss={onClose} snapPoints={half ? ['half', 'full'] : ['full']} contentPadding={0}>
         <ScrollView style={{ width }} contentContainerStyle={{ padding: Spacing.three, gap: Spacing.four }} keyboardShouldPersistTaps="handled">
           <Txt v="h2">{title}</Txt>
           {children}
@@ -166,8 +179,8 @@ export function Row({ icon, title, hint, right, onPress }: { icon: IconName; tit
 const styles = StyleSheet.create({
   footer: { paddingHorizontal: Spacing.three, paddingTop: Spacing.two, paddingBottom: Spacing.two, borderTopWidth: StyleSheet.hairlineWidth },
   card: { borderRadius: Radius.card + 6, padding: Spacing.three, gap: Spacing.two },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: Radius.pill, paddingVertical: 8, paddingHorizontal: 14 },
-  field: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, borderRadius: Radius.card + 4, paddingHorizontal: 14 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: Radius.pill, paddingVertical: 9, paddingHorizontal: 15 },
+  field: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, borderWidth: 1.5, paddingHorizontal: 18, minHeight: 50 },
   srow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: 10 },
   sicon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
 });

@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import type { Network } from '@repo/core';
 
-import { Field, Icon, IconBtn, Txt, fx, type IconName } from '@/components/ui';
+import { Field, Icon, IconBtn, Txt, fx, useReveal, type IconName } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/lib/settings';
@@ -22,7 +22,7 @@ export async function locate(client: ReturnType<typeof useSettings>['client']): 
 }
 
 /** Search field with live suggestions: this region's known places instantly, then the server's geocoder. */
-export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'search' }: { places: Network['places']; placeholder: string; onPick: (p: Pt) => void; withLocate?: boolean; icon?: IconName }) {
+export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'search', onCard }: { places: Network['places']; placeholder: string; onPick: (p: Pt) => void; withLocate?: boolean; icon?: IconName; onCard?: boolean }) {
   const t = useTheme();
   const { client, t: tr } = useSettings();
   const [q, setQ] = useState('');
@@ -31,6 +31,8 @@ export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'se
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(''); // the query the geocoder last answered
   const seq = useRef(0);
+  const box = useRef<any>(null);
+  const reveal = useReveal();
 
   const needle = q.trim().toLowerCase();
   const local: Hit[] = places
@@ -61,14 +63,14 @@ export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'se
   };
 
   return (
-    <View style={{ gap: Spacing.one }}>
-      <Field bg={t.background} icon={icon} value={q} onChangeText={setQ} onFocus={() => setFocus(true)} placeholder={placeholder} accessibilityLabel={placeholder} returnKeyType="search" autoCorrect={false}
+    <View ref={box} style={{ gap: Spacing.one }}>
+      <Field bg={onCard ? t.background : undefined} icon={icon} value={q} onChangeText={setQ} onFocus={() => { setFocus(true); reveal(box.current); }} placeholder={placeholder} accessibilityLabel={placeholder} returnKeyType="search" autoCorrect={false}
         onSubmitEditing={() => hits[0] && pick(hits[0])}
         // delay so a tap on a suggestion lands before the list unmounts
         onBlur={() => setTimeout(() => setFocus(false), 150)}
       />
       {focus && (
-        <Animated.View entering={fx.fade} exiting={fx.out} style={{ borderRadius: Radius.card + 4, backgroundColor: t.background, borderWidth: 1, borderColor: t.border, overflow: 'hidden' }}>
+        <Animated.View entering={fx.fade} exiting={fx.out} style={{ borderRadius: Radius.card + 10, backgroundColor: t.background, borderWidth: 1, borderColor: t.borderStrong, overflow: 'hidden' }}>
           {withLocate && !needle && (
             <Pressable accessibilityRole="button" onPress={here} style={({ pressed }) => [rowStyle, { opacity: pressed ? 0.6 : 1 }]}>
               <IconBtn icon={busy ? 'sync' : 'locate'} label={tr('myLocation')} size={32} active />

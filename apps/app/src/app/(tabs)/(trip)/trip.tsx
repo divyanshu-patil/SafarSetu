@@ -37,6 +37,7 @@ export default function Trip() {
   const [busy, setBusy] = useState<string | null>(null);
   const [rated, setRated] = useState<Set<string>>(new Set());
   const [outcome, setOutcome] = useState<string | null>(null);
+  const [allAlerts, setAllAlerts] = useState(false);
   const seen = useRef<Set<string> | null>(null);
 
   const pull = useCallback(async () => {
@@ -120,7 +121,7 @@ export default function Trip() {
 
       <Group label={t('alertsTitle')}>
         {sorted.length === 0 && <Txt v="sub">{t('noAlerts')}</Txt>}
-        {sorted.map((n) => {
+        {(allAlerts ? sorted : sorted.slice(0, 3)).map((n) => {
           const [icon, color] = KIND[n.kind] ?? (['notifications', th.brand] as [IconName, string]);
           return (
             <Card key={n.id} style={{ flexDirection: 'row', gap: Spacing.two }}>
@@ -142,6 +143,7 @@ export default function Trip() {
             </Card>
           );
         })}
+        {sorted.length > 3 && <Btn kind="ghost" label={allAlerts ? t('showLess') : `${t('showAll')} (${sorted.length})`} onPress={() => setAllAlerts((v) => !v)} />}
       </Group>
 
       <Group label={t('simulate')}>

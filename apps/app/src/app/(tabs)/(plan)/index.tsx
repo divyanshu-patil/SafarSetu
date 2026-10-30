@@ -103,7 +103,7 @@ export default function PlanScreen() {
                 <Txt v="h2" numberOfLines={1}>{origin.name}</Txt>
               </Pressable>
             ) : (
-              <PlaceInput places={net.places} placeholder={t('startHint')} onPick={(p) => { setOrigin(p); setEditStart(false); }} withLocate />
+              <PlaceInput onCard places={net.places} placeholder={t('startHint')} onPick={(p) => { setOrigin(p); setEditStart(false); }} withLocate />
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
               <Icon name="time-outline" size={15} color={th.textSecondary} />
@@ -147,7 +147,7 @@ export default function PlanScreen() {
           <View style={{ flexDirection: 'row', gap: Spacing.three }}>
             <Rail badge="+" last />
             <View style={{ flex: 1 }}>
-              <PlaceInput places={net.places} placeholder={t('addStop')} icon="add" onPick={(p) => { const n = stopOf(p); setStops((y) => [...y, n]); setOpen(n.id); }} />
+              <PlaceInput onCard places={net.places} placeholder={t('addStop')} icon="add" onPick={(p) => { const n = stopOf(p); setStops((y) => [...y, n]); setOpen(n.id); }} />
             </View>
           </View>
         )}

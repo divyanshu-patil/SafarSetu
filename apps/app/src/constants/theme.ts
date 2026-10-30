@@ -21,6 +21,7 @@ export const Colors = {
     accent: '#9fe870', // Lime Voltage (primary action / active only)
     onAccent: '#163300',
     border: 'rgba(14,15,12,0.12)',
+    borderStrong: 'rgba(14,15,12,0.32)', // inputs and chips: must read on white
     danger: '#cb272f',
     info: '#0b4c72',
   },
@@ -36,6 +37,7 @@ export const Colors = {
     accent: '#9fe870',
     onAccent: '#163300',
     border: 'rgba(255,255,255,0.14)',
+    borderStrong: 'rgba(255,255,255,0.36)',
     danger: '#ff7b80',
     info: '#7cc4ee',
   },

@@ -115,7 +115,7 @@ function Tracker({ ref0, onClose }: { ref0: string | null; onClose: () => void }
   if (ref0 && ref0 !== last) { setLast(ref0); setQ(ref0); look(ref0); } // opened with a reference: fetch it once
   const st = r ? STATUSES[r.status] : null;
   return (
-    <Sheet visible={ref0 !== null} title={t('track')} onClose={() => { setLast(null); setR(null); setQ(''); onClose(); }}>
+    <Sheet half visible={ref0 !== null} title={t('track')} onClose={() => { setLast(null); setR(null); setQ(''); onClose(); }}>
       <Field icon="search" value={q} onChangeText={setQ} placeholder={t('trackHint')} autoCapitalize="characters" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => look(q)} accessibilityLabel={t('track')} />
       <Btn kind="soft" label={t('check')} onPress={() => look(q)} disabled={!q.trim()} />
       {err && <Txt v="sub" tone="danger">{err}</Txt>}
