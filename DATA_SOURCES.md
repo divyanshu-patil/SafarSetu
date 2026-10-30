@@ -35,7 +35,7 @@ Status key: ✅ used · ⚠️ used with limits · ❌ attempted, not usable · 
 | **Open-Meteo** `api.open-meteo.com` | Hourly rain probability → "rain around 15:00" notice | `GET /v1/weather` | Free, non-commercial; cached 15 min |
 | **OpenStreetMap tiles** `tile.openstreetmap.org` | Basemap (CSS-greyscaled) | browser | OSM tile usage policy — light/demo use only; use MapTiler/Stadia or self-host for production. (CARTO's free basemap started requiring an API key during testing) |
 | Google Fonts — Inter | Typeface (Black 900 stands in for Wise Sans) | web + mobile | SIL OFL |
-| *Optional, not used:* TomTom Traffic, Google Routes | Live road traffic for cab legs | — | need API keys; see `NEEDED_FROM_YOU.md` |
+| *Optional, not used:* TomTom Traffic, Google Routes | Live road traffic for cab legs | — | need API keys |
 
 ## 4. Modelled / assumed values (not data)
 

@@ -6,8 +6,7 @@
   <a href="docs/README.md"><b>Docs</b></a> ·
   <a href="submission/SafarSetu-Seva-First-Pitch.pdf"><b>Pitch deck (PDF)</b></a> ·
   <a href="DATA_SOURCES.md">Data sources</a> ·
-  <a href="docs/14-pilot-plan.md">Pilot plan</a> ·
-  <a href="NEEDED_FROM_YOU.md">Needed from you</a>
+  <a href="docs/14-pilot-plan.md">Pilot plan</a>
 </p>
 
 **SafarSetu** helps people with a day of work — a client meeting, the bank before it closes, a parcel to collect — move through Maharashtra on the public transport they can actually catch. Add stops like you would in a maps app, say when you must be there, and it lines up the buses, metro and trains, tells you **when to leave and what to board**, and keeps the plan right when something is late or cancelled.

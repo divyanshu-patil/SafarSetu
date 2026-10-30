@@ -26,7 +26,7 @@ SafarSetu helps people **organise their work and errands around the connecting p
 | 15 | [Field research kit](15-field-research-kit.md) | Interview script + logging for primary evidence |
 | R | [Sourced research](research/seva-research.md) | Every fact for the pitch with source, date, confidence |
 
-Also see root: [`progress.md`](../progress.md), [`NEEDED_FROM_YOU.md`](../NEEDED_FROM_YOU.md), earlier research in `Research.md`, `Prototype-Ideas.md`, `safarsetu_product_workflow_spec.md`.
+Also see root: earlier research in `Research.md`, `Prototype-Ideas.md`, `safarsetu_product_workflow_spec.md`.
 
 ## Glossary
 

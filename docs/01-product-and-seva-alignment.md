@@ -46,7 +46,7 @@ Public transport in Indian cities also has a trust problem: schedules shift, tra
 | **Cost** | ₹0 to demo; production ≈ one small VM + managed Postgres | Cost sketch below |
 | **Impact** | Minutes saved, cab trips avoided, missed connections prevented | Impact counters in dashboard (labelled *simulated*) |
 | **Scalability** | City = data pack (GTFS + places); engine is city-agnostic | [09](09-production-readiness.md) rollout |
-| **Quality of solution** | Typed monorepo, tests, shared core for web+mobile, graceful degradation | Repo, `progress.md` |
+| **Quality of solution** | Typed monorepo, tests, shared core for web+mobile, graceful degradation | Repo |
 
 ### Cost sketch (estimates — verify before quoting)
 
