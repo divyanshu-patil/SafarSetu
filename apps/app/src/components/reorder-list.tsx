@@ -5,13 +5,16 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming, type SharedValu
 import { Icon, fx, useScrollLock } from '@/components/ui';
 import { useTheme } from '@/hooks/use-theme';
 
+// invisible padding around every row (offset by negative margins) so a lifted row reads as a card, not a clipped strip
+const PAD_X = 12, PAD_Y = 8;
+
 interface Drag { id: string; from: number; over: number; h: number }
 
 /**
  * Drag-to-reorder list. Each row gets a grip handle; rows between the dragged row and its target slide aside
  * while dragging, and the order is committed on release. Rows may have different heights (e.g. an expanded stop).
  */
-export function ReorderList<T extends { id: string }>({ items, onReorder, renderRow }: { items: T[]; onReorder: (from: number, to: number) => void; renderRow: (item: T, index: number, handle: ReactNode) => ReactNode }) {
+export function ReorderList<T extends { id: string }>({ items, onReorder, renderRow }: { items: T[]; onReorder: (from: number, to: number) => void; renderRow: (item: T, index: number, handle: ReactNode, dragging: boolean) => ReactNode }) {
   const [active, setActive] = useState<Drag | null>(null);
   const [committing, setCommitting] = useState(false);
   const layouts = useRef<Record<string, { y: number; h: number }>>({});
@@ -63,8 +66,8 @@ export function ReorderList<T extends { id: string }>({ items, onReorder, render
     <View>
       {items.map((item, index) => (
         <Row key={item.id} id={item.id} index={index} active={active} committing={committing} ty={ty}
-          onLayout={(y, h) => { layouts.current[item.id] = { y, h }; }} onBegin={begin} onMove={move} onEnd={end}>
-          {(handle) => renderRow(item, index, handle)}
+          onLayout={(y, h) => { layouts.current[item.id] = { y: y + PAD_Y, h: h - PAD_Y }; }} onBegin={begin} onMove={move} onEnd={end}>
+          {(handle, dragging) => renderRow(item, index, handle, dragging)}
         </Row>
       ))}
     </View>
@@ -74,7 +77,7 @@ export function ReorderList<T extends { id: string }>({ items, onReorder, render
 function Row({ id, index, active, committing, ty, onLayout, onBegin, onMove, onEnd, children }: {
   id: string; index: number; active: Drag | null; committing: boolean; ty: SharedValue<number>;
   onLayout: (y: number, h: number) => void; onBegin: (id: string) => void; onMove: (dy: number) => void; onEnd: () => void;
-  children: (handle: ReactNode) => ReactNode;
+  children: (handle: ReactNode, dragging: boolean) => ReactNode;
 }) {
   const t = useTheme();
   const dragging = active?.id === id;
@@ -95,20 +98,20 @@ function Row({ id, index, active, committing, ty, onLayout, onBegin, onMove, onE
   })).current;
 
   const style = useAnimatedStyle(() => (dragging
-    ? { transform: [{ translateY: ty.value }], zIndex: 10, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }
+    ? { transform: [{ translateY: ty.value }], zIndex: 10, shadowColor: '#0e0f0c', shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }
     : { transform: [{ translateY: sh.value }], zIndex: 0, shadowOpacity: 0, shadowRadius: 0, elevation: 0 })); // reset the shadow explicitly: Reanimated doesn't clear props that drop out of the style
 
   const handle = (
     <View {...pan.panHandlers} accessibilityLabel="Drag to reorder" accessibilityRole="adjustable" hitSlop={8} style={{ width: 32, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-      <Icon name="reorder-two" size={22} color={t.textSecondary} />
+      <Icon name="reorder-two" size={22} color={dragging ? t.brand : t.textSecondary} />
     </View>
   );
 
   return (
     <Animated.View onLayout={(e) => onLayout(e.nativeEvent.layout.y, e.nativeEvent.layout.height)}
       entering={fx.in()} exiting={fx.out} layout={committing || active ? undefined : fx.layout}
-      style={[{ flexDirection: 'row', gap: 16, backgroundColor: dragging ? t.background : undefined, borderRadius: 14 }, style]}>
-      {children(handle)}
+      style={[{ flexDirection: 'row', gap: 16, paddingHorizontal: PAD_X, marginHorizontal: -PAD_X, paddingTop: PAD_Y, marginTop: -PAD_Y, borderRadius: 18, backgroundColor: dragging ? t.background : undefined }, style]}>
+      {children(handle, dragging)}
     </Animated.View>
   );
 }

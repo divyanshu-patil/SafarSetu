@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Image } from 'expo-image';
 import { Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -168,6 +169,16 @@ export function Sheet({ visible, title, onClose, children, half }: { visible: bo
         </ScrollView>
       </BottomSheet>
     </Host>
+  );
+}
+
+/** The SafarSetu mark with its wordmark. */
+export function Brand({ size = 28 }: { size?: number }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }} accessibilityRole="header" accessibilityLabel="SafarSetu">
+      <Image source={require('@/assets/images/logo.png')} style={{ width: size, height: size, borderRadius: size * 0.22 }} />
+      <Txt tone="brand" style={{ fontFamily: Font.bold, fontSize: size * 0.6, letterSpacing: -0.3 }}>SafarSetu</Txt>
+    </View>
   );
 }
 

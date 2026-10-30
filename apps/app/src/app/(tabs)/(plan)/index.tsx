@@ -7,7 +7,7 @@ import { fmtTime, networks, type PlanRequest } from '@repo/core';
 import { PlaceInput, locate, type Pt } from '@/components/place-input';
 import { ReorderList } from '@/components/reorder-list';
 import { TimePick } from '@/components/time-pick';
-import { Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx } from '@/components/ui';
+import { Brand, Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx } from '@/components/ui';
 import { Font, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askNotifications } from '@/lib/notify';
@@ -113,6 +113,7 @@ export default function PlanScreen() {
       <Header title={t('whereTo')} actions={[...(!empty ? [{ sf: 'trash', icon: 'trash-outline' as const, label: t('clear'), onPress: () => Alert.alert(t('clear'), undefined, [{ text: t('done'), style: 'cancel' }, { text: t('clear'), style: 'destructive', onPress: clear }]) }] : []), { sf: 'slider.horizontal.3', icon: 'options' as const, label: t('options'), onPress: () => setSheet(true) }]} />
       <Screen footer={<><Btn label={t('planBtn')} onPress={run} busy={busy} />{err && <Txt v="sub" tone="danger" style={{ textAlign: 'center', paddingTop: 6 }}>{err}</Txt>}</>}>
 
+      <Brand />
       <Seg options={CITIES} value={city} onChange={(c) => { setCity(c); clear(); }} />
 
       <Card style={{ gap: 0 }}>
@@ -139,12 +140,12 @@ export default function PlanScreen() {
           </View>
         </View>
 
-        <ReorderList items={stops} onReorder={reorder} renderRow={(x, i, handle) => {
+        <ReorderList items={stops} onReorder={reorder} renderRow={(x, i, handle, dragging) => {
           const eta = etas.get(x.name);
           const late = !!eta && !!fromHHMM(x.by) && eta.arrive > fromHHMM(x.by)! + 0.5;
           return (
             <>
-              <Rail badge={letter(i)} line />
+              <Rail badge={letter(i)} line={!dragging} />
               <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
                   <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setOpen(open === x.id ? null : x.id)}>

@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { LANG_LABEL, type Lang } from '@repo/core';
 
-import { Btn, Card, Chip, Field, Group, Header, Icon, Row, Screen, Seg, Toggle, Txt, Wrap } from '@/components/ui';
+import { Brand, Btn, Card, Chip, Field, Group, Header, Icon, Row, Screen, Seg, Toggle, Txt, Wrap } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askNotifications, notificationsAllowed } from '@/lib/notify';
@@ -76,7 +76,10 @@ export default function SettingsScreen() {
         </View>
       </Card>
 
-      <Txt v="sub" style={{ textAlign: 'center' }}>{t('aboutText')}</Txt>
+      <View style={{ alignItems: 'center', gap: Spacing.two, paddingTop: Spacing.three }}>
+        <Brand size={44} />
+        <Txt v="sub" style={{ textAlign: 'center' }}>{t('aboutText')}</Txt>
+      </View>
     </Screen>
     </>
   );
