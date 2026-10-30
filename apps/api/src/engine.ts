@@ -130,6 +130,12 @@ export class Engine {
     await this.applyDisruptions(`${full.type}${full.note ? `: ${full.note}` : ""}`);
     return full;
   }
+  /** replace every active disruption from `source` with `next` (used by feed pollers), then re-assess plans */
+  async replaceSource(source: Disruption["source"], next: Disruption[]) {
+    for (const d of await this.store.listDisruptions()) if (d.source === source) await this.store.deactivateDisruptions(d.id);
+    for (const d of next) await this.store.addDisruption(d);
+    await this.applyDisruptions(`${source} feed`);
+  }
   async clearDisruptions(id?: string) {
     await this.store.deactivateDisruptions(id);
     await this.applyDisruptions("cleared");

@@ -44,6 +44,18 @@ export interface Interview {
   createdAt: string;
 }
 
+/** anonymous pilot feedback: was an alert useful / did the trip work out (no user id, no free text) */
+export interface Feedback {
+  id: string;
+  kind: "alert" | "trip";
+  planId?: string;
+  alertKind?: string;
+  useful?: boolean;
+  onTime?: boolean;
+  minutesLate?: number;
+  createdAt: string;
+}
+
 export interface DisruptionRec extends Disruption {
   active: boolean;
   createdAt: string;
@@ -71,6 +83,10 @@ export interface Store {
   updateReport(r: Report): Promise<void>;
   addInterview(i: Interview): Promise<void>;
   listInterviews(): Promise<Interview[]>;
+  /** retention: delete real (non-synthetic) reports created before `iso`; returns how many */
+  purgeReportsBefore(iso: string): Promise<number>;
+  addFeedback(f: Feedback): Promise<void>;
+  listFeedback(): Promise<Feedback[]>;
 }
 
 export class MemoryStore implements Store {
@@ -102,6 +118,10 @@ export class MemoryStore implements Store {
   interviews: Interview[] = [];
   async addInterview(i: Interview) { this.interviews.push(i); }
   async listInterviews() { return [...this.interviews].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  feedback: Feedback[] = [];
+  async addFeedback(f: Feedback) { this.feedback.push(f); }
+  async listFeedback() { return [...this.feedback]; }
+  async purgeReportsBefore(iso: string) { let n = 0; for (const [id, r] of this.reports) if (!r.synthetic && r.createdAt < iso) (this.reports.delete(id), n++); return n; }
 }
 
 /** Supabase (Postgres) store. Column names follow supabase/migrations/0001_init.sql. */
@@ -164,6 +184,9 @@ export class SupabaseStore implements Store {
   async listReports() { return (this.ok(await this.db.from("reports").select("*").order("created_at", { ascending: false }).limit(5000)) ?? []).map(this.toRep); }
   async updateReport(r: Report) { this.ok(await this.db.from("reports").update(this.fromRep(r)).eq("id", r.id)); }
   async addInterview(i: Interview) { this.ok(await this.db.from("field_interviews").insert({ id: i.id, code: i.code, date: i.date, city: i.city, role: i.role, route: i.route, modes: i.modes, problem: i.problem, per_week: i.perWeek, minutes_lost_per_week: i.minutesLostPerWeek, rupees_lost_per_week: i.rupeesLostPerWeek, workaround: i.workaround, tried_and_failed: i.triedAndFailed, consent: i.consent })); }
+  async addFeedback(f: Feedback) { this.ok(await this.db.from("feedback").insert({ id: f.id, kind: f.kind, plan_id: f.planId ?? null, alert_kind: f.alertKind ?? null, useful: f.useful ?? null, on_time: f.onTime ?? null, minutes_late: f.minutesLate ?? null })); }
+  async listFeedback() { return (this.ok(await this.db.from("feedback").select("*").limit(20000)) ?? []).map((r: any): Feedback => ({ id: r.id, kind: r.kind, planId: r.plan_id ?? undefined, alertKind: r.alert_kind ?? undefined, useful: r.useful ?? undefined, onTime: r.on_time ?? undefined, minutesLate: r.minutes_late ?? undefined, createdAt: r.created_at })); }
+  async purgeReportsBefore(iso: string) { const d = this.ok(await this.db.from("reports").delete().eq("synthetic", false).lt("created_at", iso).select("id")); return (d ?? []).length; }
   async listInterviews() { return (this.ok(await this.db.from("field_interviews").select("*").order("created_at", { ascending: false })) ?? []).map((r: any): Interview => ({ id: r.id, code: r.code, date: r.date, city: r.city, role: r.role, route: r.route, modes: r.modes ?? [], problem: r.problem, perWeek: r.per_week, minutesLostPerWeek: r.minutes_lost_per_week, rupeesLostPerWeek: r.rupees_lost_per_week, workaround: r.workaround, triedAndFailed: r.tried_and_failed, consent: r.consent, createdAt: r.created_at })); }
 }
 

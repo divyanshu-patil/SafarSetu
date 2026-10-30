@@ -17,7 +17,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 ## Test log (this round)
 | Test | Result |
 |---|---|
-| Unit/integration | core 24 / API 7 passing (`pnpm test`) |
+| Unit/integration | core 24 / API 10 passing (`pnpm test`) incl. throttling, audit, retention, feedback, GTFS-RT mapping |
 | Deadline-aware alerts | delay that would make a meeting late now produces an explicit "you'll be late" alert (found and fixed during demo capture) |
 | Scale of disruption feed | 2,000+ simultaneous delays: planning < 4 s (was 21 s before indexing by route) |
 | API load (`/v1/plans`, Pune/Mumbai/Maharashtra mix) | 1 client: p50 110 ms, p95 271 ms · 10 concurrent: p50 685 ms, p95 2.9 s (single-threaded; expected ceiling) · 0 failures |
@@ -41,6 +41,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 | 1 | Government wants cost/benefit | No impact model | `/impact` with sourced, conservative factors |
 | 1 | Demo scrutiny | Alert hid a late-for-appointment case; 500 on bad JSON; slow big feeds; a11y misses | Fixed all four |
 | 2 | No public GTFS-RT for PMPML/BEST/Maha-Metro/Railways; Google arrive-by is single-destination only; **Mumbai One has a planner, alerts and Marathi** (don't claim "no Marathi app"); State Startup Policy 2025: 0.5 % departmental innovation allocation; DPDP Rules 2025 (dates may be compressed to 13 Nov 2026) | Overclaims about competitors; consent/notice on reports; no outreach artefacts; no live-data route | Corrected deck/docs claims; explicit consent + retention/breach/DPDP notes; `docs/16` outreach kit + data-request template; `submission/two-page-note.md`; honest evaluator Q&A (docs/10) |
+| 3 | GIGW 3.0 needs WCAG 2.1 AA + CERT-In-aligned security; pilots need evidence; live feed will arrive as GTFS-RT | Login not throttled; no audit trail; retention promised but not built; no pilot measurement; no feed adapter; no CSP | Login throttle, audit trail, daily retention purge, CSP + headers ([17](17-security-privacy-ops.md)); anonymous alert/trip feedback + `/impact` pilot panel; GTFS-RT adapter (tested on a synthetic feed) |
 
 ## Open items that need **you** (cannot be done from here)
 1. **Submit on the Maharashtra portal today** (Aadhaar, ID, upload the PDF).

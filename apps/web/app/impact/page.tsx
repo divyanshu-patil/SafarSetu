@@ -1,5 +1,7 @@
 "use client";
+import { useEffect, useState } from "react";
 import { IMPACT_FACTORS } from "@repo/core";
+import { api } from "../lib/api";
 import { LocalBar, OutlinePill } from "../components/LocalBar";
 import { Chip } from "../lib/icons";
 
@@ -12,7 +14,11 @@ const SCALE = [
   ["Last mile", "Walking + shared modes > 75 % of last-mile trips; riders accept ≈ 20 min to reach a station", "WRI India (HIGH)"],
 ];
 
+interface Fb { alerts: { n: number; usefulPct: number | null }; trips: { n: number; onTimePct: number | null; avgMinutesLate: number | null }; note: string }
+
 export default function ImpactPage() {
+  const [fb, setFb] = useState<Fb | null>(null);
+  useEffect(() => { fetch(`${api.baseUrl}/v1/feedback/summary`).then((r) => r.json()).then(setFb).catch(() => {}); }, []);
   return (
     <main>
       <LocalBar title="How we estimate impact" crumb="Transparent, conservative, and labelled as estimates"><OutlinePill href="/">Back to the planner</OutlinePill></LocalBar>
@@ -49,6 +55,18 @@ export default function ImpactPage() {
           <div className="card">
             <h2 className="h3">Who this could reach (addressable, not achieved)</h2>
             <table className="t mt"><tbody>{SCALE.map(([a, b, c]) => <tr key={a}><td><b>{a}</b></td><td>{b}</td><td className="sub">{c}</td></tr>)}</tbody></table>
+          </div>
+
+          <div className="card">
+            <h2 className="h3">Pilot feedback so far</h2>
+            {fb && fb.alerts.n + fb.trips.n === 0 && <p className="mt">None yet — <b>nothing here is a result</b>. During a pilot, riders can tap “useful?” on each alert and say how the day went; the answers appear here, anonymously.</p>}
+            {fb && fb.alerts.n + fb.trips.n > 0 && (
+              <div className="stats mt">
+                <div className="stat"><b>{fb.alerts.usefulPct ?? "–"}%</b><span>of {fb.alerts.n} rated alerts were useful</span></div>
+                <div className="stat"><b>{fb.trips.onTimePct ?? "–"}%</b><span>of {fb.trips.n} trips on time{fb.trips.avgMinutesLate ? ` (late ones ≈ ${fb.trips.avgMinutesLate} min)` : ""}</span></div>
+              </div>
+            )}
+            {fb && <p className="label mt">{fb.note}</p>}
           </div>
 
           <div className="card">

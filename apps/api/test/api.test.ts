@@ -77,6 +77,8 @@ test("citizen report -> authority login -> role-scoped update", async () => {
   assert.equal(list.items[0].reporter, undefined);
   const up = await fetch(`${base}/v1/authority/reports/${r.body.report.id}`, { method: "PATCH", body: JSON.stringify({ status: "referred", publicNote: "Sent to PMPML", internalNote: "check route 285" }), ...auth(sup) });
   assert.equal(up.status, 200);
+  const upj = (await up.json()) as any;
+  assert.ok(upj.report.internalNotes.some((n: any) => String(n.by).startsWith("AUDIT") && /referred/.test(n.text)), "status change is audited");
   assert.equal((await j(`/v1/reports/track/${r.body.report.ref}`)).body.report.status, "referred");
   assert.equal((await j(`/v1/reports/track/${r.body.report.ref}`)).body.report.internalNotes, undefined);
   // Mumbai analyst: scoped to Mumbai, cannot change status
@@ -116,4 +118,54 @@ test("authority CSV export is scoped, auth-protected and formula-safe", async ()
   const csv = await r.text();
   assert.match(csv.split("\n")[0]!, /^ref,created,region/);
   assert.ok(csv.split("\n").slice(1).every((l) => l.includes('"mumbai"')), "analyst only sees Mumbai rows");
+});
+
+test("security: sign-in is throttled, audit trail is written, retention purges old real reports only", async () => {
+  const bad = async () => (await post("/v1/auth/login", { email: "throttle@transport.demo", password: "nope" })).status;
+  const codes: number[] = [];
+  for (let i = 0; i < 7; i++) codes.push(await bad());
+  assert.deepEqual(codes.slice(0, 5), [401, 401, 401, 401, 401]);
+  assert.equal(codes[5], 429);
+  // security headers
+  const h = await fetch(base + "/health");
+  assert.equal(h.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(h.headers.get("x-powered-by"), null);
+  // retention: old real report is purged, old synthetic one is kept
+  const store = engine.store as import("../src/store").MemoryStore;
+  const old = new Date(Date.now() - 400 * 86400000).toISOString();
+  const real = [...store.reports.values()].find((r) => !r.synthetic)!;
+  const syn = [...store.reports.values()].find((r) => r.synthetic)!;
+  store.reports.set(real.id, { ...real, createdAt: old });
+  store.reports.set(syn.id, { ...syn, createdAt: old });
+  const n = await store.purgeReportsBefore(new Date(Date.now() - 365 * 86400000).toISOString());
+  assert.equal(n, 1);
+  assert.ok(store.reports.has(syn.id) && !store.reports.has(real.id));
+});
+
+test("pilot feedback is anonymous and aggregated", async () => {
+  assert.equal((await post("/v1/feedback", { kind: "alert", useful: "yes" })).status, 400);
+  assert.equal((await post("/v1/feedback", { kind: "alert", alertKind: "relax", useful: true })).status, 201);
+  assert.equal((await post("/v1/feedback", { kind: "alert", alertKind: "relax", useful: false })).status, 201);
+  assert.equal((await post("/v1/feedback", { kind: "trip", onTime: false, minutesLate: 8 })).status, 201);
+  const s = (await j("/v1/feedback/summary")).body;
+  assert.equal(s.alerts.n, 2);
+  assert.equal(s.alerts.usefulPct, 50);
+  assert.equal(s.trips.avgMinutesLate, 8);
+  assert.equal(s.alerts.byKind.relax.n, 2);
+});
+
+import { feedToDisruptions, transit_realtime } from "../src/gtfs-rt";
+import { puneNetwork } from "@repo/core";
+test("GTFS-Realtime TripUpdates become disruptions (delay, cancellation, small drift ignored)", () => {
+  const r = puneNetwork.routes.find((x) => x.id.startsWith("pmpml_") && x.departures.length > 3)!;
+  const [, routeId, dir] = r.id.split("_") as [string, string, string];
+  const start = r.departures[2]!;
+  const hhmmss = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}:00`;
+  const mk = (id: string, delay: number, cancelled = false) => ({ id, tripUpdate: { trip: { tripId: id, routeId, directionId: Number(dir), startTime: hhmmss, scheduleRelationship: cancelled ? transit_realtime.TripDescriptor.ScheduleRelationship.CANCELED : transit_realtime.TripDescriptor.ScheduleRelationship.SCHEDULED }, stopTimeUpdate: [{ stopSequence: 1, arrival: { delay } }] } });
+  const buf = transit_realtime.FeedMessage.encode(transit_realtime.FeedMessage.fromObject({ header: { gtfsRealtimeVersion: "2.0" }, entity: [mk("a", 900), mk("b", 60), mk("c", 0, true)] })).finish();
+  const ds = feedToDisruptions(buf, puneNetwork, { prefix: "pmpml" });
+  const delay = ds.find((d) => d.type === "delay" && d.routeId === r.id);
+  assert.ok(delay && delay.delayMin === 15 && delay.tripDeparture === start, JSON.stringify(delay));
+  assert.ok(ds.some((d) => d.type === "cancellation" && d.routeId === r.id && d.tripDeparture === start));
+  assert.ok(!ds.some((d) => d.delayMin === 1), "a 60-second drift is noise");
 });

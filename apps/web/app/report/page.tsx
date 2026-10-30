@@ -130,7 +130,7 @@ export default function ReportPage() {
               <textarea className="textarea" maxLength={600} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. The last bus to the station leaves at 8 pm, so people walk 3 km." />
             </label>
 
-            <div className="note"><Icon name="ShieldCheck" size={14} /> We store the areas, category and your text — no name, phone number or device location. Reports are kept for 12 months (planned) and shared with authorities for your region only. <a href="/privacy" style={{ textDecoration: "underline" }}>Privacy notice</a>. {PROMISE.split(".")[2]?.trim()}.</div>
+            <div className="note"><Icon name="ShieldCheck" size={14} /> We store the areas, category and your text — no name, phone number or device location. Reports are deleted after 12 months and shared with authorities for your region only. <a href="/privacy" style={{ textDecoration: "underline" }}>Privacy notice</a>. {PROMISE.split(".")[2]?.trim()}.</div>
             <label className="check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} /> I have read how this report is used. (If you are under 18, please ask a parent or guardian first.)</label>
             {err && <p className="err" role="alert">{err}</p>}
             <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? t("sending") : t("sendReport")}</button></div>

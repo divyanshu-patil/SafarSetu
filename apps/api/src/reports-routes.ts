@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type { Express } from "express";
 import { z } from "zod";
 import { CATEGORIES, DEFAULT_WEIGHTS, PROMISE, REGIONS, STATUSES, clusterReports, networks, regionOf, toPublic, type Report, type ReportStatus } from "@repo/core";
-import { canDecide, canSee, demoHint, login, requireAuthority, type AuthUser } from "./auth";
+import { canDecide, canSee, clearFails, demoHint, login, recordFail, requireAuthority, throttled, type AuthUser } from "./auth";
 import { Engine, HttpError } from "./engine";
 
 const lat = z.number().min(-90).max(90);
@@ -77,8 +77,14 @@ export function mountReports(app: Express, engine: Engine) {
   // ---- authority auth ------------------------------------------------------
   app.post("/v1/auth/login", (req, res) => {
     const b = parse(z.object({ email: z.string().max(120), password: z.string().max(200) }), req.body);
+    const key = `${req.ip}|${b.email.trim().toLowerCase()}`;
+    if (throttled(key)) throw new HttpError(429, "too_many_attempts", "Too many failed sign-in attempts. Try again in 15 minutes.");
     const r = login(b.email, b.password);
-    if (!r) throw new HttpError(401, "bad_credentials", "Email or password is incorrect");
+    if (!r) {
+      recordFail(key);
+      throw new HttpError(401, "bad_credentials", "Email or password is incorrect");
+    }
+    clearFails(key);
     res.json(r);
   });
   app.get("/v1/auth/me", requireAuthority, (req, res) => res.json({ user: res.locals.authority }));
@@ -127,6 +133,10 @@ export function mountReports(app: Express, engine: Engine) {
     if (!r || !canSee(u, r.city)) throw new HttpError(404, "not_found", "Report not found");
     const b = parse(patchBody, req.body);
     if ((b.status || b.publicNote !== undefined || b.assignee !== undefined) && !canDecide(u)) throw new HttpError(403, "forbidden", "Your role can add internal notes but cannot change status or public notes");
+    const audit = (text: string) => r.internalNotes.push({ at: new Date().toISOString(), by: `AUDIT · ${u.name} (${u.role})`, text });
+    if (b.status && b.status !== r.status) audit(`status ${r.status} → ${b.status}`);
+    if (b.publicNote !== undefined && (b.publicNote || undefined) !== r.publicNote) audit("public note changed");
+    if (b.assignee !== undefined && (b.assignee || undefined) !== r.assignee) audit(`assignee → ${b.assignee || "none"}`);
     if (b.status) r.status = b.status as ReportStatus;
     if (b.publicNote !== undefined) r.publicNote = b.publicNote || undefined;
     if (b.assignee !== undefined) r.assignee = b.assignee || undefined;

@@ -23,6 +23,18 @@ const accounts = (process.env.AUTHORITY_USERS_JSON ? (JSON.parse(process.env.AUT
 const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const sign = (body: string) => createHmac("sha256", SECRET).update(body).digest("base64url");
 
+// brute-force throttle: 5 failures per (ip, email) per 15 minutes, then 429 until the window passes
+const fails = new Map<string, number[]>();
+const WINDOW = 15 * 60_000;
+export function throttled(key: string): boolean {
+  const now = Date.now();
+  const recent = (fails.get(key) ?? []).filter((t) => now - t < WINDOW);
+  fails.set(key, recent);
+  return recent.length >= 5;
+}
+export const recordFail = (key: string) => fails.set(key, [...(fails.get(key) ?? []), Date.now()]);
+export const clearFails = (key: string) => fails.delete(key);
+
 export function login(email: string, password: string): { token: string; user: AuthUser } | null {
   const a = accounts.find((x) => x.user.email === email.trim().toLowerCase());
   // always hash, so timing doesn't reveal whether the account exists

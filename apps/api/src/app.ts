@@ -73,6 +73,16 @@ export function createApp(engine: Engine): Express {
   const app = express();
   const simOn = process.env.SIM_ENABLED !== "false";
   app.use(cors({ methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }));
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("X-Frame-Options", "DENY");
+    if (process.env.NODE_ENV === "production") res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    next();
+  });
+  app.use(["/v1/auth", "/v1/authority"], (_req, res, next) => (res.setHeader("Cache-Control", "no-store"), next()));
   app.use(express.json({ limit: "200kb" }));
   const user = (req: Request) => String(req.header("x-user-id") ?? "demo").slice(0, 64);
   const city = (req: Request) => String(req.query.city ?? "pune");

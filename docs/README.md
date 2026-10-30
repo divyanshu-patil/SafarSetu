@@ -18,6 +18,7 @@ SafarSetu helps people **organise their work and errands around the connecting p
 | 08 | [Web dashboard & mobile reuse](08-clients.md) | Screens, UX rules, how the Expo app plugs in |
 | 09 | [Production readiness](09-production-readiness.md) | Timing changes, cancellations, scale, privacy, rollout |
 | 10 | [Demo script & judge Q&A](10-demo-and-qa.md) | 5-minute demo, likely questions |
+| 17 | [Security & privacy ops](17-security-privacy-ops.md) | Controls, breach runbook, GIGW/WCAG status |
 | 16 | [Agency outreach kit](16-agency-outreach.md) | Data-request letter, MoU terms, who to approach |
 | 11 | [Data sources](../DATA_SOURCES.md) | Every dataset/API used, licence, what is real vs synthetic |
 | 12 | [Reports & authority portal](12-reports-and-authority.md) | Citizen gap reports, authority login, ranking, roles |

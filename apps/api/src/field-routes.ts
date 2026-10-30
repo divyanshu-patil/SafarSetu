@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { Express } from "express";
 import { z } from "zod";
 import { HttpError } from "./engine";
-import type { Interview, Store } from "./store";
+import type { Feedback, Interview, Store } from "./store";
 
 const body = z.object({
   code: z.string().min(1).max(20),
@@ -59,6 +59,45 @@ export function mountField(app: Express, store: Store) {
       modes,
       quotes: all.slice(0, 8).map((i) => ({ code: i.code, role: i.role, route: i.route, problem: i.problem, workaround: i.workaround })),
       note: all.length ? "Primary evidence from consented, anonymous interviews." : "No interviews logged yet — nothing here is a result.",
+    });
+  });
+
+  // ---- pilot feedback (anonymous, aggregated) ----------------------------------
+  const fb = z.object({
+    kind: z.enum(["alert", "trip"]),
+    planId: z.string().uuid().optional(),
+    alertKind: z.string().max(20).optional(),
+    useful: z.boolean().optional(),
+    onTime: z.boolean().optional(),
+    minutesLate: z.number().int().min(0).max(600).optional(),
+  });
+  const seen = new Map<string, number>();
+  app.post("/v1/feedback", async (req, res) => {
+    const b = fb.safeParse(req.body);
+    if (!b.success) throw new HttpError(400, "invalid_body", b.error.issues.map((i) => i.message).join("; "));
+    const k = `${req.ip}`;
+    const n = (seen.get(k) ?? 0) + 1;
+    seen.set(k, n);
+    if (n > 200) throw new HttpError(429, "rate_limited", "Too much feedback from this device");
+    const f: Feedback = { id: randomUUID(), ...b.data, createdAt: new Date().toISOString() };
+    await store.addFeedback(f);
+    res.status(201).json({ ok: true });
+  });
+  app.get("/v1/feedback/summary", async (_req, res) => {
+    const all = await store.listFeedback();
+    const alerts = all.filter((f) => f.kind === "alert" && f.useful !== undefined);
+    const trips = all.filter((f) => f.kind === "trip" && f.onTime !== undefined);
+    const late = trips.filter((f) => f.onTime === false);
+    const byKind: Record<string, { n: number; useful: number }> = {};
+    for (const a of alerts) {
+      const e = (byKind[a.alertKind ?? "other"] ??= { n: 0, useful: 0 });
+      e.n++;
+      if (a.useful) e.useful++;
+    }
+    res.json({
+      alerts: { n: alerts.length, usefulPct: alerts.length ? Math.round((100 * alerts.filter((a) => a.useful).length) / alerts.length) : null, byKind },
+      trips: { n: trips.length, onTimePct: trips.length ? Math.round((100 * trips.filter((t) => t.onTime).length) / trips.length) : null, avgMinutesLate: late.length ? Math.round(late.reduce((s, t) => s + (t.minutesLate ?? 0), 0) / late.length) : null },
+      note: alerts.length + trips.length ? "Anonymous, self-reported feedback from people who chose to answer — not a controlled measurement." : "No feedback yet — nothing here is a result.",
     });
   });
 }

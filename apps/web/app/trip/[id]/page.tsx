@@ -36,6 +36,9 @@ export default function Trip() {
   const [busy, setBusy] = useState<string | null>(null);
   const [perm, setPerm] = useState<string>("default");
   const seen = useRef(new Set<string>());
+  const [rated, setRated] = useState<Set<string>>(new Set());
+  const [outcome, setOutcome] = useState<string | null>(null);
+  const sendFb = (body: object) => fetch(`${api.baseUrl}/v1/feedback`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => {});
 
   const loadPlan = useCallback(() => api.getPlan(id).then((r) => setPlan(r.plan)).catch((e) => setErr(e.message)), [id]);
   const loadDis = useCallback(() => api.disruptions().then((r) => setDis(r.items)).catch(() => {}), []);
@@ -96,6 +99,17 @@ export default function Trip() {
           <div className="label">{t("nextUp")}</div>
           <div className="next" style={{ margin: "8px auto 8px", maxWidth: 900 }}>{next?.title ?? t("dayDone")}</div>
           <p className="sub">{next?.detail}</p>
+          {!next && !readOnly && (
+            <div className="card mt2" style={{ maxWidth: 560, margin: "32px auto 0", textAlign: "left", background: "var(--color-fog)" }}>
+              <b>How did the day go?</b>
+              {outcome ? <p className="sub mt">Thank you — recorded anonymously ({outcome}).</p> : (
+                <div className="chips mt">
+                  <button className="chip" onClick={() => { setOutcome("on time"); sendFb({ kind: "trip", planId: id, onTime: true }); }}>I made everything on time</button>
+                  {[5, 10, 20].map((m) => <button key={m} className="chip" onClick={() => { setOutcome(`late by about ${m} min`); sendFb({ kind: "trip", planId: id, onTime: false, minutesLate: m }); }}>Late by ~{m} min</button>)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -115,6 +129,14 @@ export default function Trip() {
                     <div>
                       <span className="label" style={{ color: (KIND_ICON[n.kind] ?? KIND_ICON.prepare!)[1] }}>{KIND[n.kind] ?? n.kind}</span>
                       <h4>{n.title}</h4><p>{n.body}</p><time>{fmtTime(n.fireMin)}</time>
+                      {!readOnly && !rated.has(n.id) && (
+                        <div className="row" style={{ gap: 8, marginTop: 8 }} role="group" aria-label="Was this alert useful?">
+                          <span className="label">Useful?</span>
+                          <button className="icobtn" title="Yes, useful" aria-label="Yes, useful" onClick={() => { setRated((r) => new Set(r).add(n.id)); sendFb({ kind: "alert", planId: id, alertKind: n.kind, useful: true }); }}><Icon name="ThumbsUp" size={14} /></button>
+                          <button className="icobtn" title="Not useful" aria-label="Not useful" onClick={() => { setRated((r) => new Set(r).add(n.id)); sendFb({ kind: "alert", planId: id, alertKind: n.kind, useful: false }); }}><Icon name="ThumbsDown" size={14} /></button>
+                        </div>
+                      )}
+                      {rated.has(n.id) && <span className="label">Thanks — noted anonymously.</span>}
                     </div>
                   </div>
                 ))}
