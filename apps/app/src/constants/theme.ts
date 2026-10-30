@@ -17,6 +17,7 @@ export const Colors = {
     backgroundSelected: '#e2f6d5', // Linen Mist
     textSecondary: '#6a6c6a', // Slate
     brand: '#163300', // Forest Ink
+    brandSolid: '#163300', // selected-chip fill
     accent: '#9fe870', // Lime Voltage (primary action / active only)
     onAccent: '#163300',
     border: 'rgba(14,15,12,0.12)',
@@ -27,10 +28,11 @@ export const Colors = {
     text: '#e8ebe6',
     textStrong: '#ffffff',
     background: '#0e0f0c',
-    backgroundElement: '#163300',
-    backgroundSelected: '#054d28',
+    backgroundElement: '#1b1d19',
+    backgroundSelected: '#1d3a0c',
     textSecondary: '#b6bcb3',
     brand: '#9fe870',
+    brandSolid: '#2f6b0f',
     accent: '#9fe870',
     onAccent: '#163300',
     border: 'rgba(255,255,255,0.14)',
@@ -90,5 +92,4 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

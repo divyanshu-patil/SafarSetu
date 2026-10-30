@@ -1,0 +1,77 @@
+import type { Lang } from '@repo/core';
+
+// Short UI strings only. Hindi and Marathi mirror the web app and need native-speaker review before a pilot.
+const en = {
+  plan: 'Plan', trip: 'Trip', report: 'Report', settings: 'Settings',
+  whereTo: 'Where to?', start: 'Start', startHint: 'Where are you starting?', addStop: 'Add a stop', myLocation: 'My location',
+  leaveAt: 'Leave at', clear: 'Clear', examples: 'Try an example', planBtn: 'Plan route', planning: 'Planning…',
+  options: 'Trip options', done: 'Done', date: 'Date', finishBy: 'Finish by', returnStart: 'Return to start', order: 'Stop order', myOrder: 'Mine', bestOrder: 'Best',
+  pace: 'Pace', gentle: 'Gentle', relaxed: 'Relaxed', normal: 'Normal', fast: 'Fast', alerts: 'Alerts', calm: 'Calm', brief: 'Brief',
+  transport: 'Transport', local: 'Local', express: 'Express', metro: 'Metro', bus: 'Bus', cab: 'Cab',
+  task: 'What for?', taskHint: 'Meeting, bank, pick-up…', stay: 'Stay', beThereBy: 'Be there by', must: 'Must do', optional: 'Optional', remove: 'Remove',
+  stops: 'stops', walking: 'walking', fares: 'fares', onTime: 'on time', saves: 'vs cab', co2: 'CO₂',
+  walk: 'Walk', min: 'min', leave: 'Leave', arrive: 'Arrive', until: 'until', late: 'Late', toward: 'toward',
+  cantWork: 'Can’t work as asked', leftOut: 'Left out', startTrip: 'Start live trip', share: 'Share', saved: 'Saved',
+  nextUp: 'Next up', dayDone: 'All done', noTrip: 'No trip yet', noTripHint: 'Plan a route to track it live.', alertsTitle: 'Alerts', noAlerts: 'No alerts yet',
+  start_demo: 'Start demo', pause: 'Pause', play: 'Play', simulate: 'Simulate', useful: 'Useful?', thanks: 'Thanks',
+  howDay: 'How did it go?', madeIt: 'On time', lateBy: 'Late',
+  reportTitle: 'Report a gap', reportHint: 'Where should be connected, but isn’t?', problem: 'Problem', from: 'From', to: 'To (optional)', how: 'How serious?',
+  minor: 'Minor', real: 'Real', serious: 'Serious', describe: 'Details (optional)', send: 'Send', sending: 'Sending…', another: 'Report another', refNo: 'Reference', track: 'Track a report', trackHint: 'Reference, e.g. SS-1234', check: 'Check', noPersonal: 'No name, phone or location is collected.',
+  status: 'Status', note: 'Team note', insights: 'Network insights',
+  language: 'Language', notifications: 'Notifications', notifOn: 'Alerts on this phone', notifDenied: 'Blocked — enable in system settings', openSettings: 'Open settings',
+  location: 'Location', locOn: 'Use for your start point', appearance: 'Defaults', yourName: 'Your name', optionalName: 'Optional, for friendlier alerts',
+  server: 'Server', serverHint: 'API address', serverReset: 'Reset', about: 'About', aboutText: 'Plans use real timetables where available. Mumbai and Pune metro and local-rail data is demo data.',
+  online: 'Connected', offline: 'Offline — planning on this phone', search: 'Search a place', noResults: 'No matches', popular: 'Popular',
+  rain: 'Rain likely', tightest: 'Tightest', error: 'Something went wrong', retry: 'Retry', unreachable: 'Can’t reach the server',
+} as const;
+export type K = keyof typeof en;
+
+const hi: Record<K, string> = {
+  plan: 'योजना', trip: 'यात्रा', report: 'रिपोर्ट', settings: 'सेटिंग',
+  whereTo: 'कहाँ जाना है?', start: 'शुरुआत', startHint: 'कहाँ से शुरू करें?', addStop: 'पड़ाव जोड़ें', myLocation: 'मेरी लोकेशन',
+  leaveAt: 'निकलें', clear: 'हटाएँ', examples: 'उदाहरण आज़माएँ', planBtn: 'रास्ता बनाएँ', planning: 'बन रहा है…',
+  options: 'यात्रा विकल्प', done: 'हो गया', date: 'तारीख', finishBy: 'समाप्ति', returnStart: 'शुरुआत पर लौटें', order: 'क्रम', myOrder: 'मेरा', bestOrder: 'सबसे अच्छा',
+  pace: 'गति', gentle: 'आराम से', relaxed: 'ढीली', normal: 'सामान्य', fast: 'तेज़', alerts: 'अलर्ट', calm: 'शांत', brief: 'संक्षिप्त',
+  transport: 'साधन', local: 'लोकल', express: 'एक्सप्रेस', metro: 'मेट्रो', bus: 'बस', cab: 'कैब',
+  task: 'किसलिए?', taskHint: 'मीटिंग, बैंक, पार्सल…', stay: 'रुकें', beThereBy: 'तक पहुँचें', must: 'ज़रूरी', optional: 'वैकल्पिक', remove: 'हटाएँ',
+  stops: 'पड़ाव', walking: 'पैदल', fares: 'किराया', onTime: 'समय पर', saves: 'कैब से कम', co2: 'CO₂',
+  walk: 'पैदल', min: 'मिनट', leave: 'निकलें', arrive: 'पहुँचें', until: 'तक', late: 'देर', toward: 'की ओर',
+  cantWork: 'यह संभव नहीं', leftOut: 'छूटे', startTrip: 'लाइव यात्रा शुरू करें', share: 'साझा करें', saved: 'सहेजा',
+  nextUp: 'अगला', dayDone: 'सब पूरा', noTrip: 'अभी कोई यात्रा नहीं', noTripHint: 'लाइव ट्रैक के लिए रास्ता बनाएँ।', alertsTitle: 'अलर्ट', noAlerts: 'अभी कोई अलर्ट नहीं',
+  start_demo: 'डेमो शुरू', pause: 'रोकें', play: 'चलाएँ', simulate: 'सिमुलेट', useful: 'उपयोगी?', thanks: 'धन्यवाद',
+  howDay: 'कैसा रहा?', madeIt: 'समय पर', lateBy: 'देर',
+  reportTitle: 'कमी बताएँ', reportHint: 'कहाँ जुड़ाव होना चाहिए, पर नहीं है?', problem: 'समस्या', from: 'कहाँ से', to: 'कहाँ तक (वैकल्पिक)', how: 'कितना गंभीर?',
+  minor: 'छोटी', real: 'असली', serious: 'गंभीर', describe: 'विवरण (वैकल्पिक)', send: 'भेजें', sending: 'भेज रहे हैं…', another: 'एक और', refNo: 'संदर्भ', track: 'रिपोर्ट देखें', trackHint: 'संदर्भ, जैसे SS-1234', check: 'देखें', noPersonal: 'नाम, फ़ोन या लोकेशन नहीं लिया जाता।',
+  status: 'स्थिति', note: 'टीम का नोट', insights: 'नेटवर्क जानकारी',
+  language: 'भाषा', notifications: 'सूचनाएँ', notifOn: 'इस फ़ोन पर अलर्ट', notifDenied: 'बंद — सिस्टम सेटिंग में चालू करें', openSettings: 'सेटिंग खोलें',
+  location: 'लोकेशन', locOn: 'शुरुआती जगह के लिए', appearance: 'डिफ़ॉल्ट', yourName: 'आपका नाम', optionalName: 'वैकल्पिक, अलर्ट के लिए',
+  server: 'सर्वर', serverHint: 'API पता', serverReset: 'रीसेट', about: 'जानकारी', aboutText: 'जहाँ उपलब्ध हो, असली समय-सारणी इस्तेमाल होती है। मुंबई और पुणे के मेट्रो व लोकल का डेटा डेमो है।',
+  online: 'जुड़ा हुआ', offline: 'ऑफ़लाइन — फ़ोन पर योजना', search: 'जगह खोजें', noResults: 'कुछ नहीं मिला', popular: 'लोकप्रिय',
+  rain: 'बारिश संभव', tightest: 'सबसे तंग', error: 'कुछ गड़बड़ हुई', retry: 'फिर कोशिश', unreachable: 'सर्वर से संपर्क नहीं',
+};
+
+const mr: Record<K, string> = {
+  plan: 'योजना', trip: 'प्रवास', report: 'तक्रार', settings: 'सेटिंग',
+  whereTo: 'कुठे जायचे?', start: 'सुरुवात', startHint: 'कुठून निघताय?', addStop: 'थांबा जोडा', myLocation: 'माझे स्थान',
+  leaveAt: 'निघा', clear: 'काढा', examples: 'उदाहरण पहा', planBtn: 'मार्ग आखा', planning: 'आखत आहे…',
+  options: 'प्रवास पर्याय', done: 'झाले', date: 'तारीख', finishBy: 'संपवा', returnStart: 'सुरुवातीला परत', order: 'क्रम', myOrder: 'माझा', bestOrder: 'सर्वोत्तम',
+  pace: 'गती', gentle: 'सावकाश', relaxed: 'सैल', normal: 'सामान्य', fast: 'जलद', alerts: 'अलर्ट', calm: 'शांत', brief: 'थोडक्यात',
+  transport: 'साधन', local: 'लोकल', express: 'एक्सप्रेस', metro: 'मेट्रो', bus: 'बस', cab: 'कॅब',
+  task: 'कशासाठी?', taskHint: 'भेट, बँक, पार्सल…', stay: 'थांबा', beThereBy: 'पर्यंत पोहोचा', must: 'आवश्यक', optional: 'ऐच्छिक', remove: 'काढा',
+  stops: 'थांबे', walking: 'चालणे', fares: 'भाडे', onTime: 'वेळेवर', saves: 'कॅबपेक्षा कमी', co2: 'CO₂',
+  walk: 'चाला', min: 'मि', leave: 'निघा', arrive: 'पोहोचा', until: 'पर्यंत', late: 'उशीर', toward: 'दिशेने',
+  cantWork: 'हे जमणार नाही', leftOut: 'वगळले', startTrip: 'लाइव्ह प्रवास सुरू करा', share: 'शेअर', saved: 'जतन',
+  nextUp: 'पुढे', dayDone: 'सर्व पूर्ण', noTrip: 'अजून प्रवास नाही', noTripHint: 'लाइव्ह पाहण्यासाठी मार्ग आखा.', alertsTitle: 'अलर्ट', noAlerts: 'अजून अलर्ट नाहीत',
+  start_demo: 'डेमो सुरू', pause: 'थांबवा', play: 'चालवा', simulate: 'सिम्युलेट', useful: 'उपयुक्त?', thanks: 'धन्यवाद',
+  howDay: 'कसे झाले?', madeIt: 'वेळेवर', lateBy: 'उशीर',
+  reportTitle: 'उणीव कळवा', reportHint: 'कुठे जोडणी हवी, पण नाही?', problem: 'समस्या', from: 'कुठून', to: 'कुठपर्यंत (ऐच्छिक)', how: 'किती गंभीर?',
+  minor: 'लहान', real: 'खरी', serious: 'गंभीर', describe: 'तपशील (ऐच्छिक)', send: 'पाठवा', sending: 'पाठवत आहे…', another: 'आणखी एक', refNo: 'संदर्भ', track: 'तक्रार पहा', trackHint: 'संदर्भ, उदा. SS-1234', check: 'पहा', noPersonal: 'नाव, फोन किंवा स्थान घेतले जात नाही.',
+  status: 'स्थिती', note: 'टीमची नोंद', insights: 'नेटवर्क माहिती',
+  language: 'भाषा', notifications: 'सूचना', notifOn: 'या फोनवर अलर्ट', notifDenied: 'बंद — सिस्टम सेटिंगमध्ये चालू करा', openSettings: 'सेटिंग उघडा',
+  location: 'स्थान', locOn: 'सुरुवातीच्या ठिकाणासाठी', appearance: 'डीफॉल्ट', yourName: 'तुमचे नाव', optionalName: 'ऐच्छिक, अलर्टसाठी',
+  server: 'सर्व्हर', serverHint: 'API पत्ता', serverReset: 'रीसेट', about: 'माहिती', aboutText: 'जिथे उपलब्ध तिथे खरी वेळापत्रके वापरली जातात. मुंबई-पुणे मेट्रो व लोकलचा डेटा डेमो आहे.',
+  online: 'जोडलेले', offline: 'ऑफलाइन — फोनवर योजना', search: 'ठिकाण शोधा', noResults: 'काही सापडले नाही', popular: 'लोकप्रिय',
+  rain: 'पावसाची शक्यता', tightest: 'सर्वात घट्ट', error: 'काहीतरी चुकले', retry: 'पुन्हा', unreachable: 'सर्व्हरशी संपर्क नाही',
+};
+
+export const DICT: Record<Lang, Record<K, string>> = { en, hi, mr };
