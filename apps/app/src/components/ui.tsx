@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Button as NativeButton, BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
+import { BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
 import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
@@ -70,15 +70,7 @@ export function Card({ children, style, tint }: { children: ReactNode; style?: S
   return <View style={[styles.card, { backgroundColor: tint ? t.backgroundSelected : t.backgroundElement }, style]}>{children}</View>;
 }
 
-/** Native button (SwiftUI / Material). Icons are dropped: the platform button is label-only. */
-export function Btn({ label = '', onPress, kind = 'primary', busy, disabled, full = true }: { label?: string; icon?: IconName; onPress?: () => void; kind?: 'primary' | 'soft' | 'ghost'; busy?: boolean; disabled?: boolean; full?: boolean }) {
-  const t = useTheme();
-  return (
-    <Host matchContents={{ vertical: true, horizontal: !full }} seedColor={t.brandSolid} style={full ? { width: '100%' } : undefined}>
-      <NativeButton label={busy ? '…' : label} variant={kind === 'primary' ? 'filled' : kind === 'soft' ? 'outlined' : 'text'} disabled={disabled || busy} onPress={onPress} style={full ? { width: '100%' } : undefined} />
-    </Host>
-  );
-}
+export { Btn } from './btn';
 
 /** Native toggle. */
 export function Toggle({ value, onValueChange, label }: { value: boolean; onValueChange: (v: boolean) => void; label?: string }) {
