@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
+import Sortable, { useItemContext } from 'react-native-sortables';
 import { fmtTime, networks, type PlanRequest } from '@repo/core';
 
 import { PlaceInput, locate, type Pt } from '@/components/place-input';
-import { ReorderList } from '@/components/reorder-list';
 import { TimePick } from '@/components/time-pick';
-import { Brand, Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx } from '@/components/ui';
+import { Brand, Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx, useScreenScrollRef } from '@/components/ui';
 import { Font, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askNotifications } from '@/lib/notify';
@@ -26,6 +26,7 @@ const stopOf = (p: Pt, o: Partial<Stop> = {}): Stop => ({ ...p, id: `s${++uid}`,
 
 export default function PlanScreen() {
   const th = useTheme();
+  const scrollRef = useScreenScrollRef();
   const s = useSettings();
   const { t, client } = s;
   const { setCurrent } = useSession();
@@ -49,7 +50,6 @@ export default function PlanScreen() {
   // a chip tap fills the start first, then adds stops
   const usePt = (p: Pt) => (!origin || editStart ? setStart(p) : addStop(p));
   const patch = (id: string, p: Partial<Stop>) => setStops((x) => x.map((y) => (y.id === id ? { ...y, ...p } : y)));
-  const reorder = (from: number, to: number) => setStops((x) => { const n = [...x]; const [m] = n.splice(from, 1); n.splice(to, 0, m!); return n; });
   const clear = () => { setOrigin(null); setStops([]); setOpen(null); setErr(null); setEditStart(false); setFinish(''); setReturnHome(false); };
   const example = (e: Example) => {
     setCity(e.city); setOrigin(e.origin); setLeave(e.leave); setReturnHome(e.returnHome); setKeepOrder(true); setErr(null); setEditStart(false);
@@ -89,21 +89,26 @@ export default function PlanScreen() {
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
 
-  // live arrival times: the same engine plans on the phone whenever the route changes, so a reorder re-times every stop
-  const etas = useMemo(() => {
-    const m = new Map<string, { arrive: number; fits: boolean }>();
+  // live arrival times: the same engine plans on the phone whenever the route changes, so a reorder re-times every stop.
+  // It runs after a short pause, outside the render: planning blocks the JS thread, and doing it during a drop made the dropped row flash.
+  const [etas, setEtas] = useState<Map<string, { arrive: number; fits: boolean }>>(new Map());
+  useEffect(() => {
     const startMin = fromHHMM(leave);
-    if (!origin || !stops.length || startMin === undefined) return m;
-    try {
-      const plan = planLocally({
-        city, date: todayISO(), origin, startMin, endMin: Math.min(1439, startMin + 14 * 60), returnToOrigin: false, keepOrder,
-        prefs: { pace: s.pace, style: s.style, lang: s.lang, avoid: s.avoid as never[] },
-        places: stops.map((x) => ({ name: x.name, lat: x.lat, lon: x.lon, minDwell: x.dwell, maxDwell: x.dwell, arriveBy: fromHHMM(x.by), required: x.required, priority: x.required ? 3 : 2 })),
-      });
-      for (const e of plan.timeline) if (e.kind === 'visit') m.set(e.place.name, { arrive: e.arriveMin, fits: true });
-      for (const d of [...plan.dropped, ...(plan.conflicts ?? [])]) if (!m.has(d.name)) m.set(d.name, { arrive: 0, fits: false });
-    } catch { /* an unroutable combination: just show no times */ }
-    return m;
+    if (!origin || !stops.length || startMin === undefined) { setEtas(new Map()); return; }
+    const timer = setTimeout(() => {
+      const m = new Map<string, { arrive: number; fits: boolean }>();
+      try {
+        const plan = planLocally({
+          city, date: todayISO(), origin, startMin, endMin: Math.min(1439, startMin + 14 * 60), returnToOrigin: false, keepOrder,
+          prefs: { pace: s.pace, style: s.style, lang: s.lang, avoid: s.avoid as never[] },
+          places: stops.map((x) => ({ name: x.name, lat: x.lat, lon: x.lon, minDwell: x.dwell, maxDwell: x.dwell, arriveBy: fromHHMM(x.by), required: x.required, priority: x.required ? 3 : 2 })),
+        });
+        for (const e of plan.timeline) if (e.kind === 'visit') m.set(e.place.name, { arrive: e.arriveMin, fits: true });
+        for (const d of [...plan.dropped, ...(plan.conflicts ?? [])]) if (!m.has(d.name)) m.set(d.name, { arrive: 0, fits: false });
+      } catch { /* an unroutable combination: just show no times */ }
+      setEtas(m);
+    }, 200);
+    return () => clearTimeout(timer);
   }, [origin, stops, leave, city, keepOrder, s.pace, s.style, s.lang, s.avoid]);
 
   const empty = !origin && !stops.length;
@@ -117,9 +122,10 @@ export default function PlanScreen() {
       <Seg options={CITIES} value={city} onChange={(c) => { setCity(c); clear(); }} />
 
       <Card style={{ gap: 0 }}>
+        {origin && !editStart && stops.length > 0 && <View pointerEvents="none" style={{ position: 'absolute', left: 29, top: 44, bottom: 56, width: 2, borderRadius: 1, backgroundColor: th.borderStrong, opacity: 0.55 }} />}
         {/* A — start */}
         <View style={{ flexDirection: 'row', gap: Spacing.three }}>
-          <Rail badge="A" accent line={!!origin} top={origin && !editStart ? 0 : 11} />
+          <Rail badge="A" accent top={origin && !editStart ? 0 : 11} />
           <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
             {origin && !editStart ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
@@ -140,13 +146,13 @@ export default function PlanScreen() {
           </View>
         </View>
 
-        <ReorderList items={stops} onReorder={reorder} renderRow={(x, i, handle, dragging) => {
+        <View style={{ marginHorizontal: -12 }}><Sortable.Grid data={stops} columns={1} rowGap={0} keyExtractor={(x) => x.id} customHandle scrollableRef={scrollRef} activeItemScale={1.02} activeItemShadowOpacity={0.18} overDrag="vertical" onDragEnd={({ data }) => setStops(data)} renderItem={({ item: x, index: i }) => {
           const eta = etas.get(x.name);
           const late = !!eta && !!fromHHMM(x.by) && eta.arrive > fromHHMM(x.by)! + 0.5;
           return (
-            <>
-              <Rail badge={letter(i)} line={!dragging} />
-              <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
+            <Lift>
+              <Rail badge={letter(i)} />
+              <View style={{ flex: 1, gap: Spacing.two }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
                   <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setOpen(open === x.id ? null : x.id)}>
                     <Txt v="h2" numberOfLines={1}>{x.name}</Txt>
@@ -155,7 +161,7 @@ export default function PlanScreen() {
                       {[x.task, `${x.dwell} ${t('min')}`, x.by && `${t('by')} ${x.by}`, !x.required && t('optional')].filter(Boolean).join(' · ')}
                     </Txt>
                   </Pressable>
-                  {handle}
+                  <Sortable.Handle><View accessibilityLabel="Drag to reorder" style={{ width: 32, height: 36, alignItems: 'center', justifyContent: 'center' }}><Icon name="reorder-two" size={22} color={th.textSecondary} /></View></Sortable.Handle>
                 </View>
                 {open === x.id && (
                   <Animated.View entering={fx.fade} exiting={fx.out} style={{ gap: Spacing.two }}>
@@ -172,9 +178,9 @@ export default function PlanScreen() {
                   </Animated.View>
                 )}
               </View>
-            </>
+            </Lift>
           );
-        }} />
+        }} /></View>
 
         {origin && !editStart && (
           <View style={{ flexDirection: 'row', gap: Spacing.three }}>
@@ -225,15 +231,26 @@ export default function PlanScreen() {
 }
 
 /** Left rail of the A→B→C list: lettered badge and a dotted connector to the next row. */
-function Rail({ badge, accent, line, last, top = 0 }: { badge: string; accent?: boolean; line?: boolean; last?: boolean; top?: number }) {
+const PAD = 8; // vertical padding inside a stop row; the rail's connector runs through it so the line stays unbroken
+
+function Rail({ badge, accent, line, last, top = 0, topLine }: { badge: string; accent?: boolean; line?: boolean; last?: boolean; top?: number; topLine?: boolean }) {
   const t = useTheme();
+  const bar = { width: 2, borderRadius: 1, backgroundColor: t.borderStrong, opacity: 0.55 } as const;
   return (
     <View style={{ alignItems: 'center', width: 28, paddingTop: top }}>
+      {topLine && <View style={[bar, { height: PAD, marginTop: -PAD }]} />}
       <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: accent ? t.accent : last ? t.backgroundSelected : t.brandSolid }}>
         <Txt v="sub" style={{ fontFamily: Font.bold, color: accent ? t.onAccent : last ? t.brand : '#fff' }}>{badge}</Txt>
       </View>
-      {/* one unbroken connector to the next badge */}
-      {line && !last && <View style={{ flex: 1, width: 2, borderRadius: 1, backgroundColor: t.borderStrong, opacity: 0.55 }} />}
+      {line && !last && <View style={[bar, { flex: 1, marginBottom: -PAD }]} />}
     </View>
   );
+}
+
+/** A stop's row. While it is lifted it becomes a white card (the padding is invisible the rest of the time). */
+function Lift({ children }: { children: React.ReactNode }) {
+  const t = useTheme();
+  const { activationAnimationProgress } = useItemContext();
+  const style = useAnimatedStyle(() => ({ backgroundColor: interpolateColor(activationAnimationProgress.value, [0, 1], [`${t.background}00`, t.background]) }));
+  return <Animated.View style={[{ flexDirection: 'row', gap: Spacing.three, paddingHorizontal: 12, paddingVertical: PAD, borderRadius: 18 }, style]}>{children}</Animated.View>;
 }

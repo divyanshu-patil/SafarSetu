@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
 import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
-import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition, useAnimatedRef } from 'react-native-reanimated';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Image } from 'expo-image';
 import { Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
@@ -64,17 +64,16 @@ export function Header({ title, large = true, actions = [] }: { title: string; l
 /** Lets a field ask its screen to scroll it clear of the keyboard (and clear of its own suggestion list). */
 const RevealCtx = createContext<(node: any) => void>(() => {});
 export const useReveal = () => useContext(RevealCtx);
-/** Lets a drag gesture freeze the surrounding scroll view while it runs. */
-const ScrollLockCtx = createContext<(locked: boolean) => void>(() => {});
-export const useScrollLock = () => useContext(ScrollLockCtx);
+/** The screen's scroll view, for libraries that auto-scroll it while dragging. */
+const ScrollRefCtx = createContext<any>(null);
+export const useScreenScrollRef = () => useContext(ScrollRefCtx);
 
 /** Scroll screen. The ScrollView is the screen's first child so the native header and tab bar can inset it and blur behind it. */
 export function Screen({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const ios = Platform.OS === 'ios';
-  const sv = useRef<any>(null); // RN 0.88 types the instance oddly; only scrollTo is used
-  const [locked, setLocked] = useState(false);
+  const sv = useAnimatedRef<any>();
   const [extra, setExtra] = useState(0); // room below the content so a field near the bottom can still be scrolled up to the header
   useEffect(() => { const h = Keyboard.addListener('keyboardDidHide', () => setExtra(0)); return () => h.remove(); }, []);
   const scrollY = useRef(0); // includes the negative offset the native header inset adds at rest
@@ -90,12 +89,12 @@ export function Screen({ children, footer }: { children: ReactNode; footer?: Rea
   };
   return (
     <RevealCtx.Provider value={reveal}>
-      <ScrollLockCtx.Provider value={setLocked}>
-      <ScrollView ref={sv} scrollEnabled={!locked} scrollEventThrottle={16} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom) + extra, alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
+      <ScrollRefCtx.Provider value={sv}>
+      <Animated.ScrollView ref={sv} scrollEventThrottle={16} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom) + extra, alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <View style={{ width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three }}>{children}</View>
-      </ScrollView>
+      </Animated.ScrollView>
       {footer && <View style={[styles.footer, { backgroundColor: t.background, borderColor: t.border, paddingBottom: Spacing.two + insets.bottom }]}>{footer}</View>}
-      </ScrollLockCtx.Provider>
+      </ScrollRefCtx.Provider>
     </RevealCtx.Provider>
   );
 }

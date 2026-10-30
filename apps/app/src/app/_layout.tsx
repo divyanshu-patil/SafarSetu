@@ -3,6 +3,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { Colors } from '@/constants/theme';
@@ -19,6 +20,7 @@ export default function RootLayout() {
 
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ThemeProvider value={{ ...base, colors: { ...base.colors, background: c.background, card: c.background, text: c.textStrong, primary: c.brand, border: c.border } }}>
       <SettingsProvider>
         <SessionProvider>
@@ -30,5 +32,6 @@ export default function RootLayout() {
         </SessionProvider>
       </SettingsProvider>
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
