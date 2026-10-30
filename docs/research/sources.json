@@ -320,5 +320,313 @@
   "url": "https://www.lokmattimes.com/maharashtra/state-data-policy-gets-green-light-maharashtra-moves-towards-digital-governance-a525/amp",
   "date": "2025-02",
   "confidence": "MED"
+ },
+ {
+  "id": "S100",
+  "title": "GitHub API: croyla/pmpml-gtfs",
+  "url": "https://github.com/croyla/pmpml-gtfs",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S101",
+  "title": "GitHub API: croyla/mumbai-gtfs",
+  "url": "https://github.com/croyla/mumbai-gtfs",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S102",
+  "title": "croyla/pmpml-gtfs README (data from Apli-PMPML/Chartr API)",
+  "url": "https://raw.githubusercontent.com/croyla/pmpml-gtfs/main/README.md",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S103",
+  "title": "Pune Municipal Corporation Open Data Portal",
+  "url": "https://opendata.pmc.gov.in",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S104",
+  "title": "Bestpedia: You can now track BEST buses live on Google Maps",
+  "url": "https://bestpedia.in/2025/05/you-can-now-track-best-buses-live-on-google-maps",
+  "date": "2025-05-09",
+  "confidence": "MED"
+ },
+ {
+  "id": "S105",
+  "title": "Google Cloud press corner: PMPML and Google Cloud intelligent transit management system",
+  "url": "https://www.googlecloudpresscorner.com/2022-11-01-PMPML-and-Google-Cloud-Join-Hands-to-Build-an-Intelligent-Transit-Management-System-for-Live-Tracking-of-Buses",
+  "date": "2022-11-01",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S106",
+  "title": "FPJ: Commuters criticise Apli PMPML app functionality",
+  "url": "https://www.freepressjournal.in/amp/pune/pune-commuters-criticise-apli-pmpml-app-functionality-demand-immediate-improvements",
+  "date": "2024-10-01",
+  "confidence": "MED"
+ },
+ {
+  "id": "S107",
+  "title": "Search extracts: PMPML Google Maps live tracking stalled, own app built (Bridge Chronicle, Punekar News)",
+  "url": "https://www.thebridgechronicle.com/news/aapli-pmpml-app-to-offer-live-bus-tracking-for-entire-fleet-soon",
+  "date": "2024-25",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S108",
+  "title": "Google Maps Help: set depart/arrive time (Driving and Transit, one destination only)",
+  "url": "https://support.google.com/maps/answer/6291839",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S109",
+  "title": "FPJ: Mumbai One app launches (Hindi/Marathi/English, 11 operators, planner)",
+  "url": "https://www.freepressjournal.in/mumbai/mumbai-one-app-launches-today-indias-first-unified-mobility-platform-goes-live-at-5-am-heres-what-it-offers",
+  "date": "2025-10-09",
+  "confidence": "MED"
+ },
+ {
+  "id": "S110",
+  "title": "Search extracts: Mumbai One features (Railway Gazette, FPJ, NewsBytes) and Indian itinerary tools (TellMyRoute, Mappls, MetroMarg)",
+  "url": "https://www.railwaygazette.com/technology/integrated-transport-app-covers-multiple-mumbai-public-transport-operators/69845.article",
+  "date": "2025-10",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S111",
+  "title": "FOSS United forum: Progress log crola (GTFS-RT Pune, MSRTC GTFS)",
+  "url": "https://forum.fossunited.org/t/progress-log-crola/8947",
+  "date": "2026-09-28",
+  "confidence": "MED"
+ },
+ {
+  "id": "S112",
+  "title": "FOSS United grants directory: crola",
+  "url": "https://fossunited.org/grants/directory/crola",
+  "date": "2026-10-30",
+  "confidence": "MED"
+ },
+ {
+  "id": "S113",
+  "title": "Google Maps live bus times and train status in 10 Indian cities (DT Next/Outlook)",
+  "url": "https://www.dtnext.in/technology/2019/06/05/google-maps-now-offers-live-train-status-bus-data",
+  "date": "2019-06-05",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S114",
+  "title": "Search extracts: Moovit Mumbai launch; Yatri app (English/Hindi/Marathi)",
+  "url": "https://apps.apple.com/us/app/-/id1563046909",
+  "date": "2016-2026",
+  "confidence": "LOW-MED (search extract)"
+ },
+ {
+  "id": "S115",
+  "title": "Search extracts: Census 2011 Maharashtra mother tongue counts (Marathi 77,461,172; Hindi 14,481,513; Urdu 7,540,324) and Mumbai trend",
+  "url": "https://www.latestly.com/india/news/mumbai-becoming-a-hindi-speaking-state-number-of-marathi-speaking-people-in-city-witnesses-dip-637513.html/amp",
+  "date": "2011 data",
+  "confidence": "MED (secondary; official C-16 not fetched)"
+ },
+ {
+  "id": "S116",
+  "title": "The Week/PTI: IAMAI-Kantar Internet in India 2024 report",
+  "url": "https://www.theweek.in/wire-updates/business/2025/01/16/dcm51-biz-iamai-internet-usage-report.html",
+  "date": "2025-01-16",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S117",
+  "title": "PMPML official website (grievances, media contact)",
+  "url": "https://pmpml.org",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S118",
+  "title": "BEST Undertaking official website (General Manager, contact)",
+  "url": "https://bestundertaking.com",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S119",
+  "title": "MSRTC official website (VC&MD, grievance, RTI pages)",
+  "url": "https://msrtc.maharashtra.gov.in",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S120",
+  "title": "Maha-Metro official website",
+  "url": "https://www.mahametro.org",
+  "date": "2026-10-30",
+  "confidence": "HIGH (nav only)"
+ },
+ {
+  "id": "S121",
+  "title": "FPJ: MMRDA Safety & Response Centre / Commissioner reports (search extract)",
+  "url": "https://www.freepressjournal.in/mumbai/mmrda-launches-247-safety-response-centre-for-infrastructure-projects-across-mumbai-region",
+  "date": "2026",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S122",
+  "title": "FPJ: PMPML gets new CMD (23rd since 2007); FPJ: 22nd CMD in 17 years",
+  "url": "https://www.freepressjournal.in/pune/pune-pmpml-gets-new-cmd-mahesh-awhad-after-promotion-row-frequent-leadership-changes-raise-concerns",
+  "date": "2026-03-12",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S123",
+  "title": "MSInS 2026 recruitment listing (nodal agency under SEEID Dept)",
+  "url": "https://centralstatejobs.in/jobs/msins-assistant-manager-and-yp-fellow-recruitment-2026",
+  "date": "2026",
+  "confidence": "LOW-MED (search extract)"
+ },
+ {
+  "id": "S124",
+  "title": "Search extracts: Maharashtra Urban Development Dept Principal Secretary posts (eGov Elets 2023, Wikipedia)",
+  "url": "https://egov.eletsonline.com/2023/06/five-more-ias-officers-shifted-in-maharashtra/",
+  "date": "2023",
+  "confidence": "LOW (search extract)"
+ },
+ {
+  "id": "S125",
+  "title": "FPJ: PMPML refutes corruption allegations over tracking devices (Rs 15,063.50 per unit, GeM)",
+  "url": "https://www.freepressjournal.in/amp/pune/pune-pmpml-refutes-corruption-allegations-over-inflated-costs-in-tracking-devices-and-panic-button-purchases",
+  "date": "2025-04-01",
+  "confidence": "MED"
+ },
+ {
+  "id": "S126",
+  "title": "FPJ: BEST passengers will soon be able to track their buses (Rs 112 crore ITMS)",
+  "url": "https://www.freepressjournal.in/mumbai/mumbai-best-passengers-will-soon-be-able-to-track-their-buses",
+  "date": "2019-05-29",
+  "confidence": "MED"
+ },
+ {
+  "id": "S127",
+  "title": "Search extracts: BMTC GPS Rs 79 crore (Deccan Herald); Chennai ITMS",
+  "url": "https://www.deccanherald.com/india/karnataka/bengaluru/bmtc-have-gps-all-its-2150588",
+  "date": "n/d",
+  "confidence": "LOW-MED (search extract)"
+ },
+ {
+  "id": "S128",
+  "title": "MMRDA Comprehensive Transport Study update RFP (bid processing fee Rs 1,00,000)",
+  "url": "https://www.mmrda.maharashtra.gov.in/sites/default/files/2021-09/RFP_updation_CTS.pdf",
+  "date": "2021-09",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S129",
+  "title": "PRS India: Digital Personal Data Protection Bill 2023 summary",
+  "url": "https://prsindia.org/billtrack/digital-personal-data-protection-bill-2023",
+  "date": "2023-08",
+  "confidence": "HIGH-MED"
+ },
+ {
+  "id": "S130",
+  "title": "DPDP Rules 2025 notified (PIB PDF unreadable; taxguru/dpdpactindia timelines in search extracts)",
+  "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf",
+  "date": "2025-11-17",
+  "confidence": "MED (secondary dates)"
+ },
+ {
+  "id": "S131",
+  "title": "S.S. Rana: MeitY plans to cut short DPDP compliance timeline",
+  "url": "https://ssrana.in/articles/meity-plans-to-cut-short-dpdp-compliance-timeline-and-notify-cross-border-restrictions-for-sdfs/",
+  "date": "2026-02-13",
+  "confidence": "MED"
+ },
+ {
+  "id": "S132",
+  "title": "Safetipin: Mumbai City Safety Analysis 2017 / Pune audit 2019 (search extracts)",
+  "url": "https://safetipin.com/wp-content/uploads/2020/01/Mumbai-City-Safety-Analysis_Safetipin_2017.pdf",
+  "date": "2017/2019",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S133",
+  "title": "She Shakti Suraksha Survey 2025 (Knocksense summary)",
+  "url": "https://www.knocksense.com/amp/story/ahmedabad/she-shakti-suraksha-survey-2025-ahmedabad-indore-mumbai-lead-as-indias-safest-cities-for-women",
+  "date": "2025",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S134",
+  "title": "PIB Accessible India Campaign factsheet; CAG accessibility chapter; RPwD s.41 (search extracts)",
+  "url": "https://www.pib.gov.in/factsheetdetails.aspx?id=148569",
+  "date": "2021-2025",
+  "confidence": "MED-HIGH (search extract)"
+ },
+ {
+  "id": "S135",
+  "title": "Search extracts: Maharashtra 60+ share Census 2011 (UNFPA/BKPAI)",
+  "url": "https://india.unfpa.org/en/publications/status-elderly-maharashtra-2011",
+  "date": "2011/2014",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S136",
+  "title": "Seva First Maharashtra Zone portal re-read (FAQ, evaluation, prototype link, deck size)",
+  "url": "https://sevainnovationchallenge.in",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S137",
+  "title": "Drishti IAS: Maharashtra Startup, Entrepreneurship and Innovation Policy 2025 (Rs 25 lakh pilot orders, 0.5% earmark)",
+  "url": "https://www.drishtiias.com/state-pcs-current-affairs/maharashtra-startup-entrepreneurship-and-innovation-policy-2025",
+  "date": "2025-08-06",
+  "confidence": "MED"
+ },
+ {
+  "id": "S138",
+  "title": "YourStory: 24 winning startups, Maharashtra Startup Week 2020 (search extract)",
+  "url": "https://yourstory.com/2020/08/24-winning-startups-maharashtra-startup-week",
+  "date": "2020-08",
+  "confidence": "MED (search extract; page returned 403)"
+ },
+ {
+  "id": "S139",
+  "title": "Startup India: Procurement by Government (DPIIT startup relaxations, GeM Startup Runway)",
+  "url": "https://www.startupindia.gov.in/content/sih/en/public_procurement.html",
+  "date": "2026-10-30",
+  "confidence": "HIGH"
+ },
+ {
+  "id": "S140",
+  "title": "CERT-In Directions 28 Apr 2022 (Mondaq/Ankura summaries)",
+  "url": "https://www.mondaq.com/india/it-and-internet/1270362/6-hours-to-report-cyber-incidents-to-cert-in-and-more-compliances",
+  "date": "2022",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S141",
+  "title": "Bhashini (Digital India BHASHINI Division) third-party descriptions",
+  "url": "https://www.unicef.org/digitalimpact/bhashini-ai-making-languages-more-accessible-digital-technology",
+  "date": "2024-26",
+  "confidence": "LOW-MED (search extract)"
+ },
+ {
+  "id": "S142",
+  "title": "New America/Medianama: Open Transit Data in India (Kochi, Delhi, Hyderabad)",
+  "url": "https://www.medianama.com/2019/09/223-open-transit-data-in-india/",
+  "date": "2019-09",
+  "confidence": "MED (search extract)"
+ },
+ {
+  "id": "S143",
+  "title": "IUDX Pune deployment deck / DataMeet thread on IUDX vs GTFS",
+  "url": "https://iudx.org.in/wp-content/uploads/2021/12/21-08-19_TSC_Deployment.pdf",
+  "date": "2021",
+  "confidence": "LOW-MED (search extract)"
  }
 ]

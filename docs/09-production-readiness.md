@@ -48,3 +48,9 @@ Unit (core: routing, planner, assess, composer) · API integration (supertest-st
 | Wrong data harms trust | Confidence labels, freshness stamps, "report issue" loop |
 | Free-API fair-use limits | Proxy cache; self-host path documented |
 | Notification fatigue | Slack-based tone, suppression rules, quiet hours |
+
+## Live data reality check (round 2)
+No public GTFS-Realtime feed or open live API exists for PMPML, BEST, Maha-Metro, MMRDA or Indian Railways (searched 2026-10-30). The timetables we use are static community GTFS. **Path:** a written data-sharing agreement with each agency ([16](16-agency-outreach.md)); until then delays are simulated and labelled. The ingestion endpoint (`POST /v1/disruptions`, keyed) is the integration seam.
+
+## DPDP checklist status (prototype)
+Minimal collection ✔ (areas, category, text; no device location) · notice before collection ✔ (`/privacy`, report form) · explicit unticked consent ✔ · anonymity (hashed id, no contact data) ✔ · under-18 note ✔ (guardian consent required in any pilot) · grievance contact ✘ placeholder · retention job ✘ (12 months planned) · audit log ✘ · breach runbook ✘ · processor terms ✘ · lawyer review ✘.

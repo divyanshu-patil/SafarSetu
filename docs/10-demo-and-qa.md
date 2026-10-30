@@ -26,3 +26,16 @@ Backup: screenshots in `docs/media`; the memory store works offline; synthetic p
 | Who adopts? | Transport authorities (insights + data quality loop), tourism boards, colleges; open APIs. |
 | What's unique technically? | Missed-connection-aware confidence, dwell-time allocation under live disruption, shared core for web+mobile. |
 | What failed/limits? | Free geocoder/tiles have fair-use limits; synthetic delay profiles; no payments/ticketing yet. |
+
+## Hard questions from an evaluator — honest answers ([round-2 research §9](research/seva-research-round2.md))
+
+| Question | Answer |
+|---|---|
+| Is your data accurate? | Timetables are community GTFS (MIT-0) built from the operators' apps; in-between stop times are modelled; metros/locals are synthetic; delays are simulated. Pilot Stage 1 measures predicted vs actual on a sample. |
+| Who is liable if a plan is wrong? | Advisory only; every plan shows its data source; slack buffers and "you'll be late" alerts reduce risk. **No legal source found — needs legal review** before a pilot. |
+| Who maintains the data? | Today a single community maintainer (feeds last pushed 2026-10-07 / 2026-08-19) — a real dependency. Target: the agency publishes GTFS (+ real-time) as source of record. |
+| How would a work order be placed? | Undocumented — we will ask the helpline in writing (direct from MSInS vs GeM). Startup Week precedent is MSInS-issued pilot work orders. |
+| Small-vendor tender rules? | Central rules relax experience/turnover for DPIIT-recognised startups; Maharashtra's own relaxations not found. DPIIT recognition and GeM registration take time — start now. |
+| Security? | Role-scoped access, validation, tests; **no external audit or VAPT yet** — budgeted for the pilot; DPDP and CERT-In duties noted in `/privacy` and docs/09. |
+| Marathi quality? | Machine-assisted, **not natively reviewed**; Marathi is ~69 % mother tongue in Maharashtra (census-derived); paid native review planned. |
+| Duplicates Mumbai One / Chalo / Google? | Mumbai One has tickets, a single-journey planner, advisories and Marathi; Google offers arrive-by for one transit destination. We found no multi-stop work-day planner (app stores not audited). We **complement and can consume** their feeds. |

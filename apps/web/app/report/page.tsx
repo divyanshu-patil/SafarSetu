@@ -29,6 +29,7 @@ export default function ReportPage() {
   const [desc, setDesc] = useState("");
   const [picking, setPicking] = useState<"from" | "to" | null>(null);
   const [bbox, setBbox] = useState(STATE_BBOX);
+  const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<PublicReport | null>(null);
@@ -47,6 +48,7 @@ export default function ReportPage() {
   const submit = async () => {
     if (!cat) return setErr("Choose what kind of problem it is.");
     if (!from) return setErr("Tell us where the problem is (from area).");
+    if (!agree) return setErr("Please tick the box to confirm you have read how your report is used.");
     setBusy(true); setErr(null);
     try {
       const r = await fetch(`${api.baseUrl}/v1/reports`, { method: "POST", headers: { "content-type": "application/json", "x-user-id": "demo" }, body: JSON.stringify({ category: cat, severity: sev, from, to: to ?? undefined, mode, timeOfDay: time || undefined, description: desc }) });
@@ -128,7 +130,8 @@ export default function ReportPage() {
               <textarea className="textarea" maxLength={600} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. The last bus to the station leaves at 8 pm, so people walk 3 km." />
             </label>
 
-            <div className="note"><Icon name="ShieldCheck" size={14} /> We store the areas, category and your text. No name, phone or exact device location is collected. {PROMISE.split(".")[2]?.trim()}.</div>
+            <div className="note"><Icon name="ShieldCheck" size={14} /> We store the areas, category and your text — no name, phone number or device location. Reports are kept for 12 months (planned) and shared with authorities for your region only. <a href="/privacy" style={{ textDecoration: "underline" }}>Privacy notice</a>. {PROMISE.split(".")[2]?.trim()}.</div>
+            <label className="check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} /> I have read how this report is used. (If you are under 18, please ask a parent or guardian first.)</label>
             {err && <p className="err" role="alert">{err}</p>}
             <div><button className="pill-primary" onClick={submit} disabled={busy}>{busy ? t("sending") : t("sendReport")}</button></div>
           </div>

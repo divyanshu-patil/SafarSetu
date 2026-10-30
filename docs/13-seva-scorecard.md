@@ -40,7 +40,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 | 1 | Inclusion: Marathi regional language, seniors, women's safety | English-only, no safety feature | Hindi/Marathi alerts + UI; Gentle pace; late-walk warning; share-live-trip link |
 | 1 | Government wants cost/benefit | No impact model | `/impact` with sourced, conservative factors |
 | 1 | Demo scrutiny | Alert hid a late-for-appointment case; 500 on bad JSON; slow big feeds; a11y misses | Fixed all four |
-| 2 | *(next)* Verify live transit "arrive-by" in Google Maps; GTFS-RT availability for PMPML/BEST; Maha open-data policy | Live data; native-language review | See open items below |
+| 2 | No public GTFS-RT for PMPML/BEST/Maha-Metro/Railways; Google arrive-by is single-destination only; **Mumbai One has a planner, alerts and Marathi** (don't claim "no Marathi app"); State Startup Policy 2025: 0.5 % departmental innovation allocation; DPDP Rules 2025 (dates may be compressed to 13 Nov 2026) | Overclaims about competitors; consent/notice on reports; no outreach artefacts; no live-data route | Corrected deck/docs claims; explicit consent + retention/breach/DPDP notes; `docs/16` outreach kit + data-request template; `submission/two-page-note.md`; honest evaluator Q&A (docs/10) |
 
 ## Open items that need **you** (cannot be done from here)
 1. **Submit on the Maharashtra portal today** (Aadhaar, ID, upload the PDF).
@@ -48,3 +48,5 @@ Loop run each round: **research → find gaps → find what wins → implement �
 3. 10+ interviews and 3 field photos → replace "baseline planned" on slide 2.
 4. Native Marathi/Hindi review of every string (`packages/core/src/i18n.ts`, `apps/web/app/lib/i18n.tsx`).
 5. Hosting accounts for a public demo link; Supabase CLI/network to test the DB adapter.
+6. Send the data-sharing request and two-page note ([16](16-agency-outreach.md)); ask the helpline how a work order is issued and about DPIIT recognition.
+7. Legal read of liability/terms and DPDP; a VAPT before any pilot.

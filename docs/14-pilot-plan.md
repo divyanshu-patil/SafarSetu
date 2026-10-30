@@ -10,7 +10,7 @@
 |---|---|---|---|
 | State | Urban Development Department (GoM) | Principal Secretary | Parent of the municipal bodies, MMRDA/PMRDA; funds mobility planning |
 | City bus | PMPML (Pune) / BEST (Mumbai) | CMD / General Manager | Riders' trip planning and complaint intelligence complement their ITMS and grievance channels |
-| Region | MMRDA / PMRDA | Metropolitan Commissioner | Integrated ticketing (Mumbai One) has no day-planning or gap evidence |
+| Region | MMRDA / PMRDA | Metropolitan Commissioner | Mumbai One covers tickets, single-journey planning and advisories; it has no multi-stop day planning or gap evidence |
 | Metro | Maha-Metro | Managing Director | Feeder-gap evidence for station catchments |
 | Innovation | MSInS / SEEID Dept | Member Secretary | Runs this challenge; pilot sponsor |
 *Status: none approached. No MoU exists.* Local office to physically reach first: PMPML head office (Swargate) or the ward office of Hinjewadi/Shivajinagar corridor.
@@ -45,7 +45,7 @@ Basis: [research §D](research/seva-research.md) (Supabase Pro $25/mo; Vercel $2
 | People: data steward (part-time), field ambassador | stipend, outside this estimate | ≈ 1 data steward | 1 steward / city |
 | **Cost per user / month** | — | **≈ ₹1–3** | **≈ ₹1** |
 | Who pays | us / college / prize | agency pilot budget | agency / CSR |
-**Fits money governments already spend** (research §C): BEST ITMS ₹112 crore (2018), Pune ATMS ₹133 crore + ₹52 crore O&M, PMPML breakdown losses ₹25–30 crore/yr — SafarSetu **complements** these (rider planning + gap evidence), it does not replace GPS hardware. Benefit side: modelled ₹/day vs all-cab day (`/impact`) — a model, not a measured saving.
+**Fits money governments already earmark:** the State Startup, Entrepreneurship & Innovation Policy 2025 asks each department to set aside **0.5 % of its annual funds** for innovation, executed through MSInS, with Startup Week pilot work orders up to ₹25 lakh ([round-2 research](research/seva-research-round2.md) §5.7, MED). **And money already spent** (research §C): BEST ITMS ₹112 crore (2018), Pune ATMS ₹133 crore + ₹52 crore O&M, PMPML breakdown losses ₹25–30 crore/yr — SafarSetu **complements** these (rider planning + gap evidence), it does not replace GPS hardware. Benefit side: modelled ₹/day vs all-cab day (`/impact`) — a model, not a measured saving.
 
 ## Risks and honest limits
 - Bus in-between stop times are modelled by the community feed; metros/locals are synthetic in the demo → Stage 1 must use a corridor with real timetable coverage (PMPML) and verify on the ground.
