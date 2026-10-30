@@ -39,7 +39,8 @@ export function mountField(app: Express, store: Store) {
   });
 
   /** aggregates + consented, anonymous quotes. This is what goes on the problem slide — n and dates included. */
-  app.get("/v1/field/summary", async (_req, res) => {
+  app.get("/v1/field/summary", async (req, res) => {
+    const team = key ? req.header("x-field-key") === key : process.env.NODE_ENV !== "production";
     const all = await store.listInterviews();
     const dates = all.map((i) => i.date).sort();
     const byRole: Record<string, number> = {};
@@ -57,7 +58,8 @@ export function mountField(app: Express, store: Store) {
       avgRupeesLostPerWeek: avg(all.map((i) => i.rupeesLostPerWeek)),
       byRole,
       modes,
-      quotes: all.slice(0, 8).map((i) => ({ code: i.code, role: i.role, route: i.route, problem: i.problem, workaround: i.workaround })),
+      // free-text quotes are shown only to the team (they could contain personal details by accident)
+      quotes: !team ? [] : all.slice(0, 8).map((i) => ({ code: i.code, role: i.role, route: i.route, problem: i.problem, workaround: i.workaround })),
       note: all.length ? "Primary evidence from consented, anonymous interviews." : "No interviews logged yet — nothing here is a result.",
     });
   });

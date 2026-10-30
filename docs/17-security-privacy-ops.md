@@ -16,6 +16,17 @@ Honest status for a government evaluator ("Security?" is one of the hard questio
 | Rate limiting | Reports 10/hour/user, feedback 200/device, login throttle | routes |
 | Secrets | `.env` git-ignored; service-role key server-side only | `.env.example` |
 
+## Round-4 security review (found by reading our own routes)
+| Finding | Fix |
+|---|---|
+| `GET /v1/plans?userId=` listed any user's plans | the query parameter is ignored; only the caller's own plans |
+| Report references were sequential, so anyone could read others' public tracking data | references now carry 4 random characters; the sequence number alone returns 404 |
+| `POST /v1/disruptions` open when `INGEST_KEY` unset; simulator on by default | in production ingestion returns 503 until `INGEST_KEY` is set; simulator off unless `SIM_ENABLED=true` |
+| CORS allowed every origin | production uses the `WEB_ORIGIN` allow-list |
+| Interview quotes (free text) public | shown only with the team key |
+| Plans are readable by their UUID (capability URL) | accepted by design (needed for the share link); UUIDs are unguessable; documented |
+| `x-user-id` is client-supplied | demo identity only; production uses Supabase Auth |
+
 ## Not done (be upfront)
 External penetration test / VAPT · CSRF tokens (API is bearer-token, no cookies) · MFA · secret rotation · dependency audit in CI · formal DPIA · lawyer review · grievance officer named · processor agreements (hosting, SMS/WhatsApp) · STQC/CQW certification.
 

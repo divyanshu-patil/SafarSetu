@@ -61,7 +61,7 @@ test("citizen report -> authority login -> role-scoped update", async () => {
   assert.equal((await post("/v1/reports", { category: "x" })).status, 400);
   const r = await post("/v1/reports", body);
   assert.equal(r.status, 201);
-  assert.match(r.body.report.ref, /^SS-\d{4}-\d{5}$/);
+  assert.match(r.body.report.ref, /^SS-\d{4}-\d{5}-[A-Z2-9]{4}$/);
   assert.equal(r.body.report.internalNotes, undefined);
   const t = await j(`/v1/reports/track/${r.body.report.ref}`);
   assert.equal(t.body.report.status, "received");
@@ -168,4 +168,30 @@ test("GTFS-Realtime TripUpdates become disruptions (delay, cancellation, small d
   assert.ok(delay && delay.delayMin === 15 && delay.tripDeparture === start, JSON.stringify(delay));
   assert.ok(ds.some((d) => d.type === "cancellation" && d.routeId === r.id && d.tripDeparture === start));
   assert.ok(!ds.some((d) => d.delayMin === 1), "a 60-second drift is noise");
+});
+
+test("review fixes: no cross-user plan listing; references are unguessable", async () => {
+  const mine = await fetch(base + "/v1/plans?userId=someone-else", { headers: { "x-user-id": "alice" } });
+  const items = ((await mine.json()) as any).items as { id: string }[];
+  // the query parameter is ignored: only alice's own plans (none) are returned
+  assert.deepEqual(items, []);
+  const seq = (await j("/v1/authority/reports")).status; // unauthenticated stays 401
+  assert.equal(seq, 401);
+  const created = await post("/v1/reports", { category: "other", severity: 1, from: { name: "Test area", lat: 18.5, lon: 73.8 }, description: "x" });
+  const ref = created.body.report.ref as string;
+  assert.equal((await j(`/v1/reports/track/${ref}`)).status, 200);
+  assert.equal((await j(`/v1/reports/track/${ref.slice(0, -5)}`)).status, 404, "the sequence number alone cannot be used to read a report");
+});
+
+import { PoolCompute, inlineCompute } from "../src/compute";
+test("worker-process pool returns exactly what the in-thread planner returns", async () => {
+  const pool = new PoolCompute(1);
+  try {
+    const req = { city: "pune", date: "2026-11-02", origin: { ...PUNE_JN }, startMin: 540, endMin: 1200, keepOrder: true, places: [{ name: "Hinjewadi", lat: 18.5912, lon: 73.7389, minDwell: 60, maxDwell: 60, arriveBy: 690, required: true }] } as any;
+    const [a, b] = await Promise.all([pool.plan("pune", req, []), inlineCompute.plan("pune", req, [])]);
+    assert.deepEqual(a.timeline.map((e: any) => [e.kind, Math.round(e.departMin ?? e.arriveMin)]), b.timeline.map((e: any) => [e.kind, Math.round(e.departMin ?? e.arriveMin)]));
+    assert.equal(a.totals.fare, b.totals.fare);
+  } finally {
+    await pool.close();
+  }
 });

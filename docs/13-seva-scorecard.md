@@ -11,7 +11,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 | **Feasibility** | 3.5 | Working prototype: 9,430 stops/2,480 routes, real rail + PMPML + BEST data; 24 core + 7 API tests; load test; deployable stack | Metro/locals synthetic; no live agency feed; no pilot or MoU; Supabase adapter never run live | Stage-1 pilot ([14](14-pilot-plan.md)); GTFS-RT/alerts adapter; run Supabase locally |
 | **Cost** | 4 | Demo ₹0; pilot ≈ ₹0.9–3 per user/month (estimate, [14](14-pilot-plan.md)); fits existing spend (ITMS, grievance) as a complement | WhatsApp/SMS INR rates unverified | Get Meta rate card; quote a Marathi reviewer |
 | **Impact** | 2.5 | Transparent impact model (`/impact`) with sourced factors; addressable numbers sourced | **Nothing measured** — no baseline, no trial, no testimonials | Baseline interviews → 30-user 4-week trial; report before/after with n |
-| **Scalability** | 3.5 | City = data pack (GTFS + places); 3 networks incl. state-wide rail; 4-stage plan with a number each; CSV export for agencies | Single Node thread: p95 ≈ 2.9 s at 10 concurrent plans | Worker threads / horizontal scale; precomputed transfer patterns |
+| **Scalability** | 4 | City = data pack (GTFS + places); 3 networks incl. state-wide rail; 4-stage plan with a number each; CSV export for agencies | One machine only; Maharashtra-wide plans are heavier (~0.8 s) | Horizontal scale behind a queue; precomputed transfer patterns |
 | **Quality of solution** | 4 | Typed monorepo, tests, a11y fixes from audit, error handling (400s), role-scoped security, privacy notice | No public demo URL; no demo video; DPDP not legally reviewed | Deploy (Vercel + API host); record demo; legal read |
 
 ## Test log (this round)
@@ -20,7 +20,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 | Unit/integration | core 24 / API 10 passing (`pnpm test`) incl. throttling, audit, retention, feedback, GTFS-RT mapping |
 | Deadline-aware alerts | delay that would make a meeting late now produces an explicit "you'll be late" alert (found and fixed during demo capture) |
 | Scale of disruption feed | 2,000+ simultaneous delays: planning < 4 s (was 21 s before indexing by route) |
-| API load (`/v1/plans`, Pune/Mumbai/Maharashtra mix) | 1 client: p50 110 ms, p95 271 ms · 10 concurrent: p50 685 ms, p95 2.9 s (single-threaded; expected ceiling) · 0 failures |
+| API load (`/v1/plans`, Pune/Mumbai/Maharashtra mix) | Single thread: 10 concurrent → 10.5 plans/s, p95 2.9 s. **With the worker-process pool (3 workers, 8-core laptop): 55.5 plans/s, p50 148 ms, p95 395 ms; 1 client p50 47 ms** · 0 failures |
 | Malformed input | `not json` returned 500 → fixed to 400 `invalid_json` |
 | Accessibility (own audit, no external scripts) | Found: two `h1` per page, targets < 24 px, 4.4:1 secondary text, white-on-white label → all fixed; re-audit clean on `/`, `/report`, `/authority` apart from one lime-on-segment contrast (fixed) |
 | Deck fidelity | 153 shapes compared with the template: 0 geometry differences; only the guidance box removed |
@@ -42,6 +42,7 @@ Loop run each round: **research → find gaps → find what wins → implement �
 | 1 | Demo scrutiny | Alert hid a late-for-appointment case; 500 on bad JSON; slow big feeds; a11y misses | Fixed all four |
 | 2 | No public GTFS-RT for PMPML/BEST/Maha-Metro/Railways; Google arrive-by is single-destination only; **Mumbai One has a planner, alerts and Marathi** (don't claim "no Marathi app"); State Startup Policy 2025: 0.5 % departmental innovation allocation; DPDP Rules 2025 (dates may be compressed to 13 Nov 2026) | Overclaims about competitors; consent/notice on reports; no outreach artefacts; no live-data route | Corrected deck/docs claims; explicit consent + retention/breach/DPDP notes; `docs/16` outreach kit + data-request template; `submission/two-page-note.md`; honest evaluator Q&A (docs/10) |
 | 3 | GIGW 3.0 needs WCAG 2.1 AA + CERT-In-aligned security; pilots need evidence; live feed will arrive as GTFS-RT | Login not throttled; no audit trail; retention promised but not built; no pilot measurement; no feed adapter; no CSP | Login throttle, audit trail, daily retention purge, CSP + headers ([17](17-security-privacy-ops.md)); anonymous alert/trip feedback + `/impact` pilot panel; GTFS-RT adapter (tested on a synthetic feed) |
+| 4 | Evaluator security questions | Plan lists readable for any `userId`; report references sequential (enumerable); ingest/simulator open by default in production; CORS open; free-text quotes public; planning CPU-bound on one thread; keyboard users had no skip link | All fixed and tested: own-plans only, unguessable references (`SS-2026-00056-K7Q4`), production defaults deny ingest/simulator, CORS allow-list, quotes team-only; worker-process pool (5× throughput); skip link + live-region alerts; keyboard walkthrough checked |
 
 ## Open items that need **you** (cannot be done from here)
 1. **Submit on the Maharashtra portal today** (Aadhaar, ID, upload the PDF).

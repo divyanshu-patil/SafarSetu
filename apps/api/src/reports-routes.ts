@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Express } from "express";
 import { z } from "zod";
 import { CATEGORIES, DEFAULT_WEIGHTS, PROMISE, REGIONS, STATUSES, clusterReports, networks, regionOf, toPublic, type Report, type ReportStatus } from "@repo/core";
@@ -44,7 +44,9 @@ export function mountReports(app: Express, engine: Engine) {
   let seq = 0;
   const nextRef = async () => {
     if (!seq) seq = (await store.listReports()).length;
-    return `SS-${new Date().getFullYear()}-${String(++seq).padStart(5, "0")}`;
+    // sequence for humans + 4 random characters so references cannot be enumerated (tracking is public by reference)
+    const tail = [...randomBytes(4)].map((b) => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[b % 31]).join("");
+    return `SS-${new Date().getFullYear()}-${String(++seq).padStart(5, "0")}-${tail}`;
   };
 
   // ---- citizen -----------------------------------------------------------

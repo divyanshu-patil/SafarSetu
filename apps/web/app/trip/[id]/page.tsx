@@ -121,7 +121,7 @@ export default function Trip() {
               <div className="row between"><h2 className="h3">{t("alertsTitle")}</h2>
                 {perm === "default" && typeof Notification !== "undefined" && <button className="pill-outline" onClick={() => Notification.requestPermission().then(setPerm)}>Enable browser alerts</button>}
               </div>
-              <div className="alerts mt">
+              <div className="alerts mt" role="log" aria-live="polite" aria-relevant="additions" aria-label="Trip alerts">
                 {sorted.length === 0 && <p className="sub">Nothing yet. Press “Start demo day” — reminders arrive as the clock moves.</p>}
                 {sorted.map((n) => (
                   <div className="alert legline" key={n.id} style={{ background: "var(--color-studio-mist)" }}>

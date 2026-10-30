@@ -1,7 +1,7 @@
 import cors from "cors";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
-import { buildLive, getNetwork, networks, planRoute, type PlanRequest } from "@repo/core";
+import { getNetwork, networks, type PlanRequest } from "@repo/core";
 import { Engine, HttpError, SCENARIOS, type Scenario } from "./engine";
 import { mountField } from "./field-routes";
 import { mountReports } from "./reports-routes";
@@ -71,8 +71,10 @@ const parse = <T extends z.ZodType>(s: T, body: unknown): z.infer<T> => {
 
 export function createApp(engine: Engine): Express {
   const app = express();
-  const simOn = process.env.SIM_ENABLED !== "false";
-  app.use(cors({ methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }));
+  const simOn = process.env.SIM_ENABLED ? process.env.SIM_ENABLED === "true" : process.env.NODE_ENV !== "production";
+  const origins = (process.env.WEB_ORIGIN ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+  if (process.env.NODE_ENV === "production" && !origins.length) console.warn("WEB_ORIGIN is not set: browsers will be blocked by CORS in production");
+  app.use(cors({ methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], origin: process.env.NODE_ENV === "production" ? origins : true }));
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use((_req, res, next) => {
@@ -103,8 +105,8 @@ export function createApp(engine: Engine): Express {
   app.post("/v1/route", async (req, res) => {
     const b = parse(routeReq, req.body);
     const net = engine.network(b.city);
-    const live = buildLive(await engine.store.listDisruptions());
-    res.json({ ...planRoute(net, b.from, b.to, { departMin: b.departMin ?? engine.clock.now().minute, arriveByMin: b.arriveByMin, prefs: b.prefs }, live), meta: net.meta });
+    const out = await engine.compute.route(b.city ?? "pune", b.from, b.to, { departMin: b.departMin ?? engine.clock.now().minute, arriveByMin: b.arriveByMin, prefs: b.prefs }, await engine.store.listDisruptions());
+    res.json({ ...out, meta: net.meta });
   });
 
   app.post("/v1/plans", async (req, res) => {
@@ -113,7 +115,7 @@ export function createApp(engine: Engine): Express {
     const rec = await engine.createPlan(user(req), body);
     res.status(201).json({ id: rec.id, plan: rec.plan });
   });
-  app.get("/v1/plans", async (req, res) => res.json({ items: (await engine.store.listPlans(String(req.query.userId ?? user(req)))).map((p) => ({ id: p.id, city: p.city, date: p.date, state: p.state, revision: p.plan.revision, visits: p.plan.timeline.filter((e) => e.kind === "visit").length, updatedAt: p.updatedAt })) }));
+  app.get("/v1/plans", async (req, res) => res.json({ items: (await engine.store.listPlans(user(req))).map((p) => ({ id: p.id, city: p.city, date: p.date, state: p.state, revision: p.plan.revision, visits: p.plan.timeline.filter((e) => e.kind === "visit").length, updatedAt: p.updatedAt })) }));
   app.get("/v1/plans/:id", async (req, res) => {
     const rec = await engine.getPlan(String(req.params.id));
     res.json({ id: rec.id, plan: rec.plan });
@@ -145,6 +147,7 @@ export function createApp(engine: Engine): Express {
   app.get("/v1/disruptions", async (_req, res) => res.json({ items: await engine.store.listDisruptions() }));
   app.post("/v1/disruptions", async (req, res) => {
     const key = process.env.INGEST_KEY;
+    if (process.env.NODE_ENV === "production" && !key) throw new HttpError(503, "ingest_disabled", "Disruption ingestion is disabled until INGEST_KEY is set");
     if (key && req.header("x-ingest-key") !== key) throw new HttpError(401, "unauthorized", "Missing or bad x-ingest-key");
     res.status(201).json(await engine.addDisruption(parse(disruption, req.body)));
   });

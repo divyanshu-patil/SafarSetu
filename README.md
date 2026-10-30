@@ -101,6 +101,6 @@ An honest self-assessment per official criterion, with the test log, is in [`doc
 
 #### Known limits
 
-No pilot has been run, so no time-saved or cost-saved result exists. Live agency feeds are not connected (none is publicly available). No external security audit has been done. Marathi and Hindi text needs native-speaker review before use. One Node process handles about 10 plans/s; scale-out is documented, not built. Supabase storage is written and its schema validated, but the adapter has not been run against a live database.
+No pilot has been run, so no time-saved or cost-saved result exists. Live agency feeds are not connected (none is publicly available). No external security audit has been done. Marathi and Hindi text needs native-speaker review before use. On an 8-core laptop the API plans about 55 per second with 3 worker processes (p95 ≈ 0.4 s at 10 concurrent users); beyond one machine, scale-out is documented, not built. Supabase storage is written and its schema validated, but the adapter has not been run against a live database.
 
 <sub>Map © OpenStreetMap contributors · Timetables: Datameet / Indian Railways, community GTFS for PMPML and BEST (MIT-0) · Design language: <a href="docs/DESIGN.md">docs/DESIGN.md</a></sub>

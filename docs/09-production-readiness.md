@@ -54,3 +54,6 @@ No public GTFS-Realtime feed or open live API exists for PMPML, BEST, Maha-Metro
 
 ## DPDP checklist status (prototype)
 Minimal collection ✔ (areas, category, text; no device location) · notice before collection ✔ (`/privacy`, report form) · explicit unticked consent ✔ · anonymity (hashed id, no contact data) ✔ · under-18 note ✔ (guardian consent required in any pilot) · grievance contact ✘ placeholder · retention job ✔ (daily purge, `REPORT_RETENTION_DAYS`) · audit log ✔ (every authority change) · breach runbook ✔ written ([17](17-security-privacy-ops.md)), untested · processor terms ✘ · lawyer review ✘.
+
+## Capacity (measured, 8-core laptop, in-memory store)
+Planning is CPU-bound and runs on a pool of worker processes (`WORKERS`, default up to 4). Mixed Pune/Mumbai/Maharashtra plans: 1 client p50 47 ms · 10 concurrent **55.5 plans/s, p95 395 ms** (single thread was 10.5 plans/s, p95 2.9 s). State-wide plans cost ≈ 0.8 s CPU each. Beyond one machine: stateless API behind a load balancer + Supabase store; precomputed transfer patterns for very large networks.

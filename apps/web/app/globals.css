@@ -287,3 +287,7 @@ table.t td { padding: 12px 0; border-top: 1px solid var(--hairline); }
 .stoprow.add .field { margin: 0; }
 
 button.tlink, a.tlink { min-height: 24px; }
+
+/* keyboard users: skip link appears on focus */
+.skip { position: absolute; left: 12px; top: -60px; z-index: 3000; background: var(--color-forest-ink); color: #fff; padding: 10px 18px; border-radius: var(--radius-pill); font: 600 14px var(--font-text); }
+.skip:focus { top: 12px; text-decoration: none; }

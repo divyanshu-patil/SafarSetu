@@ -1,5 +1,6 @@
 import type { Response } from "express";
-import { assessPlan, buildLive, composeAlert, getNetwork, networks, nextAction, planDay, positionAt, type Disruption, type PlanRequest, type TransitLeg } from "@repo/core";
+import { buildLive, composeAlert, getNetwork, networks, nextAction, positionAt, type Disruption, type PlanRequest, type TransitLeg } from "@repo/core";
+import { inlineCompute, type Compute } from "./compute";
 import { Clock } from "./clock";
 import { newId, type NotifRec, type PlanRec, type Store } from "./store";
 
@@ -14,7 +15,7 @@ export type Scenario = (typeof SCENARIOS)[number];
 
 export class Engine {
   private hub = new Map<string, Set<Response>>();
-  constructor(public store: Store, public clock = new Clock()) {}
+  constructor(public store: Store, public clock = new Clock(), public compute: Compute = inlineCompute) {}
 
   network(city = "pune") {
     const n = getNetwork(city);
@@ -37,6 +38,9 @@ export class Engine {
   private async live() {
     return buildLive(await this.store.listDisruptions());
   }
+  private async activeDisruptions() {
+    return this.store.listDisruptions();
+  }
 
   private reminderNotifs(rec: PlanRec, afterMin: number): NotifRec[] {
     return rec.plan.reminders
@@ -49,7 +53,7 @@ export class Engine {
     const net = this.network(city);
     let plan;
     try {
-      plan = planDay(net, { ...req, city }, await this.live());
+      plan = await this.compute.plan(city, { ...req, city }, await this.activeDisruptions());
     } catch (e) {
       throw new HttpError(422, "cannot_plan", (e as Error).message);
     }
@@ -77,12 +81,14 @@ export class Engine {
   /** Re-assess every active plan against live disruptions; persist, reschedule, alert. */
   async applyDisruptions(reason = "disruption"): Promise<number> {
     const live = await this.live();
+    const ds = await this.activeDisruptions();
     const now = this.clock.now();
     let changed = 0;
-    for (const rec of await this.store.listPlans()) {
-      if (rec.date !== now.date) continue;
-      const net = this.network(rec.city);
-      const a = assessPlan(net, rec.plan, live, now.minute);
+    const todays = (await this.store.listPlans()).filter((r) => r.date === now.date);
+    // assess every active plan in parallel on the worker pool; persist sequentially
+    const results = await Promise.all(todays.map((r) => this.compute.assess(r.city, r.plan, ds, now.minute)));
+    for (const [i, rec] of todays.entries()) {
+      const a = results[i]!;
       const notifs: NotifRec[] = [];
       if (a.state !== "on_track") {
         changed++;

@@ -1,10 +1,14 @@
 import { createApp } from "./app";
+import { availableParallelism } from "node:os";
+import { PoolCompute } from "./compute";
 import { Engine } from "./engine";
 import { startGtfsRtPoller } from "./gtfs-rt";
 import { seedReports } from "./seed-reports";
 import { createStore } from "./store";
 
-const engine = new Engine(createStore());
+// planning is CPU-bound: run it on a worker pool (WORKERS=0 → same thread). Default: up to 4 workers, leaving a core for the event loop.
+const workers = Number(process.env.WORKERS ?? Math.min(4, Math.max(0, availableParallelism() - 1)));
+const engine = new Engine(createStore(), undefined, workers > 0 ? new PoolCompute(workers) : undefined);
 if (process.env.SEED_DEMO !== "false") await seedReports(engine.store);
 // Optional live feed: set GTFS_RT_URL (+ GTFS_RT_PREFIX=pmpml|best, GTFS_RT_CITY=pune|mumbai). No public feed exists today — see docs/16.
 if (process.env.GTFS_RT_URL) {
