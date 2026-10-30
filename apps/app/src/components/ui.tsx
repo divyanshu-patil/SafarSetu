@@ -2,11 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
 import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Font, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+
+/** Shared motion: short, subtle; Reanimated drops these automatically when Reduce Motion is on. */
+export const fx = {
+  in: (i = 0) => FadeInDown.delay(Math.min(i, 8) * 40).duration(240),
+  fade: FadeIn.duration(180),
+  out: FadeOut.duration(140),
+  layout: LinearTransition.duration(240),
+};
 
 export type IconName = keyof typeof Ionicons.glyphMap;
 export const Icon = ({ name, size = 18, color }: { name: IconName; size?: number; color?: string }) => {
@@ -67,7 +76,7 @@ export function Screen({ children, footer }: { children: ReactNode; footer?: Rea
 
 export function Card({ children, style, tint }: { children: ReactNode; style?: StyleProp<ViewStyle>; tint?: 'select' }) {
   const t = useTheme();
-  return <View style={[styles.card, { backgroundColor: tint ? t.backgroundSelected : t.backgroundElement }, style]}>{children}</View>;
+  return <Animated.View layout={fx.layout} entering={fx.fade} style={[styles.card, { backgroundColor: tint ? t.backgroundSelected : t.backgroundElement }, style]}>{children}</Animated.View>;
 }
 
 export { Btn } from './btn';
@@ -96,20 +105,20 @@ export function Chip({ label, icon, selected, onPress }: { label: string; icon?:
   const t = useTheme();
   const fg = selected ? '#ffffff' : t.textStrong;
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress}
-      style={({ pressed }) => [styles.chip, { backgroundColor: selected ? t.brandSolid : t.backgroundElement, opacity: pressed ? 0.75 : 1 }]}>
+    <Pressable testID={`chip-${label}`} accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress}
+      style={({ pressed }) => [styles.chip, { maxWidth: '100%', backgroundColor: selected ? t.brandSolid : t.backgroundElement, opacity: pressed ? 0.75 : 1 }]}>
       {icon && <Ionicons name={icon} size={14} color={fg} />}
-      <Text style={{ fontFamily: Font.medium, fontSize: 13, color: fg }}>{label}</Text>
+      <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: fg, flexShrink: 1 }}>{label}</Text>
     </Pressable>
   );
 }
 
 export { Seg } from './seg';
 
-export function Field({ icon, style, ...p }: TextInputProps & { icon?: IconName }) {
+export function Field({ icon, style, bg, ...p }: TextInputProps & { icon?: IconName; bg?: string }) {
   const t = useTheme();
   return (
-    <View style={[styles.field, { backgroundColor: t.backgroundElement }]}>
+    <View style={[styles.field, { backgroundColor: bg ?? t.backgroundElement, alignItems: p.multiline ? 'flex-start' : 'center', paddingTop: p.multiline ? 12 : 0 }]}>
       {icon && <Ionicons name={icon} size={18} color={t.textSecondary} />}
       <TextInput placeholderTextColor={t.textSecondary} {...p} style={[{ flex: 1, fontFamily: Font.regular, fontSize: 16, color: t.textStrong, paddingVertical: 12 }, style]} />
     </View>
@@ -118,10 +127,11 @@ export function Field({ icon, style, ...p }: TextInputProps & { icon?: IconName 
 
 /** Native bottom sheet (SwiftUI sheet / Material bottom sheet). */
 export function Sheet({ visible, title, onClose, children }: { visible: boolean; title: string; onClose: () => void; children: ReactNode }) {
+  const { width } = useWindowDimensions(); // the native sheet sizes its content to fit, so give it the full width explicitly
   return (
     <Host style={{ position: 'absolute' }}>
       <BottomSheet isPresented={visible} onDismiss={onClose} snapPoints={['full']}>
-        <ScrollView contentContainerStyle={{ padding: Spacing.three, gap: Spacing.four }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ width }} contentContainerStyle={{ padding: Spacing.three, gap: Spacing.four }} keyboardShouldPersistTaps="handled">
           <Txt v="h2">{title}</Txt>
           {children}
         </ScrollView>
@@ -131,10 +141,10 @@ export function Sheet({ visible, title, onClose, children }: { visible: boolean;
 }
 
 export const Group = ({ label, children }: { label: string; children: ReactNode }) => (
-  <View style={{ gap: Spacing.two }}>
+  <Animated.View entering={fx.in()} exiting={fx.out} layout={fx.layout} style={{ gap: Spacing.two }}>
     <Txt v="label">{label}</Txt>
     {children}
-  </View>
+  </Animated.View>
 );
 export const Wrap = ({ children }: { children: ReactNode }) => <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two }}>{children}</View>;
 

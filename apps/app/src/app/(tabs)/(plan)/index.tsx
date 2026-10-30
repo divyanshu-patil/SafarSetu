@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { networks, type PlanRequest } from '@repo/core';
 
 import { PlaceInput, locate, type Pt } from '@/components/place-input';
-import { Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap } from '@/components/ui';
+import { TimePick } from '@/components/time-pick';
+import { Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx } from '@/components/ui';
 import { Font, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askNotifications } from '@/lib/notify';
@@ -86,7 +88,7 @@ export default function PlanScreen() {
 
   return (
     <>
-      <Header title={t('whereTo')} actions={[...(!empty ? [{ sf: 'trash', icon: 'trash-outline' as const, label: t('clear'), onPress: clear }] : []), { sf: 'slider.horizontal.3', icon: 'options' as const, label: t('options'), onPress: () => setSheet(true) }]} />
+      <Header title={t('whereTo')} actions={[...(!empty ? [{ sf: 'trash', icon: 'trash-outline' as const, label: t('clear'), onPress: () => Alert.alert(t('clear'), undefined, [{ text: t('done'), style: 'cancel' }, { text: t('clear'), style: 'destructive', onPress: clear }]) }] : []), { sf: 'slider.horizontal.3', icon: 'options' as const, label: t('options'), onPress: () => setSheet(true) }]} />
       <Screen footer={<><Btn label={t('planBtn')} onPress={run} busy={busy} />{err && <Txt v="sub" tone="danger" style={{ textAlign: 'center', paddingTop: 6 }}>{err}</Txt>}</>}>
 
       <Seg options={CITIES} value={city} onChange={(c) => { setCity(c); clear(); }} />
@@ -106,39 +108,39 @@ export default function PlanScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
               <Icon name="time-outline" size={15} color={th.textSecondary} />
               <Txt v="sub">{t('leaveAt')}</Txt>
-              <TimeBox value={leave} onChange={setLeave} label={t('leaveAt')} />
+              <TimePick value={leave} onChange={setLeave} label={t('leaveAt')} />
               {!origin && <Chip label={t('myLocation')} icon="locate" onPress={useHere} />}
             </View>
           </View>
         </View>
 
         {stops.map((x, i) => (
-          <View key={x.id} style={{ flexDirection: 'row', gap: Spacing.three }}>
+          <Animated.View key={x.id} entering={fx.in()} exiting={fx.out} layout={fx.layout} style={{ flexDirection: 'row', gap: Spacing.three }}>
             <Rail badge={letter(i)} line />
             <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
                 <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setOpen(open === x.id ? null : x.id)}>
                   <Txt v="h2" numberOfLines={1}>{x.name}</Txt>
-                  <Txt v="sub" numberOfLines={1}>{[x.task, `${x.dwell} ${t('min')}`, x.by && `${t('beThereBy')} ${x.by}`, !x.required && t('optional')].filter(Boolean).join(' · ')}</Txt>
+                  <Txt v="sub" numberOfLines={2}>{[x.task, `${x.dwell} ${t('min')}`, x.by && `${t('beThereBy')} ${x.by}`, !x.required && t('optional')].filter(Boolean).join(' · ')}</Txt>
                 </Pressable>
                 <IconBtn icon="arrow-up" label="Up" size={30} disabled={i === 0} onPress={() => move(i, -1)} />
                 <IconBtn icon="arrow-down" label="Down" size={30} disabled={i === stops.length - 1} onPress={() => move(i, 1)} />
               </View>
               {open === x.id && (
-                <View style={{ gap: Spacing.two }}>
-                  <Field icon="briefcase-outline" value={x.task} onChangeText={(v) => patch(x.id, { task: v })} placeholder={t('taskHint')} accessibilityLabel={t('task')} />
+                <Animated.View entering={fx.fade} exiting={fx.out} style={{ gap: Spacing.two }}>
+                  <Field bg={th.background} returnKeyType="done" icon="briefcase-outline" value={x.task} onChangeText={(v) => patch(x.id, { task: v })} placeholder={t('taskHint')} accessibilityLabel={t('task')} />
                   <Wrap>{DWELLS.map((d) => <Chip key={d} label={`${d} ${t('min')}`} selected={x.dwell === d} onPress={() => patch(x.id, { dwell: d })} />)}</Wrap>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' }}>
                     <Icon name="alarm-outline" size={15} color={th.textSecondary} />
                     <Txt v="sub">{t('beThereBy')}</Txt>
-                    <TimeBox value={x.by} onChange={(v) => patch(x.id, { by: v })} label={t('beThereBy')} placeholder="--:--" />
+                    <TimePick optional value={x.by} onChange={(v) => patch(x.id, { by: v })} label={t('beThereBy')} fallback="12:00" />
                     <Chip label={x.required ? t('must') : t('optional')} icon={x.required ? 'lock-closed' : 'lock-open-outline'} selected={x.required} onPress={() => patch(x.id, { required: !x.required })} />
                     <Chip label={t('remove')} icon="close" onPress={() => { setStops((y) => y.filter((z) => z.id !== x.id)); setOpen(null); }} />
                   </View>
-                </View>
+                </Animated.View>
               )}
             </View>
-          </View>
+          </Animated.View>
         ))}
 
         {origin && !editStart && (
@@ -159,9 +161,15 @@ export default function PlanScreen() {
         </Group>
       )}
 
+      {stops.length === 0 && (
+        <Group label={t('popular')}>
+          <Wrap>{net.places.slice(0, 8).map((p) => <Chip key={p.id} icon="location-outline" label={p.name} onPress={() => { const pt = { name: p.name, lat: p.lat, lon: p.lon }; if (!origin || editStart) { setOrigin(pt); setEditStart(false); } else { const n = stopOf(pt); setStops((y) => [...y, n]); setOpen(n.id); } }} />)}</Wrap>
+        </Group>
+      )}
+
       <Sheet visible={sheet} title={t('options')} onClose={() => setSheet(false)}>
         <Group label={t('date')}><Seg options={[{ id: '0', label: 'Today' }, { id: '1', label: 'Tomorrow' }]} value={String(day) as '0' | '1'} onChange={(v) => setDay(Number(v) as 0 | 1)} /></Group>
-        <Group label={t('finishBy')}><View style={{ flexDirection: 'row' }}><TimeBox value={finish} onChange={setFinish} label={t('finishBy')} placeholder="--:--" /></View></Group>
+        <Group label={t('finishBy')}><View style={{ flexDirection: 'row' }}><TimePick optional value={finish} onChange={setFinish} label={t('finishBy')} fallback="20:00" /></View></Group>
         <Group label={t('order')}><Seg options={[{ id: 'mine', label: t('myOrder') }, { id: 'best', label: t('bestOrder') }]} value={keepOrder ? 'mine' : 'best'} onChange={(v) => setKeepOrder(v === 'mine')} /></Group>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Txt style={{ flex: 1, fontFamily: Font.medium }}>{t('returnStart')}</Txt>
@@ -189,13 +197,5 @@ function Rail({ badge, accent, line, last }: { badge: string; accent?: boolean; 
       </View>
       {line && !last && <View style={{ flex: 1, marginTop: 4, borderLeftWidth: 2, borderColor: t.border, borderStyle: 'dotted' }} />}
     </View>
-  );
-}
-
-function TimeBox({ value, onChange, label, placeholder = '09:00' }: { value: string; onChange: (v: string) => void; label: string; placeholder?: string }) {
-  const t = useTheme();
-  return (
-    <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={t.textSecondary} accessibilityLabel={label} keyboardType="numbers-and-punctuation" maxLength={5}
-      style={{ fontFamily: Font.semibold, fontSize: 14, color: t.textStrong, backgroundColor: t.background, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, minWidth: 64, textAlign: 'center' }} />
   );
 }

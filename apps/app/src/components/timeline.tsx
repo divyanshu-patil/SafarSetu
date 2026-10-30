@@ -1,7 +1,8 @@
 import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { fmtDuration, fmtTime, isTrivialMove, type Entry, type Leg, type Move, type Plan, type Visit } from '@repo/core';
 
-import { Icon, Txt, type IconName } from '@/components/ui';
+import { Icon, Txt, fx, type IconName } from '@/components/ui';
 import { Font, ModeColor, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/lib/settings';
@@ -14,11 +15,13 @@ function LegRow({ l }: { l: Leg }) {
   const color = l.kind === 'transit' ? l.color : ModeColor[kind as keyof typeof ModeColor];
   const title = l.kind === 'transit' ? l.routeName : l.kind === 'walk' ? `${t('walk')} ${Math.round(l.arriveMin - l.departMin)} ${t('min')}` : `${t('cab')} ₹${l.fare}`;
   const sub = l.kind === 'transit' ? `${fmtTime(l.departMin)} ${l.from.name} → ${fmtTime(l.arriveMin)} ${l.to.name}` : l.kind === 'walk' ? `${Math.round(l.distM)} m → ${l.to.name ?? ''}` : `${fmtTime(l.departMin)} → ${fmtTime(l.arriveMin)}`;
+  if (l.kind === 'walk' && l.arriveMin - l.departMin < 3)
+    return <Txt v="sub" style={{ paddingLeft: 36 }}>{t('walk')} {Math.round(l.arriveMin - l.departMin)} {t('min')} · {Math.round(l.distM)} m</Txt>;
   return (
     <View style={styles.leg}>
       <View style={[styles.ic, { backgroundColor: color + '1f' }]}><Icon name={MODE_ICON[kind] ?? 'ellipse'} size={14} color={color} /></View>
       <View style={{ flex: 1 }}>
-        <Txt style={{ fontFamily: Font.medium }} numberOfLines={1}>{title}</Txt>
+        <Txt style={{ fontFamily: Font.medium }} numberOfLines={2}>{title}</Txt>
         <Txt v="sub" numberOfLines={1}>{sub}{l.kind === 'transit' && l.delayMin > 0 ? ` · +${Math.round(l.delayMin)} ${t('min')}` : ''}</Txt>
       </View>
       {l.kind === 'transit' && l.fare ? <Txt v="sub">₹{l.fare}</Txt> : null}
@@ -66,7 +69,11 @@ function VisitCard({ v, now }: { v: Visit; now?: number }) {
 export function Timeline({ plan, now }: { plan: Plan; now?: number }) {
   return (
     <View style={{ gap: Spacing.two }}>
-      {plan.timeline.map((e: Entry, i) => (isTrivialMove(e) ? null : e.kind === 'visit' ? <VisitCard key={i} v={e} now={now} /> : <MoveRow key={i} m={e} now={now} />))}
+      {plan.timeline.map((e: Entry, i) => (isTrivialMove(e) ? null : (
+        <Animated.View key={i} entering={fx.in(i)} layout={fx.layout}>
+          {e.kind === 'visit' ? <VisitCard v={e} now={now} /> : <MoveRow m={e} now={now} />}
+        </Animated.View>
+      )))}
     </View>
   );
 }

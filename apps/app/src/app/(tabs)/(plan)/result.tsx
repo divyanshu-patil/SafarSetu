@@ -1,11 +1,12 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Share, View } from 'react-native';
-import { fmtTime, planImpact, planToMapLayers } from '@repo/core';
+import Animated from 'react-native-reanimated';
+import { fmtTime, isTrivialMove, planImpact, planToMapLayers, type Move, type Visit } from '@repo/core';
 
 import RouteMap from '@/components/route-map';
 import { Timeline } from '@/components/timeline';
-import { Btn, Card, Header, Icon, Screen, Txt } from '@/components/ui';
+import { Btn, Card, Header, Icon, Screen, Txt, fx } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useSession } from '@/lib/session';
@@ -45,27 +46,35 @@ export default function Result() {
     }).catch(() => {});
   }, [plan, client]);
 
-  if (!plan) return <><Header title={t('plan')} large={false} /><Screen><Txt tone="muted">{t('noTrip')}</Txt></Screen></>;
+  if (!plan) return <Redirect href="/" />; // e.g. after a reload cleared the session
   const impact = planImpact(plan);
   const visits = plan.timeline.filter((e) => e.kind === 'visit').length;
+  const first = plan.timeline.find((e): e is Move => e.kind === 'move' && !isTrivialMove(e));
+  const last = [...plan.timeline].reverse().find((e): e is Visit => e.kind === 'visit');
   const share = () => Share.share({ message: plan.timeline.flatMap((e) => (e.kind === 'visit' ? [`${fmtTime(e.startMin)} ${e.place.name}${e.place.task ? ` — ${e.place.task}` : ''}`] : [])).join('\n') });
 
   return (
     <>
       <Header title={t('plan')} large={false} actions={[{ sf: 'square.and.arrow.up', icon: 'share-outline', label: t('share'), onPress: share }]} />
-      <Screen footer={current?.id ? <Btn label={t('startTrip')} onPress={() => router.dismissTo('/trip')} /> : <Btn kind="soft" label={t('offline')} disabled />}>
+      <Screen footer={current?.id ? <Btn label={t('startTrip')} onPress={() => { router.back(); router.navigate('/trip'); }} /> : <Btn kind="soft" label={t('offline')} disabled />}>
       <RouteMap lines={lines} markers={layers?.markers} />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      {first && (
+        <Animated.View entering={fx.in(0)}>
+          <Txt v="label">{t('leave')}</Txt>
+          <Txt style={{ fontSize: 44, lineHeight: 48, letterSpacing: -1.5, fontFamily: 'Inter_900Black' }}>{fmtTime(first.departMin)}<Txt v="sub">  → {fmtTime(last?.leaveMin ?? first.arriveMin)}</Txt></Txt>
+        </Animated.View>
+      )}
+      <Animated.View entering={fx.in(1)} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         {([[String(visits), t('stops')], [`${(plan.totals.walkM / 1000).toFixed(1)} km`, t('walking')], [`₹${plan.totals.fare}`, t('fares')], [`${plan.totals.confidencePct}%`, t('onTime')]] as const).map(([v, l]) => (
           <View key={l}><Txt v="num">{v}</Txt><Txt v="sub">{l}</Txt></View>
         ))}
-      </View>
+      </Animated.View>
 
       {(impact.savedInr > 0 || impact.savedCo2Kg > 0) && (
         <Card tint="select" style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Icon name="leaf" size={18} color={th.brand} />
-          <Txt style={{ flex: 1 }}><Txt tone="brand" style={{ fontWeight: '700' }}>₹{impact.savedInr}</Txt> · {impact.savedCo2Kg} kg {t('co2')} <Txt v="sub">{t('saves')}</Txt></Txt>
+          <Txt style={{ flex: 1 }}><Txt v="sub">{t('saves')} </Txt><Txt tone="brand" style={{ fontWeight: '700' }}>₹{impact.savedInr}</Txt> · {impact.savedCo2Kg} kg {t('co2')}</Txt>
         </Card>
       )}
       {rain !== null && <Chip2 icon="rainy" text={`${t('rain')} · ${rain}%`} color={th.info} />}
@@ -82,9 +91,9 @@ export default function Result() {
 
 function Chip2({ icon, text, color }: { icon: React.ComponentProps<typeof Icon>['name']; text: string; color: string }) {
   return (
-    <View style={{ flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-start' }}>
+    <Animated.View entering={fx.in(2)} style={{ flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-start' }}>
       <Icon name={icon} size={16} color={color} />
       <Txt v="sub" style={{ flex: 1, color }}>{text}</Txt>
-    </View>
+    </Animated.View>
   );
 }

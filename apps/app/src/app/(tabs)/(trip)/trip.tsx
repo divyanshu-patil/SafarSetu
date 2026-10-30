@@ -64,6 +64,8 @@ export default function Trip() {
   const layers = useMemo(() => (plan ? planToMapLayers(plan) : null), [plan]);
   const me = plan && clock ? positionAt(plan, now) : null;
   const next = plan && clock ? nextAction(plan, now) : null;
+  // the demo clock is global, so it is often nowhere near this trip: say so instead of claiming "All done"
+  const inWindow = !!plan && now >= plan.request.startMin - 60 && now <= plan.request.endMin + 30;
 
   const setC = (p: Partial<ClockState>) => client.setClock(p).then((c) => setClock({ c, at: Date.now() })).catch((e) => setErr(e.message));
   const run = async (name: string) => { if (!id || !plan) return; setBusy(name); try { await client.scenario(name, id, plan.request.city); await pull(); } catch (e) { setErr((e as Error).message); } finally { setBusy(null); } };
@@ -93,8 +95,8 @@ export default function Trip() {
 
       <Card tint="select">
         <Txt v="label">{t('nextUp')}</Txt>
-        <Txt v="h2">{next?.title ?? t('dayDone')}</Txt>
-        {next?.detail ? <Txt v="sub" style={{ color: th.text }}>{next.detail}</Txt> : null}
+        <Txt v="h2">{!inWindow ? t('clockOff') : next?.title ?? t('dayDone')}</Txt>
+        {inWindow && next?.detail ? <Txt v="sub" style={{ color: th.text }}>{next.detail}</Txt> : null}
       </Card>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
@@ -106,7 +108,7 @@ export default function Trip() {
 
       <RouteMap lines={layers?.lines} markers={layers?.markers} me={me} height={220} />
 
-      {!next && !outcome && (
+      {inWindow && !next && !outcome && (
         <Group label={t('howDay')}>
           <Wrap>
             <Chip icon="happy-outline" label={t('madeIt')} onPress={() => { setOutcome('on time'); fb({ kind: 'trip', planId: id, onTime: true }); }} />
