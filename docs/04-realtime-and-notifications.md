@@ -78,3 +78,8 @@ Every disruption carries `source` and `verified`; the UI shows *scheduled / live
 ## Demo simulator
 
 `POST /v1/sim/scenario {name}` injects canned events: `train-late-30`, `metro-cancelled`, `stop-closed`, `heavy-rain`, `clear`. `POST /v1/sim/clock` sets/speeds virtual time. Same code path as production ingestion.
+
+## Round-3 additions
+- **Deadline-aware alerts** (`late` kind): if a delay would make an appointment late, the alert says so with the new arrival time and the best alternative; a delayed vehicle that has a good alternative gets an action-first "take X instead" message.
+- **Languages:** English, हिन्दी, मराठी from one template set (`packages/core/src/i18n.ts`); facts are inserted by code, never by a model.
+- **Feed adapter:** `apps/api/src/gtfs-rt.ts` maps GTFS-Realtime TripUpdates to disruptions (see [17](17-security-privacy-ops.md)).

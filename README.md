@@ -35,6 +35,7 @@
 - **Real timetables where they exist.** Indian Railways trains, PMPML (Pune) and BEST (Mumbai) buses, merged into one network of 9,430 stops and 2,480 routes.
 - **Chooses your transport.** Switch local trains, express trains, metro, buses or a cab fallback on and off.
 - **Includes more people.** A *Gentle* pace for seniors and limited mobility, a warning for long walks after dark, and a read-only link to share your live trip.
+- **Built to be piloted.** One-tap, anonymous “was this alert useful?” and “how did the day go?” feedback; a field-interview kit for baseline evidence; audit-logged authority actions, login throttling, and automatic 12-month deletion of citizen reports. A real-time feed adapter (GTFS-Realtime) is written and tested, waiting for an agency to share a feed.
 - **Helps authorities see where journeys break.** Citizens report two areas that should be connected; officials see grouped, ranked gaps with every scoring factor visible and adjustable. Roles and jurisdictions are enforced.
 
 <img src="docs/media/section-how.svg" width="100%" alt="2. How it works">
@@ -100,6 +101,6 @@ An honest self-assessment per official criterion, with the test log, is in [`doc
 
 #### Known limits
 
-No pilot has been run, so no time-saved or cost-saved result exists. Live agency feeds are not connected. Marathi and Hindi text needs native-speaker review before use. One Node process handles about 10 plans/s; scale-out is documented, not built. Supabase storage is written and its schema validated, but the adapter has not been run against a live database.
+No pilot has been run, so no time-saved or cost-saved result exists. Live agency feeds are not connected (none is publicly available). No external security audit has been done. Marathi and Hindi text needs native-speaker review before use. One Node process handles about 10 plans/s; scale-out is documented, not built. Supabase storage is written and its schema validated, but the adapter has not been run against a live database.
 
 <sub>Map © OpenStreetMap contributors · Timetables: Datameet / Indian Railways, community GTFS for PMPML and BEST (MIT-0) · Design language: <a href="docs/DESIGN.md">docs/DESIGN.md</a></sub>
