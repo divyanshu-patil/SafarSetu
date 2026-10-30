@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { networks, type PlanRequest } from '@repo/core';
+import { fmtTime, networks, type PlanRequest } from '@repo/core';
 
 import { PlaceInput, locate, type Pt } from '@/components/place-input';
+import { ReorderList } from '@/components/reorder-list';
 import { TimePick } from '@/components/time-pick';
 import { Btn, Card, Chip, Field, Group, Header, Icon, IconBtn, Seg, Sheet, Toggle, Txt, Screen, Wrap, fx } from '@/components/ui';
 import { Font, Spacing } from '@/constants/theme';
@@ -48,7 +49,7 @@ export default function PlanScreen() {
   // a chip tap fills the start first, then adds stops
   const usePt = (p: Pt) => (!origin || editStart ? setStart(p) : addStop(p));
   const patch = (id: string, p: Partial<Stop>) => setStops((x) => x.map((y) => (y.id === id ? { ...y, ...p } : y)));
-  const move = (i: number, d: -1 | 1) => setStops((x) => { const n = [...x]; const j = i + d; if (j < 0 || j >= n.length) return x; [n[i], n[j]] = [n[j]!, n[i]!]; return n; });
+  const reorder = (from: number, to: number) => setStops((x) => { const n = [...x]; const [m] = n.splice(from, 1); n.splice(to, 0, m!); return n; });
   const clear = () => { setOrigin(null); setStops([]); setOpen(null); setErr(null); setEditStart(false); setFinish(''); setReturnHome(false); };
   const example = (e: Example) => {
     setCity(e.city); setOrigin(e.origin); setLeave(e.leave); setReturnHome(e.returnHome); setKeepOrder(true); setErr(null); setEditStart(false);
@@ -88,6 +89,23 @@ export default function PlanScreen() {
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
 
+  // live arrival times: the same engine plans on the phone whenever the route changes, so a reorder re-times every stop
+  const etas = useMemo(() => {
+    const m = new Map<string, { arrive: number; fits: boolean }>();
+    const startMin = fromHHMM(leave);
+    if (!origin || !stops.length || startMin === undefined) return m;
+    try {
+      const plan = planLocally({
+        city, date: todayISO(), origin, startMin, endMin: Math.min(1439, startMin + 14 * 60), returnToOrigin: false, keepOrder,
+        prefs: { pace: s.pace, style: s.style, lang: s.lang, avoid: s.avoid as never[] },
+        places: stops.map((x) => ({ name: x.name, lat: x.lat, lon: x.lon, minDwell: x.dwell, maxDwell: x.dwell, arriveBy: fromHHMM(x.by), required: x.required, priority: x.required ? 3 : 2 })),
+      });
+      for (const e of plan.timeline) if (e.kind === 'visit') m.set(e.place.name, { arrive: e.arriveMin, fits: true });
+      for (const d of [...plan.dropped, ...(plan.conflicts ?? [])]) if (!m.has(d.name)) m.set(d.name, { arrive: 0, fits: false });
+    } catch { /* an unroutable combination: just show no times */ }
+    return m;
+  }, [origin, stops, leave, city, keepOrder, s.pace, s.style, s.lang, s.avoid]);
+
   const empty = !origin && !stops.length;
 
   return (
@@ -100,7 +118,7 @@ export default function PlanScreen() {
       <Card style={{ gap: 0 }}>
         {/* A — start */}
         <View style={{ flexDirection: 'row', gap: Spacing.three }}>
-          <Rail badge="A" accent line={!!origin} />
+          <Rail badge="A" accent line={!!origin} top={origin && !editStart ? 0 : 11} />
           <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
             {origin && !editStart ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
@@ -121,39 +139,45 @@ export default function PlanScreen() {
           </View>
         </View>
 
-        {stops.map((x, i) => (
-          <Animated.View key={x.id} entering={fx.in()} exiting={fx.out} layout={fx.layout} style={{ flexDirection: 'row', gap: Spacing.three }}>
-            <Rail badge={letter(i)} line />
-            <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
-                <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setOpen(open === x.id ? null : x.id)}>
-                  <Txt v="h2" numberOfLines={1}>{x.name}</Txt>
-                  <Txt v="sub" numberOfLines={2}>{[x.task, `${x.dwell} ${t('min')}`, x.by && `${t('beThereBy')} ${x.by}`, !x.required && t('optional')].filter(Boolean).join(' · ')}</Txt>
-                </Pressable>
-                <IconBtn icon="arrow-up" label="Up" size={30} disabled={i === 0} onPress={() => move(i, -1)} />
-                <IconBtn icon="arrow-down" label="Down" size={30} disabled={i === stops.length - 1} onPress={() => move(i, 1)} />
+        <ReorderList items={stops} onReorder={reorder} renderRow={(x, i, handle) => {
+          const eta = etas.get(x.name);
+          const late = !!eta && !!fromHHMM(x.by) && eta.arrive > fromHHMM(x.by)! + 0.5;
+          return (
+            <>
+              <Rail badge={letter(i)} line />
+              <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+                  <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setOpen(open === x.id ? null : x.id)}>
+                    <Txt v="h2" numberOfLines={1}>{x.name}</Txt>
+                    <Txt v="sub" numberOfLines={2}>
+                      {eta ? <Txt v="sub" style={{ fontFamily: Font.semibold, color: eta.fits ? (late ? th.danger : th.brand) : th.danger }}>{eta.fits ? fmtTime(eta.arrive) : t('cantFit')}{'  '}</Txt> : null}
+                      {[x.task, `${x.dwell} ${t('min')}`, x.by && `${t('by')} ${x.by}`, !x.required && t('optional')].filter(Boolean).join(' · ')}
+                    </Txt>
+                  </Pressable>
+                  {handle}
+                </View>
+                {open === x.id && (
+                  <Animated.View entering={fx.fade} exiting={fx.out} style={{ gap: Spacing.two }}>
+                    <Field bg={th.background} returnKeyType="done" icon="briefcase-outline" value={x.task} onChangeText={(v) => patch(x.id, { task: v })} placeholder={t('taskHint')} accessibilityLabel={t('task')} />
+                    <Wrap>{DWELLS.map((d) => <Chip key={d} label={`${d} ${t('min')}`} selected={x.dwell === d} onPress={() => patch(x.id, { dwell: d })} />)}</Wrap>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' }}>
+                      <Icon name="alarm-outline" size={15} color={th.textSecondary} />
+                      <Txt v="sub">{t('beThereBy')}</Txt>
+                      <TimePick optional value={x.by} onChange={(v) => patch(x.id, { by: v })} label={t('beThereBy')} fallback="12:00" />
+                      <Chip label={x.required ? t('must') : t('optional')} icon={x.required ? 'lock-closed' : 'lock-open-outline'} selected={x.required} onPress={() => patch(x.id, { required: !x.required })} />
+                      <Chip label={s.isSaved(x) ? t('saved') : t('save')} icon={s.isSaved(x) ? 'bookmark' : 'bookmark-outline'} selected={s.isSaved(x)} onPress={() => s.toggleSaved({ name: x.name, lat: x.lat, lon: x.lon })} />
+                      <Chip label={t('remove')} icon="close" onPress={() => { setStops((y) => y.filter((z) => z.id !== x.id)); setOpen(null); }} />
+                    </View>
+                  </Animated.View>
+                )}
               </View>
-              {open === x.id && (
-                <Animated.View entering={fx.fade} exiting={fx.out} style={{ gap: Spacing.two }}>
-                  <Field bg={th.background} returnKeyType="done" icon="briefcase-outline" value={x.task} onChangeText={(v) => patch(x.id, { task: v })} placeholder={t('taskHint')} accessibilityLabel={t('task')} />
-                  <Wrap>{DWELLS.map((d) => <Chip key={d} label={`${d} ${t('min')}`} selected={x.dwell === d} onPress={() => patch(x.id, { dwell: d })} />)}</Wrap>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' }}>
-                    <Icon name="alarm-outline" size={15} color={th.textSecondary} />
-                    <Txt v="sub">{t('beThereBy')}</Txt>
-                    <TimePick optional value={x.by} onChange={(v) => patch(x.id, { by: v })} label={t('beThereBy')} fallback="12:00" />
-                    <Chip label={x.required ? t('must') : t('optional')} icon={x.required ? 'lock-closed' : 'lock-open-outline'} selected={x.required} onPress={() => patch(x.id, { required: !x.required })} />
-                    <Chip label={s.isSaved(x) ? t('saved') : t('save')} icon={s.isSaved(x) ? 'bookmark' : 'bookmark-outline'} selected={s.isSaved(x)} onPress={() => s.toggleSaved({ name: x.name, lat: x.lat, lon: x.lon })} />
-                    <Chip label={t('remove')} icon="close" onPress={() => { setStops((y) => y.filter((z) => z.id !== x.id)); setOpen(null); }} />
-                  </View>
-                </Animated.View>
-              )}
-            </View>
-          </Animated.View>
-        ))}
+            </>
+          );
+        }} />
 
         {origin && !editStart && (
           <View style={{ flexDirection: 'row', gap: Spacing.three }}>
-            <Rail badge="+" last />
+            <Rail badge="+" last top={11} />
             <View style={{ flex: 1 }}>
               <PlaceInput onCard places={net.places} placeholder={t('addStop')} icon="add" onPick={addStop} />
             </View>
@@ -200,14 +224,15 @@ export default function PlanScreen() {
 }
 
 /** Left rail of the A→B→C list: lettered badge and a dotted connector to the next row. */
-function Rail({ badge, accent, line, last }: { badge: string; accent?: boolean; line?: boolean; last?: boolean }) {
+function Rail({ badge, accent, line, last, top = 0 }: { badge: string; accent?: boolean; line?: boolean; last?: boolean; top?: number }) {
   const t = useTheme();
   return (
-    <View style={{ alignItems: 'center', width: 28 }}>
+    <View style={{ alignItems: 'center', width: 28, paddingTop: top }}>
       <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: accent ? t.accent : last ? t.backgroundSelected : t.brandSolid }}>
         <Txt v="sub" style={{ fontFamily: Font.bold, color: accent ? t.onAccent : last ? t.brand : '#fff' }}>{badge}</Txt>
       </View>
-      {line && !last && <View style={{ flex: 1, marginTop: 4, borderLeftWidth: 2, borderColor: t.border, borderStyle: 'dotted' }} />}
+      {/* one unbroken connector to the next badge */}
+      {line && !last && <View style={{ flex: 1, width: 2, borderRadius: 1, backgroundColor: t.borderStrong, opacity: 0.55 }} />}
     </View>
   );
 }

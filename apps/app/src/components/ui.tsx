@@ -63,6 +63,9 @@ export function Header({ title, large = true, actions = [] }: { title: string; l
 /** Lets a field ask its screen to scroll it clear of the keyboard (and clear of its own suggestion list). */
 const RevealCtx = createContext<(node: any) => void>(() => {});
 export const useReveal = () => useContext(RevealCtx);
+/** Lets a drag gesture freeze the surrounding scroll view while it runs. */
+const ScrollLockCtx = createContext<(locked: boolean) => void>(() => {});
+export const useScrollLock = () => useContext(ScrollLockCtx);
 
 /** Scroll screen. The ScrollView is the screen's first child so the native header and tab bar can inset it and blur behind it. */
 export function Screen({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
@@ -70,6 +73,7 @@ export function Screen({ children, footer }: { children: ReactNode; footer?: Rea
   const insets = useSafeAreaInsets();
   const ios = Platform.OS === 'ios';
   const sv = useRef<any>(null); // RN 0.88 types the instance oddly; only scrollTo is used
+  const [locked, setLocked] = useState(false);
   const [extra, setExtra] = useState(0); // room below the content so a field near the bottom can still be scrolled up to the header
   useEffect(() => { const h = Keyboard.addListener('keyboardDidHide', () => setExtra(0)); return () => h.remove(); }, []);
   const scrollY = useRef(0); // includes the negative offset the native header inset adds at rest
@@ -85,10 +89,12 @@ export function Screen({ children, footer }: { children: ReactNode; footer?: Rea
   };
   return (
     <RevealCtx.Provider value={reveal}>
-      <ScrollView ref={sv} scrollEventThrottle={16} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom) + extra, alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
+      <ScrollLockCtx.Provider value={setLocked}>
+      <ScrollView ref={sv} scrollEnabled={!locked} scrollEventThrottle={16} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom) + extra, alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <View style={{ width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three }}>{children}</View>
       </ScrollView>
       {footer && <View style={[styles.footer, { backgroundColor: t.background, borderColor: t.border, paddingBottom: Spacing.two + insets.bottom }]}>{footer}</View>}
+      </ScrollLockCtx.Provider>
     </RevealCtx.Provider>
   );
 }
@@ -147,12 +153,18 @@ export function Field({ icon, style, bg, ...p }: TextInputProps & { icon?: IconN
 /** Native bottom sheet (SwiftUI sheet / Material bottom sheet). */
 export function Sheet({ visible, title, onClose, children, half }: { visible: boolean; title: string; onClose: () => void; children: ReactNode; half?: boolean }) {
   const { width } = useWindowDimensions(); // the native sheet sizes its content to fit, so give it the full width explicitly
+  const t = useTheme();
   return (
     <Host style={{ position: 'absolute' }}>
       <BottomSheet isPresented={visible} onDismiss={onClose} snapPoints={half ? ['half', 'full'] : ['full']} contentPadding={0}>
-        <ScrollView style={{ width }} contentContainerStyle={{ padding: Spacing.three, gap: Spacing.four }} keyboardShouldPersistTaps="handled">
-          <Txt v="h2">{title}</Txt>
-          {children}
+        {/* pinned header: centred title, close at the trailing edge, hairline under it once content scrolls */}
+        <ScrollView style={{ width }} stickyHeaderIndices={[0]} contentContainerStyle={{ paddingBottom: Spacing.five }} keyboardShouldPersistTaps="handled">
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.three, paddingTop: Spacing.three, paddingBottom: Spacing.three, backgroundColor: t.background, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.border }}>
+            <View style={{ width: 36 }} />
+            <Txt v="h2" accessibilityRole="header" style={{ flex: 1, textAlign: 'center' }}>{title}</Txt>
+            <IconBtn icon="close" label="Close" size={36} onPress={onClose} />
+          </View>
+          <View style={{ padding: Spacing.three, paddingTop: Spacing.four, gap: Spacing.four }}>{children}</View>
         </ScrollView>
       </BottomSheet>
     </Host>
