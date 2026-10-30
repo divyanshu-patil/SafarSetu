@@ -32,6 +32,7 @@
 - **Alerts that say what to do.** “No need to rush — your train is 30 min late. Leave at 10:40.” The tone follows the slack you really have; if a delay would make you late for a meeting it says so and suggests the alternative. English, हिन्दी and मराठी.
 - **Real timetables where they exist.** Indian Railways trains, PMPML (Pune) and BEST (Mumbai) buses, merged into one network of 9,430 stops and 2,480 routes.
 - **Chooses your transport.** Switch local trains, express trains, metro, buses or a cab fallback on and off.
+- **Works on the phone too.** The Expo app has the same stop editor — search, reorder, task, time needed, *be there by* — and plans offline with the shared engine.
 - **Includes more people.** A *Gentle* pace for seniors and limited mobility, a warning for long walks after dark, and a read-only link to share your live trip.
 - **Built to be piloted.** One-tap, anonymous “was this alert useful?” and “how did the day go?” feedback; a field-interview kit for baseline evidence; audit-logged authority actions, login throttling, and automatic 12-month deletion of citizen reports. A real-time feed adapter (GTFS-Realtime) is written and tested, waiting for an agency to share a feed.
 - **Helps authorities see where journeys break.** Citizens report two areas that should be connected; officials see grouped, ranked gaps with every scoring factor visible and adjustable. Roles and jurisdictions are enforced.
@@ -81,7 +82,7 @@ Open the planner, add a few stops (or try an example), press **Plan my route**, 
 | `packages/core` | Planning engine, alerts (en/hi/mr), impact model, data packs, typed client |
 | `apps/api` | Express 5 API, live stream, scheduler, authority and report endpoints, Supabase migrations |
 | `apps/web` | Next.js 16 dashboard — planner, live trip, report a gap, authority portal, field kit |
-| `apps/app` | Expo app that runs the same core on-device |
+| `apps/app` | Expo phone app — same stop editor and planner, running the core on-device |
 | `submission/` | Seva First pitch deck, built from the official template |
 
 <img src="docs/media/section-seva.svg" width="100%" alt="5. Made for Seva First">
