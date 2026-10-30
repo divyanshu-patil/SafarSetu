@@ -190,3 +190,22 @@ test("a delayed trip with a good alternative says to take the alternative", () =
   assert.ok(a.alert && a.alert.kind !== "relax", `got ${a.alert?.kind}: ${a.alert?.body}`);
   if (a.summary?.switched) assert.match(a.alert!.body, /Take /);
 });
+
+const stopPt = (id: string) => { const s = puneNetwork.stops.find((x) => x.id === id)!; return { name: s.name, lat: s.lat, lon: s.lon }; };
+const metroTrip = (a: string, b: string, at: number) => {
+  const p = planDay(puneNetwork, { date: "2026-11-02", origin: stopPt(a), startMin: at, endMin: 23 * 60, keepOrder: true, places: [{ ...stopPt(b), minDwell: 10, maxDwell: 10, required: true, priority: 3 }] } as PlanRequest);
+  const m = p.timeline.find((e) => e.kind === "move") as any;
+  return m.itinerary.legs.filter((l: any) => l.kind === "transit") as { mode: string; routeName: string; from: { name: string }; to: { name: string } }[];
+};
+
+test("a metro that is only a minute slower than a bus still wins the tie (Shivajinagar → Swargate)", () => {
+  const legs = metroTrip("m_shivaji", "m_swargate", 10 * 60);
+  assert.deepEqual(legs.map((l) => l.mode), ["metro"]);
+});
+
+test("Purple ⇄ Aqua change happens at Civil Court", () => {
+  const legs = metroTrip("m_pcmc", "m_ramwadi", 10 * 60);
+  assert.deepEqual(legs.map((l) => l.routeName), ["Purple Line", "Aqua Line"]);
+  assert.equal(legs[0]!.to.name, "Civil Court");
+  assert.equal(legs[1]!.from.name, "Civil Court");
+});

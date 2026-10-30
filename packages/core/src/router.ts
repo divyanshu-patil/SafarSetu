@@ -281,11 +281,15 @@ export function cabItinerary(from: Pt, to: Pt, departMin: number): Itinerary {
   return summarize([leg]);
 }
 
-const score = (it: Itinerary) => it.arriveMin + it.transfers * 3 + it.walkM / 400;
+/** Earliest arrival wins; ties and near-ties go to fewer changes, less walking and rail over bus (a metro doesn't sit in traffic, so it is the more dependable of two similar options). */
+const score = (it: Itinerary) => it.arriveMin + it.transfers * 3 + it.walkM / 400 + it.legs.filter((l) => l.kind === "transit" && l.mode === "bus").length * 2.5;
 
 /** Best door-to-door option leaving at/after `departMin`. Never returns nothing: cab is the fallback. */
 export function bestItinerary(ix: Indexed, live: LiveState, from: LatLon & { name?: string }, to: LatLon & { name?: string }, departMin: number, o: RouteOpts): Itinerary {
   const cands = search(ix, live, from, to, departMin, o);
+  // the search keeps only the single earliest arrival per number of vehicles, so a metro a minute behind a bus never surfaces;
+  // a bus-free search puts it back in the running and the score decides
+  if (!o.avoid.includes("bus")) cands.push(...search(ix, live, from, to, departMin, { ...o, avoid: [...o.avoid, "bus"] }));
   const direct = haversine(from, to);
   if (direct <= o.maxWalkM * 0.9) cands.push(walkItinerary(from, to, departMin, o));
   cands.sort((a, b) => score(a) - score(b));

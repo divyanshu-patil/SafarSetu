@@ -66,8 +66,11 @@ export default function Result() {
         </Animated.View>
       )}
       <Animated.View entering={fx.in(1)} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        {([[String(visits), t('stops')], [`${(plan.totals.walkM / 1000).toFixed(1)} km`, t('walking')], [`₹${plan.totals.fare}`, t('fares')], [`${plan.totals.confidencePct}%`, t('onTime')]] as const).map(([v, l]) => (
-          <View key={l}><Txt v="num">{v}</Txt><Txt v="sub">{l}</Txt></View>
+        {([[String(visits), t('stops'), th.textStrong, 'flag'], [`${(plan.totals.walkM / 1000).toFixed(1)} km`, t('walking'), '#475569', 'walk'], [`₹${plan.totals.fare}`, t('fares'), '#15803d', 'cash-outline'], [`${plan.totals.confidencePct}%`, t('onTime'), plan.totals.confidencePct >= 80 ? '#15803d' : '#cb272f', 'shield-checkmark']] as const).map(([v, l, c, ic]) => (
+          <View key={l} style={{ gap: 2 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name={ic} size={14} color={c} /><Txt v="sub">{l}</Txt></View>
+            <Txt v="num" style={{ color: c }}>{v}</Txt>
+          </View>
         ))}
       </Animated.View>
 
