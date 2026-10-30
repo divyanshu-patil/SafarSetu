@@ -43,18 +43,18 @@ export default function ImpactPage() {
           <div className="card">
             <h2 className="h3">Factors and where they come from</h2>
             <table className="t mt"><thead><tr><th>Factor</th><th>Value used</th><th>Basis</th></tr></thead><tbody>
-              <tr><td>Cab fare</td><td>₹{F.cab.base} + ₹{F.cab.perKm}/km after {F.cab.freeKm} km</td><td>Pune app-cab ₹37 + ₹25/km (RTA, 2025); Mumbai taxi ₹21.90/km (2026) — we use the lower rate (HIGH/MED)</td></tr>
-              <tr><td>Cab CO₂</td><td>{F.co2.cab} g / passenger-km</td><td>Tailpipe 148–192 g per vehicle-km (India Environment Portal); assumes one passenger</td></tr>
-              <tr><td>Bus CO₂</td><td>{F.co2.bus} g / passenger-km</td><td>Two sources disagree (15 g GHG Platform vs 53 g Down To Earth); <b>we use the higher</b> so savings aren’t overstated</td></tr>
-              <tr><td>Rail CO₂</td><td>{F.co2.train} g / passenger-km</td><td>GHG Platform India, suburban ≈ 7.95 g</td></tr>
-              <tr><td>Metro CO₂</td><td>{F.co2.metro} g / passenger-km</td><td><b>Assumption</b> — no sourced Indian metro factor found</td></tr>
+              <tr><th scope="row">Cab fare</th><td>₹{F.cab.base} + ₹{F.cab.perKm}/km after {F.cab.freeKm} km</td><td>Pune app-cab ₹37 + ₹25/km (RTA, 2025); Mumbai taxi ₹21.90/km (2026) — we use the lower rate (HIGH/MED)</td></tr>
+              <tr><th scope="row">Cab CO₂</th><td>{F.co2.cab} g / passenger-km</td><td>Tailpipe 148–192 g per vehicle-km (India Environment Portal); assumes one passenger</td></tr>
+              <tr><th scope="row">Bus CO₂</th><td>{F.co2.bus} g / passenger-km</td><td>Two sources disagree (15 g GHG Platform vs 53 g Down To Earth); <b>we use the higher</b> so savings aren’t overstated</td></tr>
+              <tr><th scope="row">Rail CO₂</th><td>{F.co2.train} g / passenger-km</td><td>GHG Platform India, suburban ≈ 7.95 g</td></tr>
+              <tr><th scope="row">Metro CO₂</th><td>{F.co2.metro} g / passenger-km</td><td><b>Assumption</b> — no sourced Indian metro factor found</td></tr>
             </tbody></table>
             {F.provisional && <p className="label hot mt">Provisional: metro factor and cab occupancy are assumptions. Replace with sourced values before any public claim.</p>}
           </div>
 
           <div className="card">
             <h2 className="h3">Who this could reach (addressable, not achieved)</h2>
-            <table className="t mt"><tbody>{SCALE.map(([a, b, c]) => <tr key={a}><td><b>{a}</b></td><td>{b}</td><td className="sub">{c}</td></tr>)}</tbody></table>
+            <table className="t mt"><tbody>{SCALE.map(([a, b, c]) => <tr key={a}><th scope="row">{a}</th><td>{b}</td><td className="sub">{c}</td></tr>)}</tbody></table>
           </div>
 
           <div className="card">

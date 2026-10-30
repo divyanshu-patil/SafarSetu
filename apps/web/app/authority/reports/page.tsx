@@ -42,12 +42,12 @@ export default function Inbox() {
 
   if (!me) return null;
   return (
-    <AuthorityShell me={me}>
+    <AuthorityShell me={me} heading>
       <section className="band section tight" style={{ minHeight: "80vh" }}>
         <div className="wrap stack">
           <div className="card">
             <div className="row" style={{ gap: 12 }}>
-              <div style={{ position: "relative", flex: "1 1 240px" }}><input className="input" placeholder="Search area, reference, text…" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} /></div>
+              <div style={{ position: "relative", flex: "1 1 240px" }}><input className="input" aria-label="Search reports by area, reference or text" placeholder="Search area, reference, text…" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} /></div>
               <select className="input" style={{ width: 220 }} value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} aria-label="Category">
                 <option value="">All categories</option>{(Object.keys(CATEGORIES) as ReportCategory[]).map((k) => <option key={k} value={k}>{CATEGORIES[k].label} ({data?.facets.category[k] ?? 0})</option>)}
               </select>
@@ -105,7 +105,7 @@ export default function Inbox() {
 
                 <div><div className="label">Internal notes (staff only)</div>
                   {sel.internalNotes.map((n, i) => <p key={i} className="sub mt" style={{ color: "var(--color-ink)" }}><Icon name="MessageCircleQuestion" size={13} /> {n.text} <span style={{ color: "var(--color-steel)" }}>— {n.by}, {new Date(n.at).toLocaleDateString()}</span></p>)}
-                  <div className="row mt" style={{ gap: 8 }}><input className="input" value={note} placeholder="Add a note for colleagues…" onChange={(e) => setNote(e.target.value)} /><button className="pill-primary" disabled={!note || saving} onClick={() => patch({ internalNote: note })}>Add</button></div>
+                  <div className="row mt" style={{ gap: 8 }}><input className="input" value={note} aria-label="Internal note for colleagues" placeholder="Add a note for colleagues…" onChange={(e) => setNote(e.target.value)} /><button className="pill-primary" disabled={!note || saving} onClick={() => patch({ internalNote: note })}>Add</button></div>
                 </div>
               </div>
             )}

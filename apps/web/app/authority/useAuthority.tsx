@@ -16,7 +16,7 @@ export function useMe(): Me | null {
   return me;
 }
 
-export function AuthorityShell({ me, children }: { me: Me; children: ReactNode }) {
+export function AuthorityShell({ me, heading, children }: { me: Me; heading?: boolean; children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const tab = (href: string, label: string, icon: string) => (
@@ -24,7 +24,7 @@ export function AuthorityShell({ me, children }: { me: Me; children: ReactNode }
   );
   return (
     <main>
-      <LocalBar title="Authority portal" crumb={`${me.org} · ${ROLE_LABEL[me.role]}`}>
+      <LocalBar heading={heading} title="Authority portal" crumb={`${me.org} · ${ROLE_LABEL[me.role]}`}>
         {tab("/authority", "Overview", "TrendingUp")}
         {tab("/authority/reports", "Citizen reports", "Inbox")}
         <button className="pill-outline" style={{ display: "inline-flex", gap: 6, alignItems: "center" }} onClick={() => { setAuth(null); router.push("/authority/login"); }}><Icon name="LogOut" size={13} />Sign out</button>

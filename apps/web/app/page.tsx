@@ -197,7 +197,7 @@ export default function Planner() {
                     </>
                   )}
                 </div>
-                <button className="icobtn" aria-pressed={pick === "start"} title="Pick start on map" onClick={() => setPick(pick === "start" ? null : "start")}><Icon name="MapPin" size={16} /></button>
+                <button className="icobtn" aria-pressed={pick === "start"} title="Pick start on map" aria-label="Pick start on map" onClick={() => setPick(pick === "start" ? null : "start")}><Icon name="MapPin" size={16} /></button>
               </div>
               {stops.map((s, i) => (
                 <div key={s.id} className="stopblock">
@@ -207,10 +207,10 @@ export default function Planner() {
                       <div className="stopname">{s.name}</div>
                       <div className="sub">{s.task || "Add what you’re doing here"} · {s.dwell} min{s.arriveBy ? ` · be there by ${s.arriveBy}` : ""}{s.required ? "" : " · optional"}</div>
                     </div>
-                    <button className="icobtn" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}><Icon name="ArrowUp" size={16} /></button>
-                    <button className="icobtn" title="Move down" disabled={i === stops.length - 1} onClick={() => move(i, 1)}><Icon name="ArrowDown" size={16} /></button>
-                    <button className="icobtn" aria-pressed={open === s.id} title="Details" onClick={() => setOpen(open === s.id ? null : s.id)}><Icon name="SlidersHorizontal" size={16} /></button>
-                    <button className="icobtn" title="Remove stop" onClick={() => setStops((x) => x.filter((y) => y.id !== s.id))}><Icon name="X" size={16} /></button>
+                    <button className="icobtn" title="Move up" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}><Icon name="ArrowUp" size={16} /></button>
+                    <button className="icobtn" title="Move down" aria-label="Move down" disabled={i === stops.length - 1} onClick={() => move(i, 1)}><Icon name="ArrowDown" size={16} /></button>
+                    <button className="icobtn" aria-pressed={open === s.id} title="Details" aria-label="Details" onClick={() => setOpen(open === s.id ? null : s.id)}><Icon name="SlidersHorizontal" size={16} /></button>
+                    <button className="icobtn" title="Remove stop" aria-label="Remove stop" onClick={() => setStops((x) => x.filter((y) => y.id !== s.id))}><Icon name="X" size={16} /></button>
                   </div>
                   {open === s.id && (
                     <div className="stopdetails">
@@ -229,7 +229,7 @@ export default function Planner() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <PlaceSearch city={cityId} label="" placeholder={t("addStop")} onPick={(h) => { const st = newStop({ ...h }); setStops((s) => [...s, st]); setOpen(st.id); }} />
                 </div>
-                <button className="icobtn" aria-pressed={pick === "stop"} title="Add stops by clicking the map" onClick={() => setPick(pick === "stop" ? null : "stop")}><Icon name="MapPin" size={16} /></button>
+                <button className="icobtn" aria-pressed={pick === "stop"} title="Add stops by clicking the map" aria-label="Add stops by clicking the map" onClick={() => setPick(pick === "stop" ? null : "stop")}><Icon name="MapPin" size={16} /></button>
               </div>
               {pick && <p className="sub" role="status" style={{ marginLeft: 44 }}>{pick === "stop" ? "Click the map to add stops. Click the pin again to stop." : "Click the map to set your start."}</p>}
               {!stops.length && <p className="sub" style={{ marginLeft: 44 }}>{t("addFirst")}</p>}

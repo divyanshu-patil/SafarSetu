@@ -2,17 +2,14 @@ import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CATEGORIES, PROMISE, createClient, type PublicReport, type ReportCategory } from '@repo/core';
+import { CATEGORIES, PROMISE, type PublicReport, type ReportCategory } from '@repo/core';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Chip, PillButton } from '@/components/ui/pill';
 import { BottomTabInset, Font, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { API, client } from '@/lib/api';
 import { useTheme } from '@/hooks/use-theme';
-
-// Android emulators reach the host machine at 10.0.2.2
-const API = process.env.EXPO_PUBLIC_API_URL ?? (Platform.OS === 'android' ? 'http://10.0.2.2:4000' : 'http://localhost:4000');
-const client = createClient(API);
 
 const ICON: Record<ReportCategory, { ios: string; android: string; web: string }> = {
   no_feeder: { ios: 'bus.fill', android: 'directions_bus', web: 'directions_bus' },

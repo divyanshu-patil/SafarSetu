@@ -15,7 +15,7 @@ export default function Track() {
   useEffect(() => { fetch(`${api.baseUrl}/v1/reports/track/${ref}`).then(async (x) => { const j = await x.json(); if (!x.ok) throw new Error(j?.error?.message); setR(j.report); }).catch((e) => setErr(e.message)); }, [ref]);
   return (
     <main>
-      <LocalBar title="Report status" crumb={ref}><OutlinePill href="/report">New report</OutlinePill></LocalBar>
+      <LocalBar heading title="Report status" crumb={ref}><OutlinePill href="/report">New report</OutlinePill></LocalBar>
       <section className="band section" style={{ minHeight: "70vh" }}>
         <div className="wrap" style={{ maxWidth: 820 }}>
           {err && <p className="err">{err}</p>}

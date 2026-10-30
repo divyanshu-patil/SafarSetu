@@ -5,7 +5,7 @@ export const metadata = { title: "Privacy — SafarSetu" };
 export default function Privacy() {
   return (
     <main>
-      <LocalBar title="Privacy notice" crumb="Plain language · prototype, to be finalised with legal review"><OutlinePill href="/">Back to the planner</OutlinePill></LocalBar>
+      <LocalBar heading title="Privacy notice" crumb="Plain language · prototype, to be finalised with legal review"><OutlinePill href="/">Back to the planner</OutlinePill></LocalBar>
       <section className="section tight">
         <div className="wrap" style={{ maxWidth: 820 }}>
           <div className="stack">

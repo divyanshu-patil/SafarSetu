@@ -82,6 +82,7 @@ export default function Trip() {
   return (
     <main>
       <section className="hero wrap" style={{ paddingBottom: 40 }}>
+        <h1 className="sr">{readOnly ? "Shared live trip" : "Live trip"}</h1>
         <div className="kicker">{readOnly ? "Shared live trip (view only)" : "Live trip"}{plan.request.traveller?.name ? ` · ${plan.request.traveller.name}` : ""}</div>
         <div className="clock" style={{ margin: "20px 0 12px" }} aria-live="off">{fmtTime(now)}</div>
         <p className="sub" style={{ margin: "0 auto" }}>{clock?.c.date} · simulated clock{clock?.c.running ? ` · ${clock.c.speed}×` : " · paused"} · revision {plan.revision}</p>

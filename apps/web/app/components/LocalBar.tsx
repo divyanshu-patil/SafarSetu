@@ -2,11 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 /** Product local navigation: name left, compact pills right. */
-export function LocalBar({ title, crumb, children }: { title: string; crumb?: string; children?: ReactNode }) {
+export function LocalBar({ title, crumb, heading, children }: { title: string; crumb?: string; /** render the title as the page's <h1> (for pages without a hero heading) */ heading?: boolean; children?: ReactNode }) {
   return (
     <div className="local">
       <div className="local-in">
-        <p className="title">{title}</p>
+        {heading ? <h1 className="title">{title}</h1> : <p className="title">{title}</p>}
         {crumb && <span className="crumb">{crumb}</span>}
         <span className="spacer" />
         {children}

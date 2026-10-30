@@ -32,7 +32,7 @@ export default function Field() {
 
   return (
     <main>
-      <LocalBar title="Field research kit" crumb="Anonymous, consented commuter interviews — the evidence behind the problem slide" />
+      <LocalBar heading title="Field research kit" crumb="Anonymous, consented commuter interviews — the evidence behind the problem slide" />
       <section className="band section tight">
         <div className="wrap stage" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <div className="card stack">
