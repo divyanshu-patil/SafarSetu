@@ -84,7 +84,8 @@ function Row({ id, index, active, committing, ty, onLayout, onBegin, onMove, onE
   // rows between the dragged row and its target make room for it
   const shift = !active || dragging ? 0 : index > active.from && index <= active.over ? -active.h : index < active.from && index >= active.over ? active.h : 0;
   const sh = useSharedValue(0);
-  useEffect(() => { sh.value = withTiming(shift, { duration: 160 }); }, [shift, sh]);
+  // sliding aside animates; once the drop is committed the row's real position has already moved, so the offset must vanish instantly
+  useEffect(() => { sh.value = active ? withTiming(shift, { duration: 160 }) : 0; }, [shift, active, sh]);
 
   const latest = useRef({ onBegin, onMove, onEnd });
   latest.current = { onBegin, onMove, onEnd };
