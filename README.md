@@ -6,7 +6,6 @@
   <a href="docs/README.md"><b>Docs</b></a> ·
   <a href="submission/SafarSetu-Seva-First-Pitch.pdf"><b>Pitch deck (PDF)</b></a> ·
   <a href="DATA_SOURCES.md">Data sources</a> ·
-  <a href="docs/13-seva-scorecard.md">Scorecard</a> ·
   <a href="docs/14-pilot-plan.md">Pilot plan</a> ·
   <a href="NEEDED_FROM_YOU.md">Needed from you</a>
 </p>
@@ -96,8 +95,6 @@ SafarSetu is built for the **[Seva First Innovation Challenge 2026, Maharashtra 
 | A **working demo** | This repo; screenshots above | ✔ runs locally · public URL pending |
 | Fits **money already spent** | Complements ITMS and grievance systems — [argument and sources](docs/14-pilot-plan.md) | ✔ argued, no agency agreement yet |
 | A deliverable **pilot plan** | [`docs/14-pilot-plan.md`](docs/14-pilot-plan.md): 4 stages, a number each, named roles, finance | ✔ planned · nothing piloted |
-
-An honest self-assessment per official criterion, with the test log, is in [`docs/13-seva-scorecard.md`](docs/13-seva-scorecard.md).
 
 #### Known limits
 
