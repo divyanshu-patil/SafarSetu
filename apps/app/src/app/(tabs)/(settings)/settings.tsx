@@ -61,6 +61,11 @@ export default function SettingsScreen() {
         <Wrap>{MODES.map(([k, icon]) => <Chip key={k} icon={icon} label={t(k)} selected={!s.avoid.includes(k)} onPress={() => s.set({ avoid: s.avoid.includes(k) ? s.avoid.filter((a) => a !== k) : [...s.avoid, k] })} />)}</Wrap>
       </Group>
 
+      <Group label={t('savedPlaces')}>
+        {s.saved.length === 0 ? <Txt v="sub">{t('nothingSaved')}</Txt> : <Wrap>{s.saved.map((p) => <Chip key={p.name + p.lat} icon="close" label={p.name} onPress={() => s.toggleSaved(p)} />)}</Wrap>}
+        {s.recents.length > 0 && <Btn kind="ghost" label={`${t('clearRecents')} (${s.recents.length})`} onPress={() => s.set({ recents: [] })} />}
+      </Group>
+
       <Card>
         <Row icon="stats-chart-outline" title={t('insights')} onPress={() => router.push('/insights')} />
         <Row icon="server-outline" title={t('server')} hint={online === null ? ' ' : online ? t('online') : t('offline')}

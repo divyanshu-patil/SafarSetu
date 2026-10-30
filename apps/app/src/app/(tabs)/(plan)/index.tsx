@@ -43,6 +43,10 @@ export default function PlanScreen() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const setStart = (p: Pt) => { setOrigin(p); setEditStart(false); s.addRecent({ name: p.name, lat: p.lat, lon: p.lon }); };
+  const addStop = (p: Pt) => { const n = stopOf(p); setStops((y) => [...y, n]); setOpen(n.id); s.addRecent({ name: p.name, lat: p.lat, lon: p.lon }); };
+  // a chip tap fills the start first, then adds stops
+  const usePt = (p: Pt) => (!origin || editStart ? setStart(p) : addStop(p));
   const patch = (id: string, p: Partial<Stop>) => setStops((x) => x.map((y) => (y.id === id ? { ...y, ...p } : y)));
   const move = (i: number, d: -1 | 1) => setStops((x) => { const n = [...x]; const j = i + d; if (j < 0 || j >= n.length) return x; [n[i], n[j]] = [n[j]!, n[i]!]; return n; });
   const clear = () => { setOrigin(null); setStops([]); setOpen(null); setErr(null); setEditStart(false); setFinish(''); setReturnHome(false); };
@@ -99,11 +103,14 @@ export default function PlanScreen() {
           <Rail badge="A" accent line={!!origin} />
           <View style={{ flex: 1, paddingBottom: Spacing.three, gap: Spacing.two }}>
             {origin && !editStart ? (
-              <Pressable accessibilityRole="button" onPress={() => setEditStart(true)}>
-                <Txt v="h2" numberOfLines={1}>{origin.name}</Txt>
-              </Pressable>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+                <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => setEditStart(true)}>
+                  <Txt v="h2" numberOfLines={1}>{origin.name}</Txt>
+                </Pressable>
+                <IconBtn testID="save-start" icon={s.isSaved(origin) ? 'bookmark' : 'bookmark-outline'} label={t('save')} size={30} active={s.isSaved(origin)} onPress={() => s.toggleSaved(origin)} />
+              </View>
             ) : (
-              <PlaceInput onCard places={net.places} placeholder={t('startHint')} onPick={(p) => { setOrigin(p); setEditStart(false); }} withLocate />
+              <PlaceInput onCard places={net.places} placeholder={t('startHint')} onPick={setStart} withLocate />
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
               <Icon name="time-outline" size={15} color={th.textSecondary} />
@@ -135,6 +142,7 @@ export default function PlanScreen() {
                     <Txt v="sub">{t('beThereBy')}</Txt>
                     <TimePick optional value={x.by} onChange={(v) => patch(x.id, { by: v })} label={t('beThereBy')} fallback="12:00" />
                     <Chip label={x.required ? t('must') : t('optional')} icon={x.required ? 'lock-closed' : 'lock-open-outline'} selected={x.required} onPress={() => patch(x.id, { required: !x.required })} />
+                    <Chip label={s.isSaved(x) ? t('saved') : t('save')} icon={s.isSaved(x) ? 'bookmark' : 'bookmark-outline'} selected={s.isSaved(x)} onPress={() => s.toggleSaved({ name: x.name, lat: x.lat, lon: x.lon })} />
                     <Chip label={t('remove')} icon="close" onPress={() => { setStops((y) => y.filter((z) => z.id !== x.id)); setOpen(null); }} />
                   </View>
                 </Animated.View>
@@ -147,7 +155,7 @@ export default function PlanScreen() {
           <View style={{ flexDirection: 'row', gap: Spacing.three }}>
             <Rail badge="+" last />
             <View style={{ flex: 1 }}>
-              <PlaceInput onCard places={net.places} placeholder={t('addStop')} icon="add" onPick={(p) => { const n = stopOf(p); setStops((y) => [...y, n]); setOpen(n.id); }} />
+              <PlaceInput onCard places={net.places} placeholder={t('addStop')} icon="add" onPick={addStop} />
             </View>
           </View>
         )}
@@ -162,9 +170,13 @@ export default function PlanScreen() {
       )}
 
       {stops.length === 0 && (
-        <Group label={t('popular')}>
-          <Wrap>{net.places.slice(0, 8).map((p) => <Chip key={p.id} icon="location-outline" label={p.name} onPress={() => { const pt = { name: p.name, lat: p.lat, lon: p.lon }; if (!origin || editStart) { setOrigin(pt); setEditStart(false); } else { const n = stopOf(pt); setStops((y) => [...y, n]); setOpen(n.id); } }} />)}</Wrap>
-        </Group>
+        <>
+          {s.saved.length > 0 && <Group label={t('savedPlaces')}><Wrap>{s.saved.map((p) => <Chip key={p.name + p.lat} icon="bookmark" label={p.name} onPress={() => usePt(p)} />)}</Wrap></Group>}
+          {s.recents.filter((r) => !s.isSaved(r)).length > 0 && <Group label={t('recent')}><Wrap>{s.recents.filter((r) => !s.isSaved(r)).slice(0, 4).map((p) => <Chip key={p.name + p.lat} icon="time-outline" label={p.name} onPress={() => usePt(p)} />)}</Wrap></Group>}
+          <Group label={t('popular')}>
+            <Wrap>{net.places.slice(0, 6).map((p) => <Chip key={p.id} icon="location-outline" label={p.name} onPress={() => usePt({ name: p.name, lat: p.lat, lon: p.lon })} />)}</Wrap>
+          </Group>
+        </>
       )}
 
       <Sheet visible={sheet} title={t('options')} onClose={() => setSheet(false)}>

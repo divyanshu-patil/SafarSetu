@@ -7,9 +7,10 @@ import type { Network } from '@repo/core';
 import { Field, Icon, IconBtn, Txt, fx, useReveal, type IconName } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useSettings } from '@/lib/settings';
+import { sameSpot, useSettings } from '@/lib/settings';
 
-export interface Pt { name: string; lat: number; lon: number }
+export type { Pt } from '@/lib/settings';
+import type { Pt } from '@/lib/settings';
 interface Hit extends Pt { sub?: string; icon: IconName }
 
 /** Current position as a named point (name from the server's reverse geocoder when reachable). */
@@ -24,7 +25,7 @@ export async function locate(client: ReturnType<typeof useSettings>['client']): 
 /** Search field with live suggestions: this region's known places instantly, then the server's geocoder. */
 export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'search', onCard }: { places: Network['places']; placeholder: string; onPick: (p: Pt) => void; withLocate?: boolean; icon?: IconName; onCard?: boolean }) {
   const t = useTheme();
-  const { client, t: tr } = useSettings();
+  const { client, t: tr, saved, recents } = useSettings();
   const [q, setQ] = useState('');
   const [focus, setFocus] = useState(false);
   const [remote, setRemote] = useState<Hit[]>([]);
@@ -35,11 +36,20 @@ export function PlaceInput({ places, placeholder, onPick, withLocate, icon = 'se
   const reveal = useReveal();
 
   const needle = q.trim().toLowerCase();
-  const local: Hit[] = places
-    .filter((p) => !needle || p.name.toLowerCase().includes(needle))
-    .sort((a, b) => Number(b.name.toLowerCase().startsWith(needle)) - Number(a.name.toLowerCase().startsWith(needle)))
-    .slice(0, needle ? 5 : 6)
-    .map((p) => ({ name: p.name, lat: p.lat, lon: p.lon, sub: p.area, icon: 'location-outline' }));
+  const fits = (n: string) => !needle || n.toLowerCase().includes(needle);
+  // the rider's own places first (saved, then recents), then this region's places
+  const mine: Hit[] = [
+    ...saved.filter((p) => fits(p.name)).map((p): Hit => ({ ...p, sub: tr('saved'), icon: 'bookmark' })),
+    ...recents.filter((p) => fits(p.name) && !saved.some((s) => sameSpot(s, p))).map((p): Hit => ({ ...p, sub: tr('recent'), icon: 'time-outline' })),
+  ].slice(0, needle ? 4 : 6);
+  const local: Hit[] = [
+    ...mine,
+    ...places
+      .filter((p) => fits(p.name) && !mine.some((m) => sameSpot(m, p)))
+      .sort((a, b) => Number(b.name.toLowerCase().startsWith(needle)) - Number(a.name.toLowerCase().startsWith(needle)))
+      .slice(0, Math.max(needle ? 5 : 6 - mine.length, needle ? 3 : 2))
+      .map((p): Hit => ({ name: p.name, lat: p.lat, lon: p.lon, sub: p.area, icon: 'location-outline' })),
+  ];
   // the geocoder repeats names ("Shivajinagar, Shivajinagar"): keep one hit per leading name
   const head = (n: string) => n.split(',')[0]!.trim().toLowerCase();
   const seen = new Set(local.map((h) => head(h.name)));

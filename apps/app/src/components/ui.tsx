@@ -3,8 +3,8 @@ import { BottomSheet, Host, Switch as NativeSwitch } from '@expo/ui';
 import { Stack } from 'expo-router';
 import { type ReactNode } from 'react';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { createContext, useContext, useRef } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Font, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -69,17 +69,23 @@ export function Screen({ children, footer }: { children: ReactNode; footer?: Rea
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const ios = Platform.OS === 'ios';
-  const sv = useRef<any>(null); // RN 0.88 types the instance oddly; only scrollTo/getInnerViewRef are used
+  const sv = useRef<any>(null); // RN 0.88 types the instance oddly; only scrollTo is used
+  const [extra, setExtra] = useState(0); // room below the content so a field near the bottom can still be scrolled up to the header
+  useEffect(() => { const h = Keyboard.addListener('keyboardDidHide', () => setExtra(0)); return () => h.remove(); }, []);
+  const scrollY = useRef(0); // includes the negative offset the native header inset adds at rest
   const reveal = (node: any) => {
-    // wait for the keyboard to finish rising, then put the field near the top so its suggestions have room
+    setExtra(500);
+    // after the keyboard is up, park the field just under the header: suggestions below it get all the space the keyboard leaves
     setTimeout(() => {
-      const inner = sv.current?.getInnerViewRef();
-      if (node && inner) node.measureLayout(inner as never, (_x: number, y: number) => sv.current?.scrollTo({ y: Math.max(0, y - 90), animated: true }), () => {});
+      node?.measureInWindow?.((_x: number, y: number) => {
+        const below = Platform.OS === 'ios' ? 150 : 120; // window y just under the native header (insets inside a native-header screen don't include it)
+        sv.current?.scrollTo({ y: scrollY.current + (y - below), animated: true });
+      });
     }, 300);
   };
   return (
     <RevealCtx.Provider value={reveal}>
-      <ScrollView ref={sv} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom), alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
+      <ScrollView ref={sv} scrollEventThrottle={16} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} style={{ flex: 1, backgroundColor: t.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.five + (ios ? 0 : insets.bottom) + extra, alignItems: 'center' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <View style={{ width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three }}>{children}</View>
       </ScrollView>
       {footer && <View style={[styles.footer, { backgroundColor: t.background, borderColor: t.border, paddingBottom: Spacing.two + insets.bottom }]}>{footer}</View>}
@@ -104,10 +110,10 @@ export function Toggle({ value, onValueChange, label }: { value: boolean; onValu
   );
 }
 
-export function IconBtn({ icon, label, onPress, active, disabled, size = 36 }: { icon: IconName; label: string; onPress?: () => void; active?: boolean; disabled?: boolean; size?: number }) {
+export function IconBtn({ icon, label, onPress, active, disabled, size = 36, testID }: { icon: IconName; label: string; onPress?: () => void; active?: boolean; disabled?: boolean; size?: number; testID?: string }) {
   const t = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} hitSlop={6} disabled={disabled} onPress={onPress}
+    <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} disabled={disabled} onPress={onPress}
       style={({ pressed }) => [{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? t.accent : t.backgroundElement, opacity: disabled ? 0.35 : pressed ? 0.7 : 1 }]}>
       <Ionicons name={icon} size={size * 0.5} color={active ? t.onAccent : t.textStrong} />
     </Pressable>
